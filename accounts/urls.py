@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     dashboard, student, activity_stream, courses, calendar,
-    messages, grades, assist, tools, sign_out, login
+    messages, grades, assist, tools, sign_out, login, add_user
 )
 
 urlpatterns = [
@@ -16,4 +16,5 @@ urlpatterns = [
     path('assist/', assist, name='assist'),
     path('tools/', tools, name='tools'),
     path('sign-out/', sign_out, name='sign_out'),
+    path('add_user/', add_user, name='add_user'),
 ]
