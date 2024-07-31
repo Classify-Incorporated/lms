@@ -31,6 +31,9 @@ def assist(request):
 def tools(request):
     return render(request, 'accounts/tools.html')
 
+def add_user(request):
+    return render(request, 'accounts/add_user.html')
+
 def sign_out(request):
     auth_logout(request)
-    return redirect('accounts/login')
+    return redirect('login')
