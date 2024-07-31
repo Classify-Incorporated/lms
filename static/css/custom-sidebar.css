@@ -1,0 +1,26 @@
+.custom-sidebar {
+    background-color: #0E1E2F; /* Background color */
+  }
+  
+  .custom-sidebar .nav-link {
+    color: #FFFFFF; /* Text color */
+  }
+  
+  .custom-sidebar .nav-link:hover {
+    color: #1E90FF; /* Hover text color */
+    background-color: #314455; /* Hover background color */
+  }
+  
+  .custom-sidebar .sidebar-divider {
+    border-color: #314455; /* Divider color */
+  }
+  
+  .custom-sidebar .sidebar-brand-text {
+    color: #FFFFFF; /* Brand text color */
+  }
+  
+  .custom-sidebar .nav-item.active .nav-link {
+    color: #FFFFFF; /* Active link text color */
+    background-color: #314455; /* Active link background color */
+  }
+  
