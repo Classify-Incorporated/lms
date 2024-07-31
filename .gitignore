@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.env
+*.venv
+*.egg-info/
+*.sqlite3
+
+# Djangogit
+/db.sqlite3
+/media
+migrations/
+
+# Environments
+.env
+
+# Git
+.DS_Store
