@@ -32,17 +32,12 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                                     </div>
-                                    <form method="post" action="{% url 'account_login' %}">
-                                        {% csrf_token %}
-                                        {{ form.as_p }}
-                                        <button type="submit">Login with Email</button>
-                                    </form>
                                     <hr />
                                     <div class="text-center">
-                                        <a class="small" href="#">Forgot Password?</a>
+                                        <a href="{% provider_login_url 'microsoft' %}" class="btn btn-secondary btn-user btn-block">
+                                            <i class="fab fa-microsoft fa-fw"></i> Login with Office 365
+                                        </a>
                                     </div>
-                                    <h3>Or</h3>
-                                    <a href="{% provider_login_url 'microsoft' %}">Login with Office 365</a>
                                 </div>
                             </div>
                         </div>

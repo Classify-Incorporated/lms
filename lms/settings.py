@@ -43,6 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
+    'roles',
+    'subject',
+    'module',
+    'course',
 
     'django.contrib.sites',
     'allauth',
@@ -147,6 +151,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SITE_ID = 1
 
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
@@ -154,7 +160,7 @@ AUTHENTICATION_BACKENDS = (
 
 
 LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = ''
+LOGOUT_REDIRECT_URL = '/login/'
 
 SOCIALACCOUNT_PROVIDERS = {
     'microsoft': {
@@ -165,6 +171,7 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'AUTH_PARAMS': {
             'response_type': 'code',
+            'scope': 'email openid profile User.Read'
         },
         'TENANT': os.getenv('MICROSOFT_TENANT', ''),
         'REDIRECT_URI': 'http://localhost:8000/accounts/microsoft/login/callback/',
@@ -175,7 +182,7 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 
 # Additional allauth settings
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "optional"  # can be "mandatory", "optional", or "none"
+ACCOUNT_EMAIL_VERIFICATION = "none"  # can be "mandatory", "optional", or "none"
 ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutes in seconds
 
@@ -189,3 +196,8 @@ ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True
 ACCOUNT_USERNAME_MIN_LENGTH = 4
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "[lms] "
+
+
+ACCOUNT_ADAPTER = 'accounts.adapter.CustomAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'accounts.adapter.CustomSocialAccountAdapter'
+
