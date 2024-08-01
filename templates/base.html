@@ -24,6 +24,16 @@
     <!-- DataTables Responsive CSS -->
     <link href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.bootstrap4.min.css" rel="stylesheet" />
     <link href="https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css" rel="stylesheet" />
+
+    <!-- Add this script to apply dark mode class early -->
+    <script>
+      ;(function () {
+        const settings = JSON.parse(localStorage.getItem('adminSettings'))
+        if (settings && settings.darkMode) {
+          document.documentElement.classList.add('dark-mode')
+        }
+      })()
+    </script>
   </head>
   <body id="page-top">
     <!-- Page Wrapper -->
