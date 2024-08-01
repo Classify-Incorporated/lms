@@ -19,9 +19,11 @@
     <!-- Custom styles for this template -->
     <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet" />
     <link href="{% static 'css/custom-sidebar.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/settings.css' %}" rel="stylesheet" />
     <link href="{% static 'vendor/datatables/dataTables.bootstrap4.min.css' %}" rel="stylesheet" />
     <!-- DataTables Responsive CSS -->
     <link href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.bootstrap4.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css" rel="stylesheet" />
   </head>
   <body id="page-top">
     <!-- Page Wrapper -->
@@ -74,21 +76,13 @@
     <!-- Page level plugins -->
     <script src="{% static 'vendor/chart.js/Chart.min.js' %}"></script>
     <!-- Page level custom scripts -->
-    <script src="{% static 'js/demo/chart-area-demo.js' %}"></script>
-    <script src="{% static 'js/demo/chart-pie-demo.js' %}"></script>
+    <script src="{% static 'js/lms-charts.js' %}"></script>
+    <!-- DataTables Responsive JavaScript -->
+    <script src="{% static 'js/datatables.js' %}"></script>
+    <script src="{% static 'js/settings.js' %}"></script>
     <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
-    <!-- DataTables Responsive JavaScript -->
     <script src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap4.min.js"></script>
-    <!-- Custom script to initialize DataTable with Responsive extension -->
-    <script>
-      $(document).ready(function () {
-        $('#dataTable').DataTable({
-          responsive: true,
-          lengthMenu: [5, 10, 25, 50]
-        })
-      })
-    </script>
   </body>
 </html>
