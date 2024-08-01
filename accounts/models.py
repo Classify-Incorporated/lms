@@ -12,7 +12,7 @@ class CustomUser(AbstractUser):
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(default=True, null=True, blank=True)
 
     #Personal Information
     first_name = models.CharField(max_length=255, null=True, blank=True)
