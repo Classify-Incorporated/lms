@@ -6,7 +6,6 @@
 {% block content %}
   <h1 class="h3 mb-2 text-gray-800">Course</h1>
 
-  <!-- DataTales Example -->
   <div class="card shadow mb-4">
     <div class="card-header py-3">
       <button class="btn btn-primary" id="openAddCourseModalBtn">Add Course</button>
@@ -40,21 +39,204 @@
     </div>
   </div>
 
-  <!-- Include the modal for viewing a course -->
-  {% include 'course/view_course.html' %}
+  <!-- Modal Structure -->
+  <div id="viewCourseModal" class="custom-modal">
+    <div class="custom-modal-content">
+      <div class="custom-modal-header">
+          <button class="close-btn" id="closeCourseModalBtn">&times;</button>
+          <h5>View Course</h5>
+      </div>
+      <div class="custom-modal-body">
+          <div class="course-faculty">
+              <h2>Course Faculty</h2>
+              <div class="faculty-section">
+                  <div class="faculty-member">
+                      <img src="{% static 'img/instructor.png' %}" alt="Instructor" class="faculty-image">
+                      <div>
+                          <h5 id="instructor1"></h5>
+                          <p>Instructor</p>
+                      </div>
+                  </div>
+                  <div class="faculty-member">
+                      <img src="{% static 'img/instructor.png' %}" alt="Instructor" class="faculty-image">
+                      <div>
+                          <h5 id="instructor2"></h5>
+                          <p>Instructor</p>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <div class="course-details">
+              <h4>Details & Actions</h4>
+              <ul>
+                  <li><a href="#">View everyone in your course</a></li>
+                  <li><a href="#">Progress Tracking</a></li>
+                  <li><a href="#">Edit display settings</a></li>
+                  <li><a href="#">Mark attendance</a></li>
+                  <li><a href="#">View course & institution tools</a></li>
+                  <li><a href="#">Manage banks</a></li>
+              </ul>
+              <button class="btn btn-outline-primary btn-block">Add course schedule</button>
+          </div>
+
+          <div class="main-content">
+              <div class="course-card">
+                  <h5 id="courseTitle"></h5>
+                  <p id="courseStatus"></p>
+                  <p id="courseDescription"></p>
+              </div>
+              <div class="course-card" id="testDetails">
+                  <h5>New Test 7/30/24</h5>
+                  <p>Due date: 7/31/24, 11:59 PM</p>
+                  <p>Hidden from students</p>
+              </div>
+              <div class="course-card" id="exemplaryCourse">
+                  <h5>Exemplary Course Design</h5>
+                  <p>Visible to students</p>
+              </div>
+          </div>
+      </div>
+    </div>
+  </div>
+  <div id="viewCourseModalBackdrop" class="custom-modal-backdrop"></div>
+
+  <!-- Inline CSS for Modal -->
+  <style>
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        outline: 0;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .custom-modal.show {
+        display: block;
+    }
+
+    .custom-modal-content {
+        position: relative;
+        margin: 30px auto;
+        width: 95%;
+        height: 90%;
+        max-width: 1200px;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    .custom-modal-header {
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .custom-modal-body {
+        display: flex;
+        padding: 2rem;
+    }
+
+    .custom-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+    }
+
+    .custom-modal-backdrop.show {
+        display: block;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .course-faculty {
+        width: 20%;
+        padding-right: 1rem;
+        border-right: 1px solid #ddd;
+    }
+
+    .faculty-section {
+        margin-top: 1rem;
+    }
+
+    .faculty-member {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .faculty-image {
+        width: 50px;
+        height: 50px;
+        margin-right: 10px;
+    }
+
+    .course-details {
+        width: 20%;
+        padding-right: 1rem;
+        border-right: 1px solid #ddd;
+        margin-left: 1rem;
+    }
+
+    .course-details ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .course-details ul li {
+        margin-bottom: 0.5rem;
+    }
+
+    .course-details ul li a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .course-details ul li a:hover {
+        text-decoration: underline;
+    }
+
+    .main-content {
+        width: 60%;
+        margin-left: 1rem;
+    }
+
+    .course-card {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #fff;
+    }
+
+    .course-card h5 {
+        margin-bottom: 1rem;
+    }
+
+    .course-card p {
+        margin-bottom: 1rem;
+    }
+  </style>
 
   <!-- Custom Modal Script -->
   <script>
-    document.getElementById('openAddCourseModalBtn').addEventListener('click', function () {
-      document.getElementById('customModal').classList.add('show')
-      document.getElementById('customModalBackdrop').classList.add('show')
-    })
-
-    document.getElementById('closeCourseModalBtn').addEventListener('click', function () {
-      document.getElementById('viewCourseModal').classList.remove('show')
-      document.getElementById('viewCourseModalBackdrop').classList.remove('show')
-    })
-
     document.querySelectorAll('.view-course').forEach(function (element) {
       element.addEventListener('click', function (event) {
         event.preventDefault();
@@ -74,5 +256,11 @@
         document.getElementById('viewCourseModalBackdrop').classList.add('show')
       });
     });
+
+    document.getElementById('closeCourseModalBtn').addEventListener('click', function () {
+      document.getElementById('viewCourseModal').classList.remove('show')
+      document.getElementById('viewCourseModalBackdrop').classList.remove('show')
+    });
   </script>
+  
 {% endblock %}
