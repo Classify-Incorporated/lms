@@ -167,7 +167,48 @@
 }
 
 .dark-mode .sticky-footer a {
-    color: #4E7BE5;
+    color: #7473DF;
+}
+
+/* Additional styles for fixed header and footer */
+.fixed-top {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1030;
+}
+
+.footer-fixed {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1030;
+}
+
+.no-border {
+    border-bottom: none !important;
+}
+
+.dropdown-legacy {
+    margin-top: -1rem;
+}
+
+/* Small text classes */
+.text-sm {
+    font-size: 0.875rem !important;
+}
+
+/* Specific classes for small text in different elements */
+.text-sm .navbar {
+    font-size: 0.875rem !important;
+}
+
+.text-sm .brand-link {
+    font-size: 0.875rem !important;
+}
+
+.text-sm .nav-sidebar {
+    font-size: 0.875rem !important;
 }
 
 /* Add additional CSS rules for other elements as needed */

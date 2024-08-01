@@ -94,4 +94,4 @@ def add_user(request):
 
 def sign_out(request):
     auth_logout(request)
-    return redirect('login')
+    return redirect('user_login_view')
