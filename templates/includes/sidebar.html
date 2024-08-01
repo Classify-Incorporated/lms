@@ -1,0 +1,71 @@
+{% load static %}
+<!-- Sidebar -->
+<ul class="navbar-nav sidebar custom-sidebar accordion" id="accordionSidebar">
+  <!-- Sidebar - Brand -->
+  <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'dashboard' %}">
+    <div class="sidebar-brand-icon">
+      <img src="{% static 'images/classify_logo.jpg' %}" alt="Classify Logo" style="width: 40px; height: 40px; border-radius: 50%;" />
+    </div>
+    <div class="sidebar-brand-text mx-2">
+      Classify <sup>LMS</sup>
+    </div>
+  </a>
+  <!-- Divider -->
+  <hr class="sidebar-divider my-0" />
+  <!-- Nav Item - Dashboard -->
+  <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'dashboard' %}">
+      <i class='bx bx-home-alt'></i>
+      <span>Dashboard</span>
+    </a>
+  </li>
+  <li class="nav-item {% if request.resolver_match.url_name == 'student' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'student' %}">
+      <i class='bx bx-user'></i>
+      <span>Student</span>
+    </a>
+  </li>
+  <li class="nav-item {% if request.resolver_match.url_name == 'activity_stream' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'activity_stream' %}">
+      <i class='bx bx-bar-chart-alt-2'></i>
+      <span>Activity Stream</span>
+    </a>
+  </li>
+  <li class="nav-item {% if request.resolver_match.url_name == 'courses' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'courseList' %}">
+      <i class='bx bx-book'></i>
+      <span>Courses</span>
+    </a>
+  </li>
+  <li class="nav-item {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'calendar' %}">
+      <i class='bx bx-calendar'></i>
+      <span>Calendar</span>
+    </a>
+  </li>
+  <li class="nav-item {% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'messages' %}">
+      <i class='bx bx-envelope'></i>
+      <span>Messages</span>
+    </a>
+  </li>
+  <li class="nav-item {% if request.resolver_match.url_name == 'grades' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'grades' %}">
+      <i class='bx bx-clipboard'></i>
+      <span>Grades</span>
+    </a>
+  </li>
+  <li class="nav-item {% if request.resolver_match.url_name == 'assist' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'assist' %}">
+      <i class='bx bx-help-circle'></i>
+      <span>Assist</span>
+    </a>
+  </li>
+  <li class="nav-item {% if request.resolver_match.url_name == 'tools' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'tools' %}">
+      <i class='bx bx-wrench'></i>
+      <span>Tools</span>
+    </a>
+  </li>
+</ul>
+<!-- End of Sidebar -->

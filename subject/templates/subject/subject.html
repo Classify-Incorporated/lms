@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Course
+{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-2 text-gray-800">Course</h1>
+
+  <!-- DataTales Example -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <button class="btn btn-primary" id="openModalBtn">Add Course</button>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Assign Teacher</th>
+              <th>Subject Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for subjects in subjects %}
+            <tr>
+              <td>{{ subjects.assigned_teacher }}</td>
+              <td>{{ subjects.subject_name }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Include the modal from add_user.html -->
+  {% include 'accounts/add_user.html' %}
+
+  <!-- Custom Modal Script -->
+  <script>
+    document.getElementById('openModalBtn').addEventListener('click', function () {
+      document.getElementById('customModal').classList.add('show')
+      document.getElementById('customModalBackdrop').classList.add('show')
+    })
+    
+    document.getElementById('closeModalBtn').addEventListener('click', function () {
+      document.getElementById('customModal').classList.remove('show')
+      document.getElementById('customModalBackdrop').classList.remove('show')
+    })
+  </script>
+{% endblock %}
