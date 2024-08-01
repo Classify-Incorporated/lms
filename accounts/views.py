@@ -1,8 +1,66 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import logout as auth_logout
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import logout as auth_logout, authenticate, login
+from django.contrib import messages
+from .forms import CustomLoginForm, profileForm
+from .models import CustomUser, Profile
 
-def login(request):
-    return render(request, 'accounts/login.html')
+def user_login_view(request):
+        return render(request, 'accounts/login.html')
+
+def admin_login_view(request):
+    if request.method == 'POST':
+        form = CustomLoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            print(f'Login attempt for email: {email}')
+
+            # Authenticate the user
+            user = authenticate(request, username=email, password=password)
+            if user is not None:
+                print(f'User authenticated: {email}')
+                login(request, user)
+                return redirect('dashboard')  # Change 'dashboard' to your actual success URL
+            else:
+                print('Authentication failed')
+                return render(request, 'accounts/login.html', {'form': form, 'error': 'Invalid email or password'})
+        else:
+            print('Login form is not valid')
+            return render(request, 'accounts/login.html', {'form': form, 'error': 'Form data is not valid'})
+    else:
+        form = CustomLoginForm()
+    return render(request, 'accounts/login.html', {'form': form})
+
+#View Profile
+def viewProfile(request, pk):
+    profile = get_object_or_404(Profile, pk=pk)
+    return render(request, 'accounts/profile.html',{'profile': profile})
+
+#Modify Profile
+def editProfile(request, pk):
+    profile = get_object_or_404(Profile, pk=pk)
+    if request.method == 'POST':
+        form = profileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('viewProfile', pk=profile.pk)
+    else:
+        form = profileForm(instance=profile)
+    return render(request, 'accounts/edit_profile.html', {'form': form})
+
+#Activate Profile
+def activateProfile(request, pk):
+    profile = get_object_or_404(Profile, pk=pk)
+    profile.active = True
+    profile.save()
+    return redirect('viewProfile', pk=profile.pk)
+
+#Deactivate Profile
+def deactivateProfile(request, pk):
+    profile = get_object_or_404(Profile, pk=pk)
+    profile.active = False
+    profile.save()
+    return redirect('viewProfile', pk=profile.pk)
 
 def dashboard(request):
     return render(request, 'accounts/dashboard.html')
