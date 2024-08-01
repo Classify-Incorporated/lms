@@ -1,6 +1,6 @@
 {% load static %}
 <!-- Topbar -->
-<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+<nav class="navbar navbar-expand topbar mb-4 static-top shadow">
   <!-- Sidebar Toggle (Topbar) -->
   <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3"><i class="fa fa-bars"></i></button>
 
@@ -78,7 +78,7 @@
     <!-- Nav Item - Messages -->
     <li class="nav-item dropdown no-arrow mx-1">
       <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <i class="fas fa-envelope fa-fw"></i>
+        <i class="fas fa-comment fa-fw"></i>
         <!-- Counter - Messages -->
         <span class="badge badge-danger badge-counter">7</span>
       </a>
@@ -129,6 +129,10 @@
       </div>
     </li>
     <div class="topbar-divider d-none d-sm-block"></div>
+    <!-- Nav Item - System Settings -->
+    <li class="nav-item dropdown no-arrow">
+      <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-cogs fa-fw"></i></a>
+    </li>
     <!-- Nav Item - User Information -->
     <li class="nav-item dropdown no-arrow">
       <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -147,3 +151,114 @@
   </ul>
 </nav>
 <!-- End of Topbar -->
+
+<!-- Settings Modal -->
+<div class="modal right fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="settingsModalLabel">System Settings</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <!-- Settings content copied from Admin LTE 3 -->
+        <div class="p-3">
+          <div class="form-group">
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="darkMode" />
+              <label for="darkMode" class="custom-control-label">Dark Mode</label>
+            </div>
+          </div>
+          <h6>Header Options</h6>
+          <div class="form-group">
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="headerFixed" />
+              <label for="headerFixed" class="custom-control-label">Fixed</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="dropdownLegacyOffset" />
+              <label for="dropdownLegacyOffset" class="custom-control-label">Dropdown Legacy Offset</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="noBorder" />
+              <label for="noBorder" class="custom-control-label">No border</label>
+            </div>
+          </div>
+          <h6>Sidebar Options</h6>
+          <div class="form-group">
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="sidebarCollapsed" />
+              <label for="sidebarCollapsed" class="custom-control-label">Collapsed</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="sidebarFixed" />
+              <label for="sidebarFixed" class="custom-control-label">Fixed</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="sidebarMini" />
+              <label for="sidebarMini" class="custom-control-label">Sidebar Mini</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="sidebarMiniMD" />
+              <label for="sidebarMiniMD" class="custom-control-label">Sidebar Mini MD</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="sidebarMiniXS" />
+              <label for="sidebarMiniXS" class="custom-control-label">Sidebar Mini XS</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="navFlatStyle" />
+              <label for="navFlatStyle" class="custom-control-label">Nav Flat Style</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="navLegacyStyle" />
+              <label for="navLegacyStyle" class="custom-control-label">Nav Legacy Style</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="navCompact" />
+              <label for="navCompact" class="custom-control-label">Nav Compact</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="navChildIndent" />
+              <label for="navChildIndent" class="custom-control-label">Nav Child Indent</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="navChildHideOnCollapse" />
+              <label for="navChildHideOnCollapse" class="custom-control-label">Nav Child Hide on Collapse</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="disableHoverFocusAutoExpand" />
+              <label for="disableHoverFocusAutoExpand" class="custom-control-label">Disable Hover/Focus Auto-Expand</label>
+            </div>
+          </div>
+          <h6>Footer Options</h6>
+          <div class="form-group">
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="footerFixed" />
+              <label for="footerFixed" class="custom-control-label">Fixed</label>
+            </div>
+          </div>
+          <h6>Small Text Options</h6>
+          <div class="form-group">
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="smallTextBody" />
+              <label for="smallTextBody" class="custom-control-label">Body</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="smallTextNavbar" />
+              <label for="smallTextNavbar" class="custom-control-label">Navbar</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="smallTextBrand" />
+              <label for="smallTextBrand" class="custom-control-label">Brand</label>
+            </div>
+            <div class="custom-control custom-checkbox">
+              <input class="custom-control-input" type="checkbox" id="smallTextSidebarNav" />
+              <label for="smallTextSidebarNav" class="custom-control-label">Sidebar Nav</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
