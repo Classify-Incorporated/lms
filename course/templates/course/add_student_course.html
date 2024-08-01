@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Enroll Student</title>
+</head>
+<body>
+    <h1>Enroll Student</h1>
+    <form id="enrollForm" method="post" action="{% url 'enroll_student' %}">
+        {% csrf_token %}
+        <label for="student_profile">Student:</label>
+        <select id="student_profile" name="student_profile" required>
+            <option value="">Select Student</option>
+            {% for profile in profiles %}
+                <option value="{{ profile.id }}">{{ profile.first_name }} {{ profile.last_name }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="course_id">Course:</label>
+        <select id="course_id" name="course_id">
+            <option value="">Select Course</option>
+            {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.course_name }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="subject_ids">Subjects (hold Ctrl to select multiple):</label>
+        <select id="subject_ids" name="subject_ids" multiple>
+            {% for subject in subjects %}
+                <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <button type="submit">Enroll</button>
+    </form>
+
+    <div id="responseMessage"></div>
+
+    <script>
+        document.getElementById('enrollForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: form.method,
+                body: formData,
+                headers: {
+                    'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('responseMessage').innerText = data.message;
+                if (data.enrolled_subjects) {
+                    const subjectsList = data.enrolled_subjects.join(', ');
+                    document.getElementById('responseMessage').innerText += ` Enrolled in subjects: ${subjectsList}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('responseMessage').innerText = 'An error occurred during enrollment.';
+            });
+        });
+    </script>
+</body>
+</html>
