@@ -36,6 +36,6 @@ def updateCourse(request, pk):
 #View Course
 def viewCourse(request, pk):
     course = get_object_or_404(Course, pk=pk)
-    return render(request, 'view_role.html',{'course': course})
+    return render(request, 'course/view_course.html',{'course': course})
 
 

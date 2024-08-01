@@ -23,7 +23,7 @@
           <tbody>
             {% for courses in courses %}
             <tr>
-              <td>{{ courses.course_name }}</td>
+                <td><a href="{% url 'viewCourse' courses.pk %}">{{ courses.course_name }}</a></td>
             </tr>
           {% endfor %}
           </tbody>
