@@ -4,6 +4,11 @@ from .models import Subject
 
 # Create your views here.
 
+#Subject List
+def subjectList(request):
+    subjects = Subject.objects.all()
+    return render(request, 'subject/subject.html',{'subjects': subjects})
+
 #Create Subject
 def createSubject(request):
     if request.method == 'POST':

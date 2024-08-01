@@ -1,6 +1,9 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from .models import Profile
+from allauth.exceptions import ImmediateHttpResponse
+from django.shortcuts import redirect
+from django.conf import settings
+from .models import Profile, CustomUser
 
 class CustomAccountAdapter(DefaultAccountAdapter):
     def save_user(self, request, user, form, commit=True):
@@ -22,12 +25,21 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         user.last_name = extra_data.get('surname', '')
         user.username = user.email  # Ensure username is set to the email
 
-        # Do not set any password for social login users
-        user.set_unusable_password()
-
         print(f'User populated with email: {user.email}, first_name: {user.first_name}, last_name: {user.last_name}')
 
         return user
+
+    def pre_social_login(self, request, sociallogin):
+        # This method is called after a successful login attempt but before a new user is created
+        email = sociallogin.account.extra_data.get('mail', sociallogin.account.extra_data.get('userPrincipalName', ''))
+        try:
+            user = CustomUser.objects.get(email=email)
+            # If user already exists, authenticate and log them in
+            sociallogin.state['process'] = 'login'
+            sociallogin.user = user
+            raise ImmediateHttpResponse(redirect('dashboard'))
+        except CustomUser.DoesNotExist:
+            pass
 
     def save_user(self, request, sociallogin, form=None):
         user = sociallogin.user

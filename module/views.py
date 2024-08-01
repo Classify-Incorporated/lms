@@ -4,6 +4,11 @@ from .models import Module
 
 # Create your views here.
 
+#Module List
+def moduleList(request):
+    modules = Module.objects.all()
+    return render(request, 'module/module.html',{'modules': modules})
+
 #Create Module
 def createModule(request):
     if request.method == 'POST':
