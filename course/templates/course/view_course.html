@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Course
+{% endblock %}
+{% block content %}
+    <style>
+        .sidebar {
+            width: 250px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        .sidebar h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .sidebar .section {
+            margin-bottom: 2rem;
+        }
+        .sidebar .section a {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .sidebar .section a:hover {
+            text-decoration: underline;
+        }
+        .main-content {
+            margin-left: 270px; /* Add a left margin to account for the fixed sidebar */
+            padding: 20px;
+        }
+        .course-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+        .course-card h5 {
+            margin-bottom: 1rem;
+        }
+        .course-card p {
+            margin-bottom: 1rem;
+        }
+    </style>
+
+<div class="sidebar">
+    <h2>Course Faculty</h2>
+    <div class="section">
+        <h5>Reyan Antiquin</h5>
+        <p>Instructor</p>
+        <h5>Jasmine Maxwell</h5>
+        <p>Instructor</p>
+    </div>
+    <div class="section">
+        <h4>Details & Actions</h4>
+        <a href="#">View everyone in your course</a>
+        <a href="#">Progress Tracking</a>
+        <a href="#">Edit display settings</a>
+        <a href="#">Mark attendance</a>
+        <a href="#">View course & institution tools</a>
+        <a href="#">Manage banks</a>
+    </div>
+    <div class="section">
+        <button class="btn btn-outline-primary btn-block">Add course schedule</button>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="course-card">
+        <h5>Introduction to GE 3</h5>
+        <p>Hidden from students</p>
+        <p>A comprehensive introduction to the course GE 3. Explore the main concepts and goals of the course, and get familiar with the learning outcomes and assessment methods.</p>
+    </div>
+    <div class="course-card">
+        <h5>New Test 7/30/24</h5>
+        <p>Due date: 7/31/24, 11:59 PM</p>
+        <p>Hidden from students</p>
+    </div>
+    <div class="course-card">
+        <h5>Exemplary Course Design</h5>
+        <p>Visible to students</p>
+    </div>
+</div>
+{% endblock %}
