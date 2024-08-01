@@ -3,6 +3,11 @@ from .forms import courseForm
 from .models import Course
 # Create your views here.
 
+#Course List
+def courseList(request):
+    courses = Course.objects.all()
+    return render(request, 'course/course.html',{'courses': courses})
+
 #Create Course
 def createCourse(request):
     if request.method == 'POST':

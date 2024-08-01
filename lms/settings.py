@@ -160,7 +160,7 @@ AUTHENTICATION_BACKENDS = (
 
 
 LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/sign_out/'
 
 SOCIALACCOUNT_PROVIDERS = {
     'microsoft': {

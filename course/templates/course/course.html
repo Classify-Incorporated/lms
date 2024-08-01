@@ -1,36 +1,29 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
-  Student
+  Course
 {% endblock %}
 {% block content %}
-  <h1 class="h3 mb-2 text-gray-800">Student</h1>
+  <h1 class="h3 mb-2 text-gray-800">Course</h1>
 
   <!-- DataTales Example -->
   <div class="card shadow mb-4">
     <div class="card-header py-3">
-      <button class="btn btn-primary" id="openModalBtn">Add New User</button>
+      <button class="btn btn-primary" id="openModalBtn">Add Course</button>
     </div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>email</th>
-              <th>Year Level</th>
-              <th>Major</th>
+              <th>Course Name</th>
+
             </tr>
           </thead>
           <tbody>
-            {% for profiles in profiles %}
+            {% for courses in courses %}
             <tr>
-              <td>{{ profiles.identification }}</td>
-              <td>{{ profiles.first_name }} {{ profiles.last_name }}</td> 
-              <td>{{ profiles.user.email }}</td>  
-              <td>{{ profiles.grade_year_level }}</td> 
-              <td>{{ profiles.major }}</td>
+              <td>{{ courses.course_name }}</td>
             </tr>
           {% endfor %}
           </tbody>

@@ -31,6 +31,12 @@ def admin_login_view(request):
         form = CustomLoginForm()
     return render(request, 'accounts/login.html', {'form': form})
 
+#List Profile
+def student(request):
+    # Exclude profiles associated with admin users
+    profiles = Profile.objects.exclude(user__is_staff=True).exclude(user__is_superuser=True)
+    return render(request, 'accounts/student.html', {'profiles': profiles})
+
 #View Profile
 def viewProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
@@ -65,14 +71,8 @@ def deactivateProfile(request, pk):
 def dashboard(request):
     return render(request, 'accounts/dashboard.html')
 
-def student(request):
-    return render(request, 'accounts/student.html')
-
 def activity_stream(request):
     return render(request, 'accounts/activity_stream.html')
-
-def courses(request):
-    return render(request, 'accounts/courses.html')
 
 def calendar(request):
     return render(request, 'accounts/calendar.html')
@@ -94,4 +94,4 @@ def add_user(request):
 
 def sign_out(request):
     auth_logout(request)
-    return redirect('login')
+    return redirect('user_login_view')

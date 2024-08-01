@@ -3,6 +3,10 @@ from .forms import roleForm
 from .models import Role
 from django.shortcuts import get_object_or_404
 
+#Role List
+def roleList(request):
+    roles = Role.objects.all()
+    return render(request, 'role/role.html',{'roles': roles})
 
 # Create your views here.
 def createRole(request):
@@ -10,11 +14,10 @@ def createRole(request):
         form = roleForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('success')
+            return redirect('roleList')
     else:
         form = roleForm()
-    
-    return render(request, 'create_role.html', {'form': form})
+    return render(request, 'role/add_role.html', {'form': form})
 
 def updateRole(request, pk):
     role = get_object_or_404(Role, pk=pk)
