@@ -4,11 +4,19 @@ __pycache__/
 *.env
 *.venv
 *.egg-info/
-*.sqlite3
+*.pyo
+*.pyd
+*.pot
+*.mo
+*.swp
+*.swo
 
-# Djangogit
+# SQLite database files
+*.sqlite3
 /db.sqlite3
-/media
+
+# Django
+/media/
 migrations/
 
 # Environments
