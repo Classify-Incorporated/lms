@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Enroll Student</title>
+    <title>Enroll Regular Student</title>
 </head>
 <body>
-    <h1>Enroll Student</h1>
-    <form id="enrollForm" method="post" action="{% url 'enroll_student' %}">
+    <h1>Enroll Regular Student</h1>
+    <form id="enrollRegularForm" method="post" action="{% url 'enroll_regular_student' %}">
         {% csrf_token %}
         <label for="student_profile">Student:</label>
         <select id="student_profile" name="student_profile" required>
@@ -24,20 +24,13 @@
             {% endfor %}
         </select><br><br>
 
-        <label for="subject_ids">Subjects (hold Ctrl to select multiple):</label>
-        <select id="subject_ids" name="subject_ids" multiple>
-            {% for subject in subjects %}
-                <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
-            {% endfor %}
-        </select><br><br>
-
         <button type="submit">Enroll</button>
     </form>
 
     <div id="responseMessage"></div>
 
     <script>
-        document.getElementById('enrollForm').addEventListener('submit', function(event) {
+        document.getElementById('enrollRegularForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);

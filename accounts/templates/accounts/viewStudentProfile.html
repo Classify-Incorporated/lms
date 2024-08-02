@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Student Profile
+{% endblock %}
+{% block content %}
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background-color: #012E61;
+            color: white;
+            min-height: 100vh;
+            position: fixed;
+            width: 250px;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .profile-header {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .profile-header img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+        }
+        .profile-header h2 {
+            margin-top: 10px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .profile-header h3 {
+            color: #888;
+            font-size: 18px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .card-body {
+            background-color: #fff;
+            font-size: 14px;
+        }
+        .card-body a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .card-body a:hover {
+            text-decoration: underline;
+        }
+        /* Slide-in Sidebar */
+        .slide-in-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px; /* Hide it initially */
+            width: 400px;
+            height: 100%;
+            background-color: white;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .slide-in-sidebar.open {
+            right: 0; /* Show it when open */
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+
+    <div class="container-fluid">
+        <div class="row">
+            <main role="main" class="col-md-10 ml-sm-auto col-lg-10 content">
+                <div class="profile-header d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        {% if profile.student_photo %}
+                            <img src="{{ profile.student_photo.url }}" alt="Profile Picture" class="img-fluid rounded-circle" width="100" height="100">
+                        {% else %}
+                            <img src="https://via.placeholder.com/100" alt="Profile Picture" class="img-fluid rounded-circle" width="100" height="100">
+                        {% endif %}
+                        <div class="ml-3">
+                            <h2 class="mb-0">{{ profile.first_name }} {{ profile.last_name }}</h2>
+                            <h3 class="text-muted">{{ profile.user.email }}</h3>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" id="editBtn"><i class="fas fa-edit"></i> Edit</button>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                Basic Information
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Student ID: </strong>{{ profile.identification }}</p>
+                                <p><strong>Full Name: </strong>{{ profile.first_name }} {{ profile.last_name }}</p>
+                                <p><strong>Email Address: </strong>{{ profile.user.email }}</p>
+                                <p><strong>Gender: </strong>{{ profile.gender }}</p>
+                                <p><strong>Birthday: </strong>{{ profile.date_of_birth }}</p>
+                                <p><strong>Contact Number: </strong>{{ profile.phone_number }}</p>
+                                <p><strong>Address: </strong>{{ profile.address }}</p>
+                            </div>
+                        </div>
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                Academic Information
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Year Level: </strong>{{ profile.grade_year_level }}</p>
+                                <p><strong>Course: </strong>{{ profile.major }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                System Settings
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Language: </strong>System Default (English (United States))</p>
+                                <p><strong>Privacy Settings: </strong>Only instructors can view my profile information</p>
+                                <p><strong>Global Notification Settings: </strong><a href="#">Stream notifications</a><br>
+                                    <a href="#">Email notifications</a><br>
+                                    <a href="#">Push notifications</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Slide-in Sidebar -->
+    <div class="slide-in-sidebar" id="slideInSidebar">
+        <span class="close-btn" id="closeBtn">&times;</span>
+        <h3>Edit Profile</h3>
+        <form>
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" class="form-control" id="firstName" value="{{ profile.first_name }}">
+            </div>
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" class="form-control" id="lastName" value="{{ profile.last_name }}">
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" value="{{ profile.user.email }}">
+            </div>
+            <!-- Add more fields as needed -->
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('editBtn').addEventListener('click', function () {
+            document.getElementById('slideInSidebar').classList.add('open');
+        });
+
+        document.getElementById('closeBtn').addEventListener('click', function () {
+            document.getElementById('slideInSidebar').classList.remove('open');
+        });
+    </script>
+{% endblock %}

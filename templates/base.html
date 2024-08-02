@@ -94,5 +94,20 @@
     <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
     <script src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap4.min.js"></script>
+
+    <script>
+      function updateUnreadCount() {
+          fetch('{% url "unread_count" %}')
+              .then(response => response.json())
+              .then(data => {
+                  document.getElementById('unreadCount').innerText = data.unread_count;
+              });
+      }
+  
+      document.addEventListener('DOMContentLoaded', function() {
+          updateUnreadCount();
+          setInterval(updateUnreadCount, 60000); // Update every minute
+      });
+  </script>
   </body>
 </html>

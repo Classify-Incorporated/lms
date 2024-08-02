@@ -43,10 +43,13 @@
       <span>Calendar</span>
     </a>
   </li>
-  <li class="nav-item {% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'messages' %}">
+  <li class="nav-item {% if request.resolver_match.url_name == 'message' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'send_message' %}">
       <i class="bx bx-envelope"></i>
       <span>Messages</span>
+      {% if unread_messages_count > 0 %}
+        <span class="badge badge-danger">{{ unread_messages_count }}</span>
+      {% endif %}
     </a>
   </li>
   <li class="nav-item {% if request.resolver_match.url_name == 'grades' %}active{% endif %}">

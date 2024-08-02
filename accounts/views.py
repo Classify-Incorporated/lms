@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout as auth_logout, authenticate, login
-from django.contrib import messages
 from .forms import CustomLoginForm, profileForm
 from .models import CustomUser, Profile
 
@@ -33,14 +32,13 @@ def admin_login_view(request):
 
 #List Profile
 def student(request):
-    # Exclude profiles associated with admin users
-    profiles = Profile.objects.exclude(user__is_staff=True).exclude(user__is_superuser=True)
+    profiles = Profile.objects.filter(role__name__iexact='student')
     return render(request, 'accounts/student.html', {'profiles': profiles})
 
 #View Profile
 def viewProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
-    return render(request, 'accounts/profile.html',{'profile': profile})
+    return render(request, 'accounts/viewStudentProfile.html',{'profile': profile})
 
 #Modify Profile
 def editProfile(request, pk):
@@ -52,7 +50,8 @@ def editProfile(request, pk):
             return redirect('viewProfile', pk=profile.pk)
     else:
         form = profileForm(instance=profile)
-    return render(request, 'accounts/edit_profile.html', {'form': form})
+    return render(request, 'accounts/viewStudentProfile.html', {'form': form})
+
 
 #Activate Profile
 def activateProfile(request, pk):
@@ -76,9 +75,6 @@ def activity_stream(request):
 
 def calendar(request):
     return render(request, 'accounts/calendar.html')
-
-def messages(request):
-    return render(request, 'accounts/messages.html')
 
 def grades(request):
     return render(request, 'accounts/grades.html')

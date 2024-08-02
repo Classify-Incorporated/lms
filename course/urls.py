@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import (
 
-    createCourse, updateCourse, viewCourse,courseList, EnrollStudentView,add_student_course
+    createCourse, updateCourse, viewCourse,courseList,add_regular_student, add_irregular_student_course,
+    EnrollRegularStudentView, EnrollIrregularStudentView
 
 )
 
@@ -11,7 +12,11 @@ urlpatterns = [
     path('updateCourse/<int:pk>/', updateCourse, name='updateCourse'),
     path('viewCourse/<int:pk>/', viewCourse, name='viewCourse'), 
 
-    path('enroll_student/', EnrollStudentView.as_view(), name='enroll_student'),
-    path('add_student_course/', add_student_course, name='add_student_course'),
+    path('add_regular_student/', add_regular_student, name='add_regular_student'),
+    path('add_irregular_student_course/', add_irregular_student_course, name='add_irregular_student_course'),
+
+    path('enroll_regular_student/', EnrollRegularStudentView.as_view(), name='enroll_regular_student'),
+    path('enroll_irregular_student/', EnrollIrregularStudentView.as_view(), name='enroll_irregular_student'),
+
 
 ]

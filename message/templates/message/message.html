@@ -1,0 +1,42 @@
+<!-- send_message.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Send Message
+{% endblock %}
+{% block content %}
+  <h1>Send Message</h1>
+  <form method="post" action="{% url 'send_message' %}">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="subject">Subject:</label>
+      <input type="text" id="subject" name="subject" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label for="body">Body:</label>
+      <textarea id="body" name="body" class="form-control" rows="5" required></textarea>
+    </div>
+    <div class="form-group">
+      <label for="recipient_type">Recipient Type:</label>
+      <select id="recipient_type" name="recipient_type" class="form-control" required>
+        <option value="">Select Recipient</option>
+        <optgroup label="Courses">
+          {% for course in courses %}
+            <option value="course_{{ course.id }}">{{ course.course_name }}</option>
+          {% endfor %}
+        </optgroup>
+        <optgroup label="Subjects">
+          {% for subject in subjects %}
+            <option value="subject_{{ subject.id }}">{{ subject.subject_name }}</option>
+          {% endfor %}
+        </optgroup>
+        <optgroup label="Teachers">
+          {% for instructor in instructors %}
+            <option value="teacher_{{ instructor.id }}">{{ instructor.first_name }} {{ instructor.last_name }}</option>
+          {% endfor %}
+        </optgroup>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Send</button>
+  </form>
+{% endblock %}
