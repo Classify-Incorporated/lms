@@ -7,8 +7,9 @@
     </div>
     <div class="custom-modal-body">
       <!-- Your add course form goes here -->
-      <form>
-        {{forms.as_p}}
+      <form method="post" action="{% url 'add_course' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
         <!-- Add more form fields as needed -->
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
