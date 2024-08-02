@@ -25,14 +25,14 @@
           </thead>
           <tbody>
             {% for profiles in profiles %}
-            <tr>
-              <td>{{ profiles.identification }}</td>
-              <td>{{ profiles.first_name }} {{ profiles.last_name }}</td> 
-              <td>{{ profiles.user.email }}</td>  
-              <td>{{ profiles.grade_year_level }}</td> 
-              <td>{{ profiles.major }}</td>
-            </tr>
-          {% endfor %}
+              <tr>
+                <td>{{ profiles.identification }}</td>
+                <td>{{ profiles.first_name }} {{ profiles.last_name }}</td>
+                <td>{{ profiles.user.email }}</td>
+                <td>{{ profiles.grade_year_level }}</td>
+                <td>{{ profiles.major }}</td>
+              </tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
