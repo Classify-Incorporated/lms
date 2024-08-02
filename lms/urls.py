@@ -18,10 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from accounts.adapter import oauth2_login, oauth2_callback
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
+    path('accounts/microsoft/login/', oauth2_login, name='microsoft_login'),
+    path('accounts/microsoft/login/callback/', oauth2_callback, name='microsoft_callback'),
     path('', include('accounts.urls')),
     path('', include('module.urls')),
     path('', include('subject.urls')),

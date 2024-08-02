@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from accounts.models import CustomUser
 from django.contrib.auth.decorators import login_required
-import json
+from allauth.socialaccount.models import SocialToken
 
 # Create your views here.
 def send_message(request):
@@ -98,9 +98,25 @@ def unread_count(request):
     unread_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
     return JsonResponse({'unread_count': unread_count})
 
+
+
 def check_authentication(request):
+    try:
+        social_token = SocialToken.objects.get(account__user=request.user, account__provider='microsoft')
+        access_token = social_token.token
+        print(f"Access Token: {access_token}")
+    except SocialToken.DoesNotExist:
+        access_token = None
+        print("Access Token not found")
+    
     print(f"User: {request.user}")
+    print(f"User is authenticated: {request.user.is_authenticated}")
+    print(f"User email: {request.user.email}")
+    
     data = {
-        'user': str(request.user)
+        'user': str(request.user),
+        'is_authenticated': request.user.is_authenticated,
+        'email': request.user.email,
+        'access_token': access_token,
     }
     return JsonResponse(data)

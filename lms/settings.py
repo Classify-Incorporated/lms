@@ -185,7 +185,7 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 
 # Additional allauth settings
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "none"  # can be "mandatory", "optional", or "none"
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # can be "mandatory", "optional", or "none"
 ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutes in seconds
 

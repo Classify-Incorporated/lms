@@ -13,11 +13,12 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 #Course List
 def courseList(request):
+    form = courseForm()
     courses = Course.objects.all()
-    return render(request, 'course/course.html',{'courses': courses})
+    return render(request, 'course/course.html',{'courses': courses, 'form': form})
 
 #Create Course
-def createCourse(request):
+def add_course(request):
     if request.method == 'POST':
         form = courseForm(request.POST)
         if form.is_valid():
@@ -26,7 +27,7 @@ def createCourse(request):
     else:
         form = courseForm()
     
-    return render(request, 'create_role.html', {'form': form})
+    return render(request, 'course/course.html', {'form': form})
 
 #Modify Course
 def updateCourse(request, pk):

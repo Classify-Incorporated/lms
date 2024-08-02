@@ -1,0 +1,188 @@
+{% load static %}
+<div id="viewCourseModal" class="custom-modal">
+  <div class="custom-modal-header">
+    <button class="close-btn" id="closeViewCourseModalBtn"></button>
+    <h5>Course Details</h5>
+  </div>
+  <div class="custom-modal-body">
+    <div class="container-fluid mt-4">
+      <div class="row">
+        <div class="col-md-12">
+          <h3>GE 3</h3>
+        </div>
+      </div>
+      <div class="row">
+        <!-- Navigation Tabs -->
+        <div class="col-md-12">
+          <ul class="nav nav-tabs" id="courseTabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="content-tab" data-toggle="tab" href="#content" role="tab" aria-controls="content" aria-selected="true">Content</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="calendar-tab" data-toggle="tab" href="#calendar" role="tab" aria-controls="calendar" aria-selected="false">Calendar</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="announcements-tab" data-toggle="tab" href="#announcements" role="tab" aria-controls="announcements" aria-selected="false">Announcements</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="discussions-tab" data-toggle="tab" href="#discussions" role="tab" aria-controls="discussions" aria-selected="false">Discussions</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="gradebook-tab" data-toggle="tab" href="#gradebook" role="tab" aria-controls="gradebook" aria-selected="false">Gradebook</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="messages-tab" data-toggle="tab" href="#messages" role="tab" aria-controls="messages" aria-selected="false">Messages</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="groups-tab" data-toggle="tab" href="#groups" role="tab" aria-controls="groups" aria-selected="false">Groups</a>
+            </li>
+          </ul>
+          <div class="tab-content" id="courseTabsContent">
+            <div class="tab-pane fade show active" id="content" role="tabpanel" aria-labelledby="content-tab">
+              <div class="card mt-3">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Course Content</h5>
+                </div>
+                <div class="card-body">
+                  <div class="media">
+                    <img src="{% static 'images/content.jpg' %}" class="mr-3" alt="Content" width="50" />
+                    <div class="media-body">
+                      <h6 class="mt-0">Exemplary Course Design</h6>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
+              <div class="card mt-3">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Calendar</h5>
+                </div>
+                <div class="card-body">
+                  <!-- Calendar content goes here -->
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="announcements" role="tabpanel" aria-labelledby="announcements-tab">
+              <div class="card mt-3">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Announcements</h5>
+                </div>
+                <div class="card-body">
+                  <!-- Announcements content goes here -->
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="discussions" role="tabpanel" aria-labelledby="discussions-tab">
+              <div class="card mt-3">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Discussions</h5>
+                </div>
+                <div class="card-body">
+                  <!-- Discussions content goes here -->
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="gradebook" role="tabpanel" aria-labelledby="gradebook-tab">
+              <div class="card mt-3">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Gradebook</h5>
+                </div>
+                <div class="card-body">
+                  <!-- Gradebook content goes here -->
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab">
+              <div class="card mt-3">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Messages</h5>
+                </div>
+                <div class="card-body">
+                  <!-- Messages content goes here -->
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+              <div class="card mt-3">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">Groups</h5>
+                </div>
+                <div class="card-body">
+                  <!-- Groups content goes here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Course Faculty</h5>
+            </div>
+            <div class="card-body">
+              <ul class="list-unstyled">
+                <li class="media mb-3">
+                  <img src="{% static 'images/faculty1.jpg' %}" class="mr-3 rounded-circle" alt="Instructor" width="50" />
+                  <div class="media-body">
+                    <h6 class="mt-0 mb-1">Reyan Antiquin</h6>
+                    <span class="badge badge-primary">INSTRUCTOR</span>
+                  </div>
+                </li>
+                <li class="media">
+                  <img src="{% static 'images/faculty2.jpg' %}" class="mr-3 rounded-circle" alt="Instructor" width="50" />
+                  <div class="media-body">
+                    <h6 class="mt-0 mb-1">Jasmine Maxwell</h6>
+                    <span class="badge badge-primary">INSTRUCTOR</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Details & Actions</h5>
+            </div>
+            <div class="card-body">
+              <ul class="list-unstyled">
+                <li>
+                  <a href="#" class="d-block mb-2">Roster</a>
+                </li>
+                <li>
+                  <a href="#" class="d-block mb-2">Progress Tracking</a>
+                </li>
+                <li>
+                  <a href="#" class="d-block mb-2">Attendance</a>
+                </li>
+                <li>
+                  <a href="#" class="d-block">Books & Tools</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <!-- Main Content -->
+        <div class="col-md-9">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Course Content</h5>
+            </div>
+            <div class="card-body">
+              <div class="media">
+                <img src="{% static 'images/content.jpg' %}" class="mr-3" alt="Content" width="50" />
+                <div class="media-body">
+                  <h6 class="mt-0">Exemplary Course Design</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="viewCourseModalBackdrop" class="custom-modal-backdrop"></div>

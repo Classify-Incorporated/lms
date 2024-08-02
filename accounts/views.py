@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout as auth_logout, authenticate, login
 from .forms import CustomLoginForm, profileForm
 from .models import CustomUser, Profile
+from django.contrib.auth.decorators import login_required
 
 def user_login_view(request):
         return render(request, 'accounts/login.html')
@@ -67,6 +68,7 @@ def deactivateProfile(request, pk):
     profile.save()
     return redirect('viewProfile', pk=profile.pk)
 
+@login_required
 def dashboard(request):
     return render(request, 'accounts/dashboard.html')
 
