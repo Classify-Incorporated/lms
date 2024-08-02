@@ -8,14 +8,22 @@ from django.views import View
 from django.http import JsonResponse
 import json
 from django.core.serializers.json import DjangoJSONEncoder
-
+from accounts.models import CustomUser
 # Create your views here.
 
 #Course List
 def courseList(request):
     form = courseForm()
     courses = Course.objects.all()
-    return render(request, 'course/course.html',{'courses': courses, 'form': form})
+    selected_course = None
+    faculty = []
+    if 'course_id' in request.GET:
+        selected_course = get_object_or_404(Course, pk=request.GET['course_id'])
+        # Get all assigned teachers for the selected course
+        faculty = CustomUser.objects.filter(subject__course=selected_course).distinct()
+
+    return render(request, 'course/course.html', {'courses': courses, 'form': form, 'selected_course': selected_course, 'faculty': faculty})
+
 
 #Create Course
 def add_course(request):
@@ -45,7 +53,7 @@ def updateCourse(request, pk):
 #View Course
 def viewCourse(request, pk):
     course = get_object_or_404(Course, pk=pk)
-    return render(request, 'course/view_course.html',{'course': course})
+    return render(request, 'course/course.html',{'course': course})
 
 #Handle the enrollment of regular students
 class EnrollRegularStudentView(View):

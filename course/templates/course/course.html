@@ -23,7 +23,7 @@
             {% for course in courses %}
               <tr>
                 <td>
-                  <a href="#" class="view-course" data-course-id="{{ course.id }}">{{ course.course_name }}</a>
+                  <a href="?course_id={{ course.id }}" class="view-course">{{ course.course_name }}</a>
                 </td>
               </tr>
             {% endfor %}
@@ -37,7 +37,7 @@
   {% include 'course/add_course.html' with form=form %}
 
   <!-- Include the modal for viewing a course -->
-  {% include 'course/view_course.html' %}
+  {% include 'course/viewCourse.html' with selected_course=selected_course %}
 
   <!-- Custom Modal Script -->
   <script>
@@ -50,18 +50,22 @@
       document.getElementById('customModal').classList.remove('show')
       document.getElementById('customModalBackdrop').classList.remove('show')
     })
-    
+
     document.querySelectorAll('.view-course').forEach(function (element) {
       element.addEventListener('click', function (event) {
         event.preventDefault()
-        document.getElementById('viewCourseModal').classList.add('show')
-        document.getElementById('viewCourseModalBackdrop').classList.add('show')
+        window.location.href = this.getAttribute('href') // Redirect to the selected course
       })
     })
-    
+
     document.getElementById('closeViewCourseModalBtn').addEventListener('click', function () {
       document.getElementById('viewCourseModal').classList.remove('show')
       document.getElementById('viewCourseModalBackdrop').classList.remove('show')
     })
+
+    {% if selected_course %}
+      document.getElementById('viewCourseModal').classList.add('show')
+      document.getElementById('viewCourseModalBackdrop').classList.add('show')
+    {% endif %}
   </script>
 {% endblock %}
