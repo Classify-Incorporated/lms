@@ -8,13 +8,13 @@
     <div class="container-fluid mt-4">
       <div class="row">
         <div class="col-md-12">
-          <h3>GE 3</h3>
+          <h3>{{ selected_course.course_name }} </h3>
         </div>
       </div>
       <div class="row">
         <!-- Navigation Tabs -->
         <div class="col-md-12">
-          <ul class="nav nav-tabs" id="courseTabs" role="tablist">
+          <ul class="nav nav-tabs" id="courseTabs" role="tablist"> 
             <li class="nav-item">
               <a class="nav-link active" id="content-tab" data-toggle="tab" href="#content" role="tab" aria-controls="content" aria-selected="true">Content</a>
             </li>
@@ -121,25 +121,22 @@
         <div class="col-md-3">
           <div class="card mb-4">
             <div class="card-header">
-              <h5 class="card-title mb-0">Course Faculty</h5>
+              <h5 class="card-title mb-0">Faculty</h5>
             </div>
             <div class="card-body">
-              <ul class="list-unstyled">
+              {% for teacher in faculty %}
                 <li class="media mb-3">
-                  <img src="{% static 'images/faculty1.jpg' %}" class="mr-3 rounded-circle" alt="Instructor" width="50" />
+                  {% if teacher.profile.student_photo %}
+                  <img src="{{ teacher.profile.student_photo.url }}" class="rounded-image" alt="Instructor" />
+                  {% else %}
+                  <img src="{% static 'images/default-profile.jpg' %}" class="rounded-image" alt="Instructor" />
+                  {% endif %}
                   <div class="media-body">
-                    <h6 class="mt-0 mb-1">Reyan Antiquin</h6>
+                    <h6 class="mt-0 mb-1">{{ teacher.first_name }} {{ teacher.last_name }}</h6>
                     <span class="badge badge-primary">INSTRUCTOR</span>
                   </div>
                 </li>
-                <li class="media">
-                  <img src="{% static 'images/faculty2.jpg' %}" class="mr-3 rounded-circle" alt="Instructor" width="50" />
-                  <div class="media-body">
-                    <h6 class="mt-0 mb-1">Jasmine Maxwell</h6>
-                    <span class="badge badge-primary">INSTRUCTOR</span>
-                  </div>
-                </li>
-              </ul>
+                {% endfor %}
             </div>
           </div>
           <div class="card">
@@ -172,10 +169,21 @@
             </div>
             <div class="card-body">
               <div class="media">
-                <img src="{% static 'images/content.jpg' %}" class="mr-3" alt="Content" width="50" />
-                <div class="media-body">
-                  <h6 class="mt-0">Exemplary Course Design</h6>
-                </div>
+                {% for subject in selected_course.subjects.all %}
+                      <div class="col-md-4 mb-3">
+                        <div class="subject-card">
+                          {% if subject.subject_photo %}
+                            <img src="{{ subject.subject_photo.url }}" alt="Subject Image" class="subject-image"/>
+                          {% else %}
+                            <img src="{% static 'images/default-subject.jpg' %}" alt="Subject Image" class="subject-image"/>
+                          {% endif %}
+                          <div class="subject-details">
+                            <h6 class="subject-title">{{ subject.subject_name }}</h6>
+                            <p class="subject-description">Learn more about {{ subject.subject_name }}.</p>
+                          </div>
+                        </div>
+                      </div>
+                    {% endfor %}
               </div>
             </div>
           </div>
@@ -184,5 +192,48 @@
     </div>
   </div>
 </div>
+
+<style>
+.subject-card {
+  display: flex;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100%;
+  margin-bottom: 16px;
+  flex-direction: row;
+}
+
+.subject-image {
+  width: 150px; /* Set a fixed width for the image */
+  height: auto;
+}
+
+.subject-details {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1; /* Ensure the details section takes up the remaining space */
+}
+
+.subject-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.subject-description {
+  font-size: 14px;
+  color: #666;
+}
+
+.rounded-image {
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+</style>
 
 <div id="viewCourseModalBackdrop" class="custom-modal-backdrop"></div>

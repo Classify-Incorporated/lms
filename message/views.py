@@ -56,7 +56,7 @@ def send_message(request):
 
 
 @login_required
-def inbox(request):
+def message(request):
     if not request.user.is_authenticated:
         return redirect('account_login')  # Ensure user is redirected to login if not authenticated
 
