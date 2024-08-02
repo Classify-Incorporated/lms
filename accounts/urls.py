@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     dashboard, activity_stream, calendar,
-    messages, grades, assist, tools, sign_out, add_user, user_login_view, admin_login_view,
+    grades, assist, tools, sign_out, add_user, user_login_view, admin_login_view,
 
     viewProfile, editProfile, activateProfile, deactivateProfile, student
 )
@@ -17,12 +17,12 @@ urlpatterns = [
     path('editProfile/<int:pk>/', editProfile, name='editProfile'),
     path('activateProfile/<int:pk>/', activateProfile, name='activateProfile'),
     path('deactivateProfile/<int:pk>/', deactivateProfile, name='deactivateProfile'),
+    
 
 
     path('dashboard/', dashboard, name='dashboard'),
     path('activity-stream/', activity_stream, name='activity_stream'),
     path('calendar/', calendar, name='calendar'),
-    path('messages/', messages, name='messages'),
     path('grades/', grades, name='grades'),
     path('assist/', assist, name='assist'),
     path('tools/', tools, name='tools'),

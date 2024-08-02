@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Inbox
+{% endblock %}
+{% block content %}
+  <h1>Inbox</h1>
+  <p>You have {{ unread_messages_count }} unread messages.</p>
+  <ul>
+    {% for item in message_status_list %}
+      <li>
+        <a href="{% url 'view_message' item.message.id %}">{{ item.message.subject }}</a>
+        {% if item.read %}
+          <span>(Read)</span>
+        {% else %}
+          <span>(Unread)</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'subject',
     'module',
     'course',
+    'message',
 
     'django.contrib.sites',
     'allauth',
@@ -125,12 +126,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Manila'
 
 USE_I18N = True
 
 USE_TZ = True
 
+MEDIA_ROOT =  os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
@@ -182,7 +185,7 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 
 # Additional allauth settings
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "none"  # can be "mandatory", "optional", or "none"
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # can be "mandatory", "optional", or "none"
 ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutes in seconds
 
@@ -201,3 +204,5 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = "[lms] "
 ACCOUNT_ADAPTER = 'accounts.adapter.CustomAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'accounts.adapter.CustomSocialAccountAdapter'
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 1209600 

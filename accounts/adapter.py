@@ -1,9 +1,15 @@
+# accounts/adapter.py
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.exceptions import ImmediateHttpResponse
+from django.contrib.auth import login
 from django.shortcuts import redirect
 from django.conf import settings
 from .models import Profile, CustomUser
+import requests
+from allauth.socialaccount import app_settings
+from allauth.socialaccount.providers.oauth2.views import OAuth2Adapter, OAuth2CallbackView, OAuth2LoginView
+from .provider import MicrosoftProvider
 
 class CustomAccountAdapter(DefaultAccountAdapter):
     def save_user(self, request, user, form, commit=True):
@@ -30,29 +36,49 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         return user
 
     def pre_social_login(self, request, sociallogin):
-        # This method is called after a successful login attempt but before a new user is created
         email = sociallogin.account.extra_data.get('mail', sociallogin.account.extra_data.get('userPrincipalName', ''))
         try:
             user = CustomUser.objects.get(email=email)
-            # If user already exists, authenticate and log them in
             sociallogin.state['process'] = 'login'
             sociallogin.user = user
+            user.backend = 'allauth.account.auth_backends.AuthenticationBackend'  # Specify the backend
+            login(request, user)
+            print(f'User {user.email} is now authenticated: {request.user.is_authenticated}')
             raise ImmediateHttpResponse(redirect('dashboard'))
         except CustomUser.DoesNotExist:
             pass
 
     def save_user(self, request, sociallogin, form=None):
         user = sociallogin.user
-
-        # Ensure the user is saved with the provided information
         user.save()
         print(f'User saved with email: {user.email}, first_name: {user.first_name}, last_name: {user.last_name}')
 
-        # Ensure the profile is created or updated
         profile, created = Profile.objects.get_or_create(user=user)
         profile.first_name = user.first_name
         profile.last_name = user.last_name
         profile.save()
         print(f'Profile saved with first name: {profile.first_name}, last name: {profile.last_name}')
 
+        user.backend = 'allauth.account.auth_backends.AuthenticationBackend'  # Specify the backend
+        login(request, user)
+        print(f'User {user.email} is now authenticated: {request.user.is_authenticated}')
         return user
+
+class MicrosoftAuth2Adapter(OAuth2Adapter):
+    provider_id = MicrosoftProvider.id
+
+    settings = app_settings.PROVIDERS.get(provider_id, {})
+    tenant = settings.get("TENANT")
+
+    authorize_url = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize".format(tenant=tenant)
+    access_token_url = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token".format(tenant=tenant)
+    profile_url = "https://graph.microsoft.com/v1.0/me"
+
+    def complete_login(self, request, app, token, **kwargs):
+        headers = {'Authorization': 'Bearer {0}'.format(token.token)}
+        resp = requests.get(self.profile_url, headers=headers)
+        extra_data = resp.json()
+        return self.get_provider().sociallogin_from_response(request, extra_data)
+
+oauth2_login = OAuth2LoginView.adapter_view(MicrosoftAuth2Adapter)
+oauth2_callback = OAuth2CallbackView.adapter_view(MicrosoftAuth2Adapter)
