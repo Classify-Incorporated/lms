@@ -13,7 +13,7 @@ def courseList(request):
     return render(request, 'course/course.html',{'courses': courses})
 
 #Create Course
-def createCourse(request):
+def add_course(request):
     if request.method == 'POST':
         form = courseForm(request.POST)
         if form.is_valid():
@@ -22,7 +22,7 @@ def createCourse(request):
     else:
         form = courseForm()
     
-    return render(request, 'create_role.html', {'form': form})
+    return render(request, 'course/add_course.html', {'form': form})
 
 #Modify Course
 def updateCourse(request, pk):
