@@ -136,3 +136,5 @@ def add_irregular_student_course(request):
         'profiles_json': profiles_json,
         'subjects': subjects
     })
+
+#sample
