@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
 
     add_course, updateCourse, viewCourse,courseList,add_regular_student, add_irregular_student_course,
+    subjectDetail, courseStudentList, 
     EnrollRegularStudentView, EnrollIrregularStudentView
 
 )
@@ -14,6 +15,9 @@ urlpatterns = [
 
     path('add_regular_student/', add_regular_student, name='add_regular_student'),
     path('add_irregular_student_course/', add_irregular_student_course, name='add_irregular_student_course'),
+
+    path('subjectDetail/<int:pk>/', subjectDetail, name='subjectDetail'),
+    path('courseStudentList/<int:pk>/', courseStudentList, name='courseStudentList'),
 
     path('enroll_regular_student/', EnrollRegularStudentView.as_view(), name='enroll_regular_student'),
     path('enroll_irregular_student/', EnrollIrregularStudentView.as_view(), name='enroll_irregular_student'),

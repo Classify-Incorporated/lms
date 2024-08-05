@@ -31,7 +31,6 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         user.last_name = extra_data.get('surname', '')
         user.username = user.email  # Ensure username is set to the email
 
-        print(f'User populated with email: {user.email}, first_name: {user.first_name}, last_name: {user.last_name}')
 
         return user
 
@@ -43,7 +42,6 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             sociallogin.user = user
             user.backend = 'allauth.account.auth_backends.AuthenticationBackend'  # Specify the backend
             login(request, user)
-            print(f'User {user.email} is now authenticated: {request.user.is_authenticated}')
             raise ImmediateHttpResponse(redirect('dashboard'))
         except CustomUser.DoesNotExist:
             pass
@@ -51,17 +49,14 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def save_user(self, request, sociallogin, form=None):
         user = sociallogin.user
         user.save()
-        print(f'User saved with email: {user.email}, first_name: {user.first_name}, last_name: {user.last_name}')
 
         profile, created = Profile.objects.get_or_create(user=user)
         profile.first_name = user.first_name
         profile.last_name = user.last_name
         profile.save()
-        print(f'Profile saved with first name: {profile.first_name}, last name: {profile.last_name}')
 
         user.backend = 'allauth.account.auth_backends.AuthenticationBackend'  # Specify the backend
         login(request, user)
-        print(f'User {user.email} is now authenticated: {request.user.is_authenticated}')
         return user
 
 class MicrosoftAuth2Adapter(OAuth2Adapter):

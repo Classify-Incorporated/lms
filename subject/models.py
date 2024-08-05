@@ -10,7 +10,7 @@ def get_upload_path(instance, filename):
 
 class Subject(models.Model):
     subject_name = models.CharField(max_length=100)
-    assigned_teachers = models.ManyToManyField(CustomUser, blank=True)
+    subject_short_name = models.CharField(max_length=10, null= True, blank=True)
     subject_photo = models.ImageField(upload_to=get_upload_path, null=True, blank=True)
 
     def __str__(self):

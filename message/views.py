@@ -38,7 +38,7 @@ def send_message(request):
         message.save()
 
         print('Message sent successfully.')
-        return redirect('inbox')
+        return redirect('message')
 
     courses = Course.objects.all()
     subjects = Subject.objects.all()
