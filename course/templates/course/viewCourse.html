@@ -124,7 +124,8 @@
               <h5 class="card-title mb-0">Faculty</h5>
             </div>
             <div class="card-body">
-              {% for teacher in faculty %}
+              <ul class="list-unstyled">
+                {% for teacher in faculty %}
                 <li class="media mb-3">
                   {% if teacher.profile.student_photo %}
                   <img src="{{ teacher.profile.student_photo.url }}" class="rounded-image" alt="Instructor" />
@@ -137,6 +138,7 @@
                   </div>
                 </li>
                 {% endfor %}
+              </ul>
             </div>
           </div>
           <div class="card">
@@ -145,9 +147,11 @@
             </div>
             <div class="card-body">
               <ul class="list-unstyled">
-                <li>
-                  <a href="#" class="d-block mb-2">Roster</a>
-                </li>
+                {% if selected_course %}
+                  <li>
+                    <a href="{% url 'courseStudentList' selected_course.id %}" class="d-block mb-2">Student Roster</a>
+                  </li>
+                {% endif %} 
                 <li>
                   <a href="#" class="d-block mb-2">Progress Tracking</a>
                 </li>
@@ -169,21 +173,31 @@
             </div>
             <div class="card-body">
               <div class="media">
-                {% for subject in selected_course.subjects.all %}
-                      <div class="col-md-4 mb-3">
-                        <div class="subject-card">
-                          {% if subject.subject_photo %}
-                            <img src="{{ subject.subject_photo.url }}" alt="Subject Image" class="subject-image"/>
-                          {% else %}
-                            <img src="{% static 'images/default-subject.jpg' %}" alt="Subject Image" class="subject-image"/>
-                          {% endif %}
-                          <div class="subject-details">
-                            <h6 class="subject-title">{{ subject.subject_name }}</h6>
-                            <p class="subject-description">Learn more about {{ subject.subject_name }}.</p>
-                          </div>
+                {% for section in selected_course.section_set.all %}
+                  {% for subject in section.subjects.all %}
+                  <a href="{% url 'subjectDetail' subject.id %}" class="subject-card-link">
+                    <div class="subject-card">
+                      {% if subject.subject_photo %}
+                        <img src="{{ subject.subject_photo.url }}" alt="Subject Image" class="subject-image"/>
+                      {% else %}
+                        <img src="{% static 'images/default-subject.jpg' %}" alt="Subject Image" class="subject-image"/>
+                      {% endif %}
+                      <div class="subject-details">
+                        <h6 class="subject-title">{{ subject.subject_name }}</h6>
+                        <p class="subject-description">Learn more about {{ subject.subject_name }}.</p>
+                        <div class="assigned-teachers">
+                          <strong>Teachers:</strong>
+                          <ul>
+                            {% for teacher in subject.assigned_teachers.all %}
+                              <p class="teacher-name">{{ teacher.first_name }} {{ teacher.last_name }}</p>
+                            {% endfor %}
+                          </ul>
                         </div>
                       </div>
-                    {% endfor %}
+                    </div>
+                  </a>
+                  {% endfor %}
+                {% endfor %}
               </div>
             </div>
           </div>
@@ -202,6 +216,17 @@
   width: 100%;
   margin-bottom: 16px;
   flex-direction: row;
+  text-decoration: none;
+  color: inherit;
+}
+
+.subject-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.subject-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .subject-image {
@@ -233,6 +258,11 @@
   height: 40px;
   object-fit: cover;
   margin-right: 10px;
+}
+
+.teacher-name {
+  font-size: 14px;
+  color: #666;
 }
 </style>
 
