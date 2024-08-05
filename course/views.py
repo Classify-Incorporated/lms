@@ -31,7 +31,7 @@ def add_course(request):
         form = courseForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('courseList')
+            return redirect('success')
     else:
         form = courseForm()
     
@@ -44,7 +44,7 @@ def updateCourse(request, pk):
         form = courseForm(request.POST, instance=course)
         if form.is_valid():
             form.save()
-            return redirect('courseList')
+            return redirect('success')
     else:
         form = courseForm(instance=course)
     
