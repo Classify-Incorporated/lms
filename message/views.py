@@ -46,7 +46,7 @@ def send_message(request):
 
     unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
 
-    return render(request, 'message/message.html', {
+    return render(request, 'message/inbox.html', {
         'courses': courses,
         'subjects': subjects,
         'instructors': instructors,
@@ -56,17 +56,12 @@ def send_message(request):
 
 
 @login_required
-def message(request):
+def inbox(request):
     if not request.user.is_authenticated:
         return redirect('account_login')  # Ensure user is redirected to login if not authenticated
 
-    print(f"Authenticated user: {request.user}")  # Verify user is authenticated
-
     messages = Message.objects.filter(recipients=request.user)
-    print(f"Messages for user {request.user}: {messages}")  # Check retrieved messages
-
     unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
-    print(f"Unread messages count: {unread_messages_count}")
 
     message_status_list = []
     for message in messages:
@@ -76,9 +71,16 @@ def message(request):
             'read': read_status.read_at is not None if read_status else False
         })
 
+    courses = Course.objects.all()
+    subjects = Subject.objects.all()
+    instructors = CustomUser.objects.filter(groups__name='Instructor')
+
     return render(request, 'message/inbox.html', {
         'message_status_list': message_status_list,
         'unread_messages_count': unread_messages_count,
+        'courses': courses,
+        'subjects': subjects,
+        'instructors': instructors,
     })
 
 

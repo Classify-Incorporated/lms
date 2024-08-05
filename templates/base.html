@@ -24,6 +24,8 @@
     <!-- DataTables Responsive CSS -->
     <link href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.bootstrap4.min.css" rel="stylesheet" />
     <link href="https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css" rel="stylesheet" />
+    <!-- Bootstrap Select CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.min.css" rel="stylesheet" />
 
     <!-- Add this script to apply dark mode class early -->
     <script>
@@ -94,20 +96,22 @@
     <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
     <script src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.4.0/js/responsive.bootstrap4.min.js"></script>
+    <!-- Bootstrap Select JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
 
     <script>
       function updateUnreadCount() {
-          fetch('{% url "unread_count" %}')
-              .then(response => response.json())
-              .then(data => {
-                  document.getElementById('unreadCount').innerText = data.unread_count;
-              });
+        fetch('{% url "unread_count" %}')
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById('unreadCount').innerText = data.unread_count
+          })
       }
-  
-      document.addEventListener('DOMContentLoaded', function() {
-          updateUnreadCount();
-          setInterval(updateUnreadCount, 60000); // Update every minute
-      });
-  </script>
+      
+      document.addEventListener('DOMContentLoaded', function () {
+        updateUnreadCount()
+        setInterval(updateUnreadCount, 60000) // Update every minute
+      })
+    </script>
   </body>
 </html>
