@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import moduleForm
 from .models import Module
-
 # Create your views here.
 
 #Module List
@@ -44,3 +43,4 @@ def deleteModule(request, pk):
     module = get_object_or_404(Module, pk=pk)
     module.delete()
     return redirect('success')
+
