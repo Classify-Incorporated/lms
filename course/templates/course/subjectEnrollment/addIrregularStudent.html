@@ -2,7 +2,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>Enroll Irregular Student</h2>
-<form method="post" action="{% url 'enroll_irregular_student' %}">
+<form method="post" action="{% url 'addIrregularStudent' %}">
     {% csrf_token %}
     <label for="student_profile">Select Student:</label>
     <select name="student_profile" id="student_profile">

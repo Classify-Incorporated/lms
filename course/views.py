@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import courseForm
+from .forms import courseForm, sectionForm
 from .models import Course, SubjectEnrollment, Semester, Section
 from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
 from module.models import Module
-from activity.models import Activity ,StudentActivity
+from activity.models import Activity ,StudentActivity, ActivityQuestion
 from django.views import View
 from django.http import JsonResponse
 import json
@@ -19,17 +19,40 @@ def courseList(request):
     form = courseForm()
     courses = Course.objects.all()
     selected_course = None
+    subjects = []
     faculty = []
+    
     if 'course_id' in request.GET:
         selected_course = get_object_or_404(Course, pk=request.GET['course_id'])
-        sections = Section.objects.filter(course=selected_course)
-        faculty = CustomUser.objects.filter(section__in=sections, profile__role__name='teacher').distinct()
+        user = request.user
+        
+        if user.profile.role.name.lower() == 'student':
+            # Filter subjects based on the student's enrolled subjects
+            subjects = Subject.objects.filter(subjectenrollment__student=user, section__course=selected_course).distinct()
+        else:
+            subjects = Subject.objects.filter(section__course=selected_course).distinct()
+        
+        faculty = CustomUser.objects.filter(section__subjects__in=subjects, profile__role__name__iexact='teacher').distinct()
+    
+    return render(request, 'course/course.html', {'courses': courses, 'form': form, 'selected_course': selected_course, 'subjects': subjects, 'faculty': faculty})
 
-    return render(request, 'course/course.html', {'courses': courses, 'form': form, 'selected_course': selected_course, 'faculty': faculty})
+
+#View Course
+def viewCourse(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    user = request.user
+    
+    if user.profile.role.name.lower() == 'student':
+        # Filter subjects based on the student's enrolled subjects
+        subjects = Subject.objects.filter(subjectenrollment__student=user, section__course=course).distinct()
+    else:
+        subjects = Subject.objects.filter(section__course=course).distinct()
+    
+    return render(request, 'course/course.html', {'course': course, 'subjects': subjects})
 
 
 #Create Course
-def add_course(request):
+def addCourse(request):
     if request.method == 'POST':
         form = courseForm(request.POST)
         if form.is_valid():
@@ -53,10 +76,7 @@ def updateCourse(request, pk):
     
     return render(request, 'edit_role.html', {'form': form})
 
-#View Course
-def viewCourse(request, pk):
-    course = get_object_or_404(Course, pk=pk)
-    return render(request, 'course/course.html', {'course': course})
+
 
 # Handle the enrollment of regular students
 class EnrollRegularStudentView(View):
@@ -65,7 +85,7 @@ class EnrollRegularStudentView(View):
         courses = Course.objects.all()
         semesters = Semester.objects.all()
         
-        return render(request, 'course/enrollRegularStudent.html', {
+        return render(request, 'course/subjectEnrollment/addRegularStudent.html', {
             'profiles': profiles,
             'courses': courses,
             'semesters': semesters
@@ -98,7 +118,7 @@ class EnrollIrregularStudentView(View):
         subjects = Subject.objects.all()
         semesters = Semester.objects.all()
         
-        return render(request, 'course/enrollIrregularStudent.html', {
+        return render(request, 'course/subjectEnrollment/addIrregularStudent.html', {
             'profiles': profiles,
             'subjects': subjects,
             'semesters': semesters
@@ -122,7 +142,7 @@ class EnrollIrregularStudentView(View):
             'enrolled_subjects': [subject.subject_name for subject in subjects]
         })
 
-def add_regular_student(request):
+def addRegularStudent(request):
     student_role = Role.objects.get(name__iexact='student')
     profiles = Profile.objects.filter(role=student_role, student_status__iexact='Regular')
     courses = Course.objects.all()
@@ -137,7 +157,7 @@ def add_regular_student(request):
         'semesters': semesters,
     })
 
-def add_irregular_student_course(request):
+def addIrregularStudent(request):
     student_role = Role.objects.get(name__iexact='student')
     profiles = Profile.objects.filter(role=student_role, student_status__iexact='Irregular')
     subjects = Subject.objects.all()
@@ -156,13 +176,34 @@ def add_irregular_student_course(request):
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     modules = Module.objects.filter(subject=subject)
-    student = request.user
-    completed_activities = StudentActivity.objects.filter(student=student, status=True).values_list('activity_id', flat=True)
-    activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities)
+    user = request.user
+
+    # Determine if the current user is a student
+    is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
+    
+    if is_student:
+        completed_activities = StudentActivity.objects.filter(student=user, status=True).values_list('activity_id', flat=True)
+        answered_essays = StudentActivity.objects.filter(student=user, essay_answer__isnull=False).values_list('activity_id', flat=True)
+        activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities.union(answered_essays))
+    else:
+        activities = Activity.objects.filter(subject=subject)
+
+    # Determine if the current user is a teacher
+    is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
+
+    # Check if any activity has an essay question
+    activities_with_essays = set()
+    for activity in activities:
+        if ActivityQuestion.objects.filter(activity=activity, quiz_type__name='Essay').exists():
+            activities_with_essays.add(activity.id)
+
     return render(request, 'course/viewSubjectModule.html', {
         'subject': subject,
         'modules': modules,
-        'activities': activities
+        'activities': activities,
+        'is_student': is_student,
+        'is_teacher': is_teacher,
+        'activities_with_essays': activities_with_essays
     })
 
 
@@ -177,3 +218,36 @@ def courseStudentList(request, pk):
         'course': course,
         'students': students
     })
+
+
+#Display Section
+def sectionList(request):
+    sections = Section.objects.all()
+    return render(request, 'course/section/sectionList.html', {'sections': sections})
+
+
+# Create sections
+def createSection(request):
+    form = sectionForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            section = form.save()
+            print('created successfully.')
+            return redirect('sectionList') 
+    else:
+        form = sectionForm()
+    
+    return render(request, 'course/section/createSection.html', {'form': form})
+
+# Update sections
+def updateSection(request, id):
+    section = get_object_or_404(Section, id=id)
+    if request.method == 'POST':
+        form = sectionForm(request.POST, instance=section)
+        if form.is_valid():
+            form.save()
+            return redirect('sectionList')
+    else:
+        form = sectionForm(instance=section)
+    return render(request, 'course/section/updateSection.html', {'form': form, 'section': section})
+    
