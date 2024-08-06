@@ -46,7 +46,6 @@
 
   <li class="nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">
     <a class="nav-link" href="{% url 'inbox' %}">
-
       <i class="bx bx-envelope"></i>
       <span>Messages</span>
       {% if unread_messages_count > 0 %}
