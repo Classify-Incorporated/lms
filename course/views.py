@@ -5,6 +5,7 @@ from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
 from module.models import Module
+from activity.models import Activity ,StudentActivity
 from django.views import View
 from django.http import JsonResponse
 import json
@@ -155,7 +156,14 @@ def add_irregular_student_course(request):
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     modules = Module.objects.filter(subject=subject)
-    return render(request, 'course/viewSubjectModule.html', {'subject': subject, 'modules': modules})
+    student = request.user
+    completed_activities = StudentActivity.objects.filter(student=student, status=True).values_list('activity_id', flat=True)
+    activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities)
+    return render(request, 'course/viewSubjectModule.html', {
+        'subject': subject,
+        'modules': modules,
+        'activities': activities
+    })
 
 
 # Display the students enrolled in a course

@@ -31,6 +31,10 @@ urlpatterns = [
     path('', include('roles.urls')),
     path('', include('course.urls')),
     path('', include('message.urls')),
+    path('', include('activity.urls')),
+    path('', include('message.urls')),
+    path('', include('gradebookcomponent.urls')),
+    path('', include('studentgrade.urls')),
 ]
 
 if settings.DEBUG:
