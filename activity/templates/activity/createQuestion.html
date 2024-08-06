@@ -9,10 +9,12 @@ Add Question
 
 <form method="post">
     {% csrf_token %}
-    <div class="form-group">
-        <label for="question_text">Question:</label>
-        <textarea id="question_text" name="question_text" class="form-control" required></textarea>
-    </div>
+    {% if quiz_type.name != 'Matching' %}
+        <div class="form-group">
+            <label for="question_text">Question:</label>
+            <textarea id="question_text" name="question_text" class="form-control" required></textarea>
+        </div>
+    {% endif %}
     <div class="form-group">
         <label for="score">Score:</label>
         <input type="number" id="score" name="score" class="form-control" required>
@@ -35,6 +37,22 @@ Add Question
                 <option value="True">True</option>
                 <option value="False">False</option>
             </select>
+        </div>
+    {% elif quiz_type.name == 'Matching' %}
+        <div id="matching_pairs">
+            <div class="form-group">
+                <label for="matching_pair">Matching Pairs:</label>
+                <div class="input-group mb-3">
+                    <input type="text" name="matching_left" class="form-control" placeholder="Left side" required>
+                    <input type="text" name="matching_right" class="form-control" placeholder="Right side" required>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="addMatchingPair()">Add Another Pair</button>
+    {% elif quiz_type.name == 'Calculated Numeric' %}
+        <div class="form-group">
+            <label for="correct_answer">Correct Answer:</label>
+            <input type="number" id="correct_answer" name="correct_answer" class="form-control" required>
         </div>
     {% elif quiz_type.name != 'Essay' %}
         <div class="form-group">
@@ -92,6 +110,30 @@ function addChoice() {
     choiceContainer.appendChild(textInput);
 
     document.getElementById('choices').appendChild(choiceContainer);
+}
+
+function addMatchingPair() {
+    const pairContainer = document.createElement('div');
+    pairContainer.classList.add('input-group', 'mb-3');
+
+    const leftInput = document.createElement('input');
+    leftInput.type = 'text';
+    leftInput.name = 'matching_left';
+    leftInput.classList.add('form-control');
+    leftInput.placeholder = 'Left side';
+    leftInput.required = true;
+
+    const rightInput = document.createElement('input');
+    rightInput.type = 'text';
+    rightInput.name = 'matching_right';
+    rightInput.classList.add('form-control');
+    rightInput.placeholder = 'Right side';
+    rightInput.required = true;
+
+    pairContainer.appendChild(leftInput);
+    pairContainer.appendChild(rightInput);
+
+    document.getElementById('matching_pairs').appendChild(pairContainer);
 }
 </script>
 {% endblock %}

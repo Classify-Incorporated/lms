@@ -15,6 +15,8 @@ class QuizType(models.Model):
         ('Essay', 'Essay'),
         ('True/False', 'True/False'),
         ('Fill in the Blank', 'Fill in the Blank'),
+        ('Matching', 'Matching'),
+        ('Calculated Numeric', 'Calculated Numeric'),
     ]
 
     name = models.CharField(max_length=50, choices=QUIZ_CHOICES)
