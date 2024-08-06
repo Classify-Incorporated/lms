@@ -36,6 +36,18 @@
                 </div>
             {% elif question.quiz_type.name == 'Essay' %}
                 <textarea name="question_{{ question.id }}" class="form-control"></textarea>
+            {% elif question.quiz_type.name == 'Matching' %}
+                <div class="form-group">
+                    <label>Match the pairs:</label>
+                    {% for pair in question.pairs %}
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" value="{{ pair.left }}" readonly>
+                            <input type="text" name="question_{{ question.id }}_{{ pair.left }}" class="form-control" placeholder="Match for {{ pair.left }}">
+                        </div>
+                    {% endfor %}
+                </div>
+            {% elif question.quiz_type.name == 'Calculated Numeric' %}
+                <input type="number" name="question_{{ question.id }}" class="form-control">
             {% else %}
                 <input type="text" name="question_{{ question.id }}" class="form-control">
             {% endif %}

@@ -68,28 +68,33 @@ class AddQuestionView(View):
     def post(self, request, activity_id, quiz_type_id):
         activity = get_object_or_404(Activity, id=activity_id)
         quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
-        question_text = request.POST.get('question_text')
-        correct_answer_index = int(request.POST.get('correct_answer')) if quiz_type.name == 'Multiple Choice' else None
+        question_text = request.POST.get('question_text') if quiz_type.name != 'Matching' else ''
+        correct_answer = request.POST.get('correct_answer') if quiz_type.name not in ['Essay', 'Matching'] else ''
         score = request.POST.get('score')
 
         question = ActivityQuestion.objects.create(
             activity=activity,
             question_text=question_text,
-            correct_answer='',  # Set to empty initially
+            correct_answer=correct_answer,
             quiz_type=quiz_type,
             score=score
         )
 
         if quiz_type.name == 'Multiple Choice':
             choices = request.POST.getlist('choices')
+            correct_answer_index = int(request.POST.get('correct_answer'))
             for index, choice_text in enumerate(choices):
                 choice = QuestionChoice.objects.create(question=question, choice_text=choice_text)
                 if index == correct_answer_index:
                     question.correct_answer = choice_text
             question.save()
 
-        elif quiz_type.name != 'Essay':
-            question.correct_answer = request.POST.get('correct_answer')
+        elif quiz_type.name == 'Matching':
+            left_side = request.POST.getlist('matching_left')
+            right_side = request.POST.getlist('matching_right')
+            for left, right in zip(left_side, right_side):
+                QuestionChoice.objects.create(question=question, choice_text=f"{left} -> {right}")
+            question.correct_answer = ", ".join(f"{left} -> {right}" for left, right in zip(left_side, right_side))
             question.save()
 
         return redirect('add_question', activity_id=activity.id, quiz_type_id=quiz_type.id)
@@ -123,10 +128,18 @@ class EditQuestionView(View):
 
         return redirect('add_question', activity_id=question.activity.id, quiz_type_id=question.quiz_type.id)
     
+
 class DisplayQuestionsView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
         questions = ActivityQuestion.objects.filter(activity=activity)
+
+        # Prepare data for matching type questions
+        for question in questions:
+            if question.quiz_type.name == 'Matching':
+                pairs = question.correct_answer.split(", ")
+                question.pairs = [{"left": pair.split(" -> ")[0], "right": pair.split(" -> ")[1]} for pair in pairs]
+
         return render(request, 'activity/displayQuestion.html', {
             'activity': activity,
             'questions': questions
@@ -141,12 +154,25 @@ class SubmitAnswersView(View):
         for question in ActivityQuestion.objects.filter(activity=activity):
             answer = request.POST.get(f'question_{question.id}')
             student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
-            if question.quiz_type.name != 'Essay':
+            
+            if question.quiz_type.name == 'Essay':
+                # Essays need manual grading
+                student_activity.status = True  # Mark the activity as completed
+            elif question.quiz_type.name == 'Matching':
+                # Check matching answers
+                pairs = question.correct_answer.split(", ")
+                correct_answers = {pair.split(" -> ")[0]: pair.split(" -> ")[1] for pair in pairs}
+                answers = {key: request.POST.get(f'question_{question.id}_{key}') for key in correct_answers.keys()}
+                is_correct = all(correct_answers[k] == answers[k] for k in correct_answers)
+                total_score += question.score if is_correct else 0
+            else:
                 is_correct = (answer == question.correct_answer)
                 total_score += question.score if is_correct else 0
+            
             student_activity.score = total_score
             student_activity.status = True  # Mark the activity as completed
             student_activity.save()
+        
         return redirect('activity_completed', score=int(total_score))
 
 
