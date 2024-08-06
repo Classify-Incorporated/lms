@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Select Quiz Type
+{% endblock %}
+
+{% block content %}
+<h1>Select Quiz Type for {{ activity.activity_name }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="quiz_type">Quiz Type:</label>
+        <select id="quiz_type" name="quiz_type" class="form-control" required>
+            {% for quiz_type in quiz_types %}
+                <option value="{{ quiz_type.id }}">{{ quiz_type.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Next</button>
+</form>
+{% endblock %}

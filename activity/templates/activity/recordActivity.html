@@ -1,0 +1,21 @@
+{% load static %}
+{% block content %}
+  <div id="customModal" class="custom-modal">
+    <div class="custom-modal-header">
+      <button class="close-btn" id="closeModalBtn"></button>
+      <h5>Create Activity</h5>
+    </div>
+    <div class="custom-modal-body">
+      <!-- Your add course form goes here -->
+    <h2>{{ activity.activity_name }}</h2>
+      <form method="post">
+          {% csrf_token %}
+          <label for="score">Score:</label>
+          <input type="number" id="score" name="score">
+          <button type="submit">Submit</button>
+      </form>
+    
+    </div>
+  </div>
+
+{% endblock %}

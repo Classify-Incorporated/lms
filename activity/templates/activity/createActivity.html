@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Add Activity
+{% endblock %}
+
+{% block content %}
+<h1>Add Activity to {{ subject.subject_name }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="activity_name">Activity Name:</label>
+        <input type="text" id="activity_name" name="activity_name" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="activity_type">Activity Type:</label>
+        <select id="activity_type" name="activity_type" class="form-control" required>
+            {% for activity_type in activity_types %}
+                <option value="{{ activity_type.id }}">{{ activity_type.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="start_time">Start Time:</label>
+        <input type="datetime-local" id="start_time" name="start_time" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="end_time">End Time:</label>
+        <input type="datetime-local" id="end_time" name="end_time" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Activity</button>
+</form>
+{% endblock %}

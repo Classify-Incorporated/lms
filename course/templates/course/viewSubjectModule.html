@@ -17,4 +17,16 @@
       </li>
     {% endfor %}
   </ul>
+
+  <h2>Activities</h2>
+  <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
+  <ul>
+    {% for activity in activities %}
+      <li>
+        <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
+        <span>({{ activity.activity_type.name }})</span>
+        <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
+      </li>
+    {% endfor %}
+  </ul>
 {% endblock %}

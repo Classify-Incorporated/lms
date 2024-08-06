@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'module',
     'course',
     'message',
+    'activity',
+    'gradebookcomponent',
+    'studentgrade',
 
     'django.contrib.sites',
     'allauth',
