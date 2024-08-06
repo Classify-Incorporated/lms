@@ -58,6 +58,7 @@ class StudentActivity(models.Model):
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     score = models.FloatField(default=0)
     status = models.BooleanField(default=False)
+    essay_answer = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.student.email} - {self.activity.activity_name}"

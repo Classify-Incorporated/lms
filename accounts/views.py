@@ -42,16 +42,16 @@ def viewProfile(request, pk):
     return render(request, 'accounts/viewStudentProfile.html',{'profile': profile})
 
 #Modify Profile
-def editProfile(request, pk):
+def updateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     if request.method == 'POST':
         form = profileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('viewProfile', pk=profile.pk)
+            return redirect('student')
     else:
         form = profileForm(instance=profile)
-    return render(request, 'accounts/viewStudentProfile.html', {'form': form})
+    return render(request, 'accounts/updateStudentProfile.html', {'form': form,'profile': profile})
 
 
 #Activate Profile
@@ -87,8 +87,8 @@ def assist(request):
 def tools(request):
     return render(request, 'accounts/tools.html')
 
-def add_user(request):
-    return render(request, 'accounts/add_user.html')
+def createProfile(request):
+    return render(request, 'accounts/createStudentProfile.html')
 
 def sign_out(request):
     auth_logout(request)

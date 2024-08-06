@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 
 {% block title %}
@@ -9,6 +8,10 @@
   <h1>{{ subject.subject_name }}</h1>
   <p>Learn more about {{ subject.subject_name }}.</p>
 
+  {% if is_teacher %}
+    <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
+  {% endif %}
+
   <h2>Modules</h2>
   <ul>
     {% for module in modules %}
@@ -18,15 +21,31 @@
     {% endfor %}
   </ul>
 
-  <h2>Activities</h2>
-  <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
-  <ul>
-    {% for activity in activities %}
-      <li>
-        <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
-        <span>({{ activity.activity_type.name }})</span>
-        <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
-      </li>
-    {% endfor %}
-  </ul>
+  {% if is_student %}
+    <h2>Activities</h2>
+    <ul>
+      {% for activity in activities %}
+        <li>
+          <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
+          <span>({{ activity.activity_type.name }})</span>
+          <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if is_teacher %}
+    <ul>
+      {% for activity in activities %}
+        <li>
+          <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
+          <span>({{ activity.activity_type.name }})</span>
+          <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
+          {% if activity.id in activities_with_essays %}
+            <a href="{% url 'grade_essays' activity.id %}" class="btn btn-sm btn-secondary">Grade Essays</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 {% endblock %}

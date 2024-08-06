@@ -14,7 +14,7 @@
       <div class="row">
         <!-- Navigation Tabs -->
         <div class="col-md-12">
-          <ul class="nav nav-tabs" id="courseTabs" role="tablist"> 
+          <ul class="nav nav-tabs" id="courseTabs" role="tablist">
             <li class="nav-item">
               <a class="nav-link active" id="content-tab" data-toggle="tab" href="#content" role="tab" aria-controls="content" aria-selected="true">Content</a>
             </li>
@@ -151,7 +151,7 @@
                   <li>
                     <a href="{% url 'courseStudentList' selected_course.id %}" class="d-block mb-2">Student Roster</a>
                   </li>
-                {% endif %} 
+                {% endif %}
                 <li>
                   <a href="#" class="d-block mb-2">Progress Tracking</a>
                 </li>
@@ -173,30 +173,24 @@
             </div>
             <div class="card-body">
               <div class="media">
-                {% for section in selected_course.section_set.all %}
-                  {% for subject in section.subjects.all %}
-                  <a href="{% url 'subjectDetail' subject.id %}" class="subject-card-link">
-                    <div class="subject-card">
-                      {% if subject.subject_photo %}
-                        <img src="{{ subject.subject_photo.url }}" alt="Subject Image" class="subject-image"/>
-                      {% else %}
-                        <img src="{% static 'images/default-subject.jpg' %}" alt="Subject Image" class="subject-image"/>
-                      {% endif %}
-                      <div class="subject-details">
-                        <h6 class="subject-title">{{ subject.subject_name }}</h6>
-                        <p class="subject-description">Learn more about {{ subject.subject_name }}.</p>
-                        <div class="assigned-teachers">
-                          <strong>Teachers:</strong>
-                          <ul>
-                            {% for teacher in subject.assigned_teachers.all %}
-                              <p class="teacher-name">{{ teacher.first_name }} {{ teacher.last_name }}</p>
-                            {% endfor %}
-                          </ul>
-                        </div>
+                {% for subject in subjects %}
+                <a href="{% url 'subjectDetail' subject.id %}" class="subject-card-link">
+                  <div class="subject-card">
+                    {% if subject.subject_photo %}
+                      <img src="{{ subject.subject_photo.url }}" alt="Subject Image" class="subject-image"/>
+                    {% else %}
+                      <img src="{% static 'images/default-subject.jpg' %}" alt="Subject Image" class="subject-image"/>
+                    {% endif %}
+                    <div class="subject-details">
+                      <h6 class="subject-title">{{ subject.subject_name }}</h6>
+                      <p class="subject-description">Learn more about {{ subject.subject_name }}.</p>
+                      <div class="assigned-teachers">
+                        <strong>Assigned Teacher:</strong>
+                        <p class="teacher-name">{{ subject.section_set.first.assign_teacher.first_name }} {{ subject.section_set.first.assign_teacher.last_name }}</p>
                       </div>
                     </div>
-                  </a>
-                  {% endfor %}
+                  </div>
+                </a>
                 {% endfor %}
               </div>
             </div>
