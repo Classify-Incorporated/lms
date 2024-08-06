@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Message, MessageReadStatus
-from course.models import Course, SubjectEnrollment
+from course.models import Course, SubjectEnrollment, Section
 from subject.models import Subject
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -9,7 +9,7 @@ from accounts.models import CustomUser
 from django.contrib.auth.decorators import login_required
 from allauth.socialaccount.models import SocialToken
 
-# Create your views here.
+@login_required
 def send_message(request):
     if request.method == 'POST':
         subject = request.POST.get('subject')
@@ -20,8 +20,9 @@ def send_message(request):
         recipients = []
         if recipient_type.startswith('course_'):
             course_id = recipient_type.split('_')[1]
-            course = Course.objects.get(id=course_id)
-            subject_enrollments = SubjectEnrollment.objects.filter(subjects__in=course.subjects.all()).distinct()
+            sections = Section.objects.filter(course_id=course_id)
+            subjects = Subject.objects.filter(section__in=sections).distinct()
+            subject_enrollments = SubjectEnrollment.objects.filter(subjects__in=subjects).distinct()
             recipients = [enrollment.student for enrollment in subject_enrollments]
         elif recipient_type.startswith('subject_'):
             subject_id = recipient_type.split('_')[1]
@@ -38,7 +39,7 @@ def send_message(request):
         message.save()
 
         print('Message sent successfully.')
-        return redirect('message')
+        return redirect('inbox')
 
     courses = Course.objects.all()
     subjects = Subject.objects.all()
@@ -52,9 +53,7 @@ def send_message(request):
         'instructors': instructors,
         'unread_messages_count': unread_messages_count,
     })
-
-
-
+    
 @login_required
 def inbox(request):
     if not request.user.is_authenticated:
