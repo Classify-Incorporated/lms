@@ -8,19 +8,30 @@
 
   <div class="row">
     <div class="col-md-2">
-      <button class="btn btn-primary mb-3 w-100" id="openSendMessageModalBtn">Send Message</button>
+      <button class="btn btn-primary mb-3 w-100" id="openSendMessageModalBtn"><i class="fas fa-pencil-alt"></i> Compose</button>
       <div class="list-group">
-        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-          Inbox
-          <span class="badge badge-primary badge-pill" id="unreadCountBadge">0</span>
+        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+          <i class="fas fa-inbox mr-2"></i>
+          <span>Inbox</span>
+          <span class="badge badge-primary badge-pill ml-auto" id="unreadCountBadge">0</span>
         </a>
-        <a href="#" class="list-group-item list-group-item-action">Sent</a>
-        <a href="#" class="list-group-item list-group-item-action">Drafts</a>
-        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-          Junk
-          <span class="badge badge-warning badge-pill">65</span>
+        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+          <i class="fas fa-envelope mr-2"></i>
+          <span>Sent</span>
         </a>
-        <a href="#" class="list-group-item list-group-item-action">Trash</a>
+        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+          <i class="fas fa-file-alt mr-2"></i>
+          <span>Drafts</span>
+        </a>
+        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+          <i class="fas fa-filter mr-2"></i>
+          <span>Junk</span>
+          <span class="badge badge-warning badge-pill ml-auto">65</span>
+        </a>
+        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+          <i class="fas fa-trash mr-2"></i>
+          <span>Trash</span>
+        </a>
       </div>
     </div>
     <div class="col-md-10">
@@ -33,48 +44,39 @@
           <table class="table table-hover">
             <thead class="text-center">
               <tr>
-                <th scope="col">
-                  <input type="checkbox" id="selectAll" />
-                </th>
-                <th scope="col">Subject</th>
-                <th scope="col">From</th>
-                <th scope="col">Status</th>
+                <div class="d-flex align-items-center">
+                  <input type="checkbox" id="selectAll" class="ml-3 mb-3 mt-3" />
+                  <div class="toolbar" id="toolbar" style="display: none;">
+                    <button class="btn btn-sm ml-1"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-sm ml-1"><i class="fas fa-envelope-open"></i></button>
+                    <button class="btn btn-sm ml-1"><i class="fas fa-archive"></i></button>
+                    <button class="btn btn-sm ml-1"><i class="fas fa-exclamation-triangle"></i></button>
+                  </div>
+                </div>
               </tr>
             </thead>
             <tbody id="messageTable" class="text-center">
               {% if message_status_list %}
                 {% for item in message_status_list %}
-                  <tr class="message-row" data-id="{{ item.message.id }}">
+                  <tr class="message-row {% if not item.read %}unread{% endif %}" data-id="{{ item.message.id }}">
                     <td>
                       <input type="checkbox" class="selectItem" />
                     </td>
-                    <td>
-                      <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">{{ item.message.subject }}</a>
+                    <td class="{% if not item.read %}font-weight-bolder{% endif %} text-left">{{ item.message.sender }}</td>
+                    <td class="{% if not item.read %}font-weight-bolder{% endif %} text-left">
+                      <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">{{ item.message.subject }} - {{ item.message.body|truncatewords:18 }}</a>
                     </td>
-                    <td>{{ item.message.sender }}</td>
                     <td>
                       <span class="badge {% if item.read %}
                           
-                          
-                          
-                          
-                          
+                                                                
                           badge-success
-
-
-
 
 
                         {% else %}
                           
                           
-                          
-                          
-                          
                           badge-warning
-
-
-
 
 
                         {% endif %}">
@@ -89,7 +91,7 @@
                 {% endfor %}
               {% else %}
                 <tr>
-                  <td colspan="4">No matching records found</td>
+                  <td colspan="5">No matching records found</td>
                 </tr>
               {% endif %}
             </tbody>
@@ -175,7 +177,7 @@
   <script>
     // Function to update unread messages count
     function updateUnreadCount() {
-      const unreadCount = document.querySelectorAll('.message-row .badge-warning').length
+      const unreadCount = document.querySelectorAll('.message-row.unread').length
       document.getElementById('unreadCountBadge').textContent = unreadCount
     }
     
@@ -230,8 +232,36 @@
       const checkboxes = document.querySelectorAll('.selectItem')
       checkboxes.forEach(function (checkbox) {
         checkbox.checked = document.getElementById('selectAll').checked
+        toggleHighlightRow(checkbox)
+      })
+      toggleToolbar()
+    })
+    
+    // Individual checkbox click
+    document.querySelectorAll('.selectItem').forEach(function (checkbox) {
+      checkbox.addEventListener('change', function () {
+        toggleHighlightRow(checkbox)
+        toggleToolbar()
       })
     })
+    
+    // Toggle toolbar visibility
+    function toggleToolbar() {
+      const toolbar = document.getElementById('toolbar')
+      const checkboxes = document.querySelectorAll('.selectItem')
+      const anyChecked = Array.from(checkboxes).some((checkbox) => checkbox.checked)
+      toolbar.style.display = anyChecked ? 'flex' : 'none'
+    }
+    
+    // Toggle row highlight
+    function toggleHighlightRow(checkbox) {
+      const row = checkbox.closest('tr')
+      if (checkbox.checked) {
+        row.classList.add('highlight')
+      } else {
+        row.classList.remove('highlight')
+      }
+    }
     
     function filterMessages() {
       const searchValue = document.getElementById('searchMail').value.toLowerCase()
@@ -245,10 +275,11 @@
       }
     
       rows.forEach((row) => {
-        const subject = row.querySelector('td:nth-child(2) a').textContent.toLowerCase()
-        const sender = row.querySelector('td:nth-child(3)').textContent.toLowerCase()
+        const subject = row.querySelector('td:nth-child(3) a').textContent.toLowerCase()
+        const sender = row.querySelector('td:nth-child(2)').textContent.toLowerCase()
+        const body = row.querySelector('td:nth-child(4)').textContent.toLowerCase()
     
-        if (subject.includes(searchValue) || sender.includes(searchValue)) {
+        if (subject.includes(searchValue) || sender.includes(searchValue) || body.includes(searchValue)) {
           row.style.display = ''
           hasVisibleRow = true
         } else {
@@ -260,7 +291,7 @@
       if (!hasVisibleRow) {
         const noRecordsRow = document.createElement('tr')
         noRecordsRow.className = 'no-records' // Add a class for identification
-        noRecordsRow.innerHTML = '<td colspan="4">No matching records found</td>'
+        noRecordsRow.innerHTML = '<td colspan="5">No matching records found</td>'
         document.querySelector('#messageTable').appendChild(noRecordsRow)
       }
     }
@@ -268,4 +299,10 @@
     // Event listener for search input
     document.getElementById('searchMail').addEventListener('input', filterMessages)
   </script>
+
+  <style>
+    .highlight {
+      background-color: #f0f8ff !important;
+    }
+  </style>
 {% endblock %}
