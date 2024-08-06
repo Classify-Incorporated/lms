@@ -116,7 +116,7 @@
             <div class="small text-gray-500">Chicken the Dog · 2w</div>
           </div>
         </a>
-        <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
+        <a class="dropdown-item text-center small text-gray-500" href="{% url 'inbox' %}">Read More Messages</a>
       </div>
     </li>
     <!-- Nav Item - System Settings -->
@@ -128,7 +128,12 @@
     <li class="nav-item dropdown no-arrow">
       <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ request.user.first_name }} {{ request.user.last_name }}</span>
-        <img class="img-profile rounded-circle" src="{% if request.user.profile.student_photo %}{{ request.user.profile.student_photo.url }}{% else %}{% static 'img/undraw_profile.svg' %}{% endif %}" />
+        <img class="img-profile rounded-circle"
+          src="{% if request.user.profile.student_photo %}
+            {{ request.user.profile.student_photo.url }}
+          {% else %}
+            {% static 'img/undraw_profile.svg' %}
+          {% endif %}" />
       </a>
       <!-- Dropdown - User Information -->
       <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">

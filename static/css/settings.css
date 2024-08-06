@@ -78,6 +78,15 @@
     color: #ffffff;
 }
 
+.dark-mode .card-footer {
+    background-color: #454d55;
+    color: #ffffff;
+}
+
+.dark-mode .viewMessageLink {
+    color: #ffffff !important;
+}
+
 .dark-mode .card-header {
     background-color: #454d55;
     color: #ffffff;
