@@ -1,40 +1,54 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Grade Essays - {{ activity.activity_name }}
+Grade Essays for {{ activity.activity_name }}
 {% endblock %}
 
 {% block content %}
 <h1>Grade Essays for {{ activity.activity_name }}</h1>
 
-<form method="post">
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<form method="post" action="{% url 'grade_essays' activity.id %}">
     {% csrf_token %}
     <table class="table">
         <thead>
             <tr>
                 <th>Student</th>
                 <th>Essay Answer</th>
-                <th>Max Score</th>
                 <th>Score</th>
             </tr>
         </thead>
         <tbody>
-            {% for student_activity in student_activities %}
+            {% for student_question in student_questions %}
                 <tr>
-                    <td>{{ student_activity.student.email }}</td>
-                    <td>{{ student_activity.essay_answer }}</td>
+                    <td>{{ student_question.student.first_name }} {{ student_question.student.last_name }}</td>
+                    <td>{{ student_question.student_answer }}</td>
                     <td>
-                        {% for question in essay_questions %}
-                            <p>{{ question.question_text }} - Max Score: {{ question.score|floatformat:0 }}</p>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        <input type="number" name="score_{{ student_activity.id }}" class="form-control" required>
+                        <input type="number" name="score_{{ student_question.id }}" class="form-control" value="{{ student_question.score }}" max="{{ student_question.activity_question.score }}">
+                        <small>Max: {{ student_question.activity_question.score }}</small>
                     </td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
-    <button type="submit" class="btn btn-primary">Submit Scores</button>
+    <button type="submit" class="btn btn-primary">Submit Grades</button>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', function() {
+            const max = parseFloat(this.getAttribute('max'));
+            if (parseFloat(this.value) > max) {
+                this.setCustomValidity('Score cannot exceed the maximum score');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
