@@ -7,16 +7,185 @@ Select Quiz Type
 {% block content %}
 <h1>Select Quiz Type for {{ activity.activity_name }}</h1>
 
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label for="quiz_type">Quiz Type:</label>
-        <select id="quiz_type" name="quiz_type" class="form-control" required>
-            {% for quiz_type in quiz_types %}
-                <option value="{{ quiz_type.id }}">{{ quiz_type.name }}</option>
-            {% endfor %}
-        </select>
+<div class="dropdown">
+    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Select Quiz Type
+    </button>
+    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        {% for quiz_type in quiz_types %}
+            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#quizTypeModal" data-id="{{ quiz_type.id }}" data-name="{{ quiz_type.name }}">{{ quiz_type.name }}</a>
+        {% endfor %}
     </div>
-    <button type="submit" class="btn btn-primary">Next</button>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="quizTypeModal" tabindex="-1" role="dialog" aria-labelledby="quizTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quizTypeModalLabel">Add Question</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="quizTypeForm" method="post" action="#">
+                    {% csrf_token %}
+                    <div id="quiz-type-fields"></div>
+                    <button type="submit" class="btn btn-primary">Add Question</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>Existing Questions</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Question</th>
+            <th>Score</th>
+            <th>Quiz Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for question in questions %}
+            <tr>
+                <td>{{ question.question_text }}</td>
+                <td>{{ question.score }}</td>
+                <td>{{ question.quiz_type }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<form method="post" action="{% url 'save_all_questions' activity.id %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success">Save All Questions</button>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    $('#quizTypeModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var quizTypeId = button.data('id'); // Extract info from data-* attributes
+        var quizTypeName = button.data('name'); // Extract info from data-* attributes
+        var modal = $(this);
+        modal.find('.modal-title').text('Add Question for ' + quizTypeName);
+
+        // Set form action dynamically
+        var form = modal.find('#quizTypeForm');
+        var action = "{% url 'add_question' activity.id 0 %}".replace('0', quizTypeId);
+        form.attr('action', action);
+
+        // Clear and populate dynamic fields based on quiz type
+        var quizTypeFields = modal.find('#quiz-type-fields');
+        quizTypeFields.empty();
+        quizTypeFields.append(`
+            <div class="form-group">
+                <label for="question_text">Question:</label>
+                <textarea id="question_text" name="question_text" class="form-control" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="score">Score:</label>
+                <input type="number" id="score" name="score" class="form-control" required>
+            </div>
+        `);
+
+        if (quizTypeName == 'Multiple Choice') {
+            quizTypeFields.append(`
+                <div id="choices">
+                    <div class="form-group">
+                        <label>Choices:</label>
+                        <div class="input-group mb-3">
+                            <input type="radio" name="correct_answer" value="0" required>
+                            <input type="text" name="choices" class="form-control" placeholder="Choice 1" required>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="addChoice()">Add Another Choice</button>
+            `);
+        } else if (quizTypeName == 'True/False') {
+            quizTypeFields.append(`
+                <div class="form-group">
+                    <label for="correct_answer">Correct Answer:</label>
+                    <select id="correct_answer" name="correct_answer" class="form-control" required>
+                        <option value="True">True</option>
+                        <option value="False">False</option>
+                    </select>
+                </div>
+            `);
+        } else if (quizTypeName == 'Matching') {
+            quizTypeFields.append(`
+                <div id="matching_pairs">
+                    <div class="form-group">
+                        <label for="matching_pair">Matching Pairs:</label>
+                        <div class="input-group mb-3">
+                            <input type="text" name="matching_left" class="form-control" placeholder="Left side" required>
+                            <input type="text" name="matching_right" class="form-control" placeholder="Right side" required>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="addMatchingPair()">Add Another Pair</button>
+            `);
+        } else if (quizTypeName == 'Calculated Numeric' || quizTypeName == 'Fill in the Blank') {
+            quizTypeFields.append(`
+                <div class="form-group">
+                    <label for="correct_answer">Correct Answer:</label>
+                    <input type="text" id="correct_answer" name="correct_answer" class="form-control" required>
+                </div>
+            `);
+        }
+    });
+});
+
+function addChoice() {
+    const choiceCount = document.querySelectorAll('input[name="choices"]').length;
+    const choiceIndex = choiceCount;
+    const choiceContainer = document.createElement('div');
+    choiceContainer.classList.add('input-group', 'mb-3');
+
+    const radioInput = document.createElement('input');
+    radioInput.type = 'radio';
+    radioInput.name = 'correct_answer';
+    radioInput.value = choiceIndex;
+    radioInput.required = true;
+
+    const textInput = document.createElement('input');
+    textInput.type = 'text';
+    textInput.name = 'choices';
+    textInput.classList.add('form-control');
+    textInput.placeholder = `Choice ${choiceIndex + 1}`;
+    textInput.required = true;
+
+    choiceContainer.appendChild(radioInput);
+    choiceContainer.appendChild(textInput);
+
+    document.getElementById('choices').appendChild(choiceContainer);
+}
+
+function addMatchingPair() {
+    const pairContainer = document.createElement('div');
+    pairContainer.classList.add('input-group', 'mb-3');
+
+    const leftInput = document.createElement('input');
+    leftInput.type = 'text';
+    leftInput.name = 'matching_left';
+    leftInput.classList.add('form-control');
+    leftInput.placeholder = 'Left side';
+    leftInput.required = true;
+
+    const rightInput = document.createElement('input');
+    rightInput.type = 'text';
+    rightInput.name = 'matching_right';
+    rightInput.classList.add('form-control');
+    rightInput.placeholder = 'Right side';
+    rightInput.required = true;
+
+    pairContainer.appendChild(leftInput);
+    pairContainer.appendChild(rightInput);
+
+    document.getElementById('matching_pairs').appendChild(pairContainer);
+}
+</script>
 {% endblock %}

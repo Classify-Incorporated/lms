@@ -53,3 +53,9 @@ class Semester(models.Model):
     def __str__(self):
         return f"{self.semester_name} ({self.start_date} - {self.end_date}) - {self.school_year}"
     
+class Term(models.Model):
+    term_name = models.CharField(max_length=50)
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.term_name} - {self.semester}"
