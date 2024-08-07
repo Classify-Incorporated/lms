@@ -11,10 +11,8 @@ from django.http import JsonResponse
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
+from django.template.loader import render_to_string
 
-# Create your views here.
-
-#Course List
 def courseList(request):
     form = courseForm()
     courses = Course.objects.all()
@@ -27,28 +25,42 @@ def courseList(request):
         user = request.user
         
         if user.profile.role.name.lower() == 'student':
-            # Filter subjects based on the student's enrolled subjects
             subjects = Subject.objects.filter(subjectenrollment__student=user, section__course=selected_course).distinct()
         else:
             subjects = Subject.objects.filter(section__course=selected_course).distinct()
         
         faculty = CustomUser.objects.filter(section__subjects__in=subjects, profile__role__name__iexact='teacher').distinct()
     
-    return render(request, 'course/course.html', {'courses': courses, 'form': form, 'selected_course': selected_course, 'subjects': subjects, 'faculty': faculty})
+    return render(request, 'course/course.html', {
+        'courses': courses,
+        'form': form,
+        'selected_course': selected_course,
+        'subjects': subjects,
+        'faculty': faculty
+    })
 
-
-#View Course
 def viewCourse(request, pk):
     course = get_object_or_404(Course, pk=pk)
     user = request.user
     
     if user.profile.role.name.lower() == 'student':
-        # Filter subjects based on the student's enrolled subjects
         subjects = Subject.objects.filter(subjectenrollment__student=user, section__course=course).distinct()
     else:
         subjects = Subject.objects.filter(section__course=course).distinct()
     
-    return render(request, 'course/course.html', {'course': course, 'subjects': subjects})
+    faculty = CustomUser.objects.filter(section__subjects__in=subjects, profile__role__name__iexact='teacher').distinct()
+    
+    html_content = render_to_string('course/viewCourse.html', {
+        'course': course,
+        'subjects': subjects,
+        'faculty': faculty
+    })
+
+    return JsonResponse({
+        'course_name': course.course_name,
+        'html_content': html_content
+    })
+
 
 
 #Create Course
@@ -175,50 +187,47 @@ def addIrregularStudent(request):
 # Display the module based on the subject
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
-    modules = Module.objects.filter(subject=subject)
     user = request.user
-
-    # Determine if the current user is a student
-    is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
     
-    if is_student:
+    if user.profile.role.name.lower() == 'student':
+        modules = Module.objects.filter(subject=subject)
         completed_activities = StudentActivity.objects.filter(student=user, status=True).values_list('activity_id', flat=True)
-        answered_essays = StudentActivity.objects.filter(student=user, essay_answer__isnull=False).values_list('activity_id', flat=True)
-        activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities.union(answered_essays))
+        activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities)
     else:
+        modules = Module.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject)
-
-    # Determine if the current user is a teacher
-    is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
-
-    # Check if any activity has an essay question
+    
     activities_with_essays = set()
     for activity in activities:
         if ActivityQuestion.objects.filter(activity=activity, quiz_type__name='Essay').exists():
             activities_with_essays.add(activity.id)
-
-    return render(request, 'course/viewSubjectModule.html', {
+    
+    html_content = render_to_string('course/viewSubjectModule.html', {
         'subject': subject,
         'modules': modules,
         'activities': activities,
-        'is_student': is_student,
-        'is_teacher': is_teacher,
-        'activities_with_essays': activities_with_essays
+        'activities_with_essays': activities_with_essays,
+        'is_student': user.profile.role.name.lower() == 'student',
+        'is_teacher': user.profile.role.name.lower() == 'teacher'
     })
 
+    return JsonResponse({
+        'subject_name': subject.subject_name,
+        'html_content': html_content
+    })
 
-# Display the students enrolled in a course
 def courseStudentList(request, pk):
     course = get_object_or_404(Course, pk=pk)
-    sections = Section.objects.filter(course=course)
-    subjects = Subject.objects.filter(section__in=sections).distinct()
-    students = CustomUser.objects.filter(subjectenrollment__subjects__in=subjects).distinct()
-
-    return render(request, 'course/viewStudentByCourse.html', {
+    students = CustomUser.objects.filter(subjectenrollment__subjects__section__course=course).distinct()
+    
+    html_content = render_to_string('course/viewStudentByCourse.html', {
         'course': course,
         'students': students
     })
 
+    return JsonResponse({
+        'html_content': html_content
+    })
 
 #Display Section
 def sectionList(request):
