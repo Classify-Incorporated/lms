@@ -22,6 +22,14 @@ Add Activity
         </select>
     </div>
     <div class="form-group">
+        <label for="term">Term:</label>
+        <select id="term" name="term" class="form-control" required>
+            {% for term in terms %}
+                <option value="{{ term.id }}">{{ term.term_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
         <label for="start_time">Start Time:</label>
         <input type="datetime-local" id="start_time" name="start_time" class="form-control" required>
     </div>
@@ -29,6 +37,6 @@ Add Activity
         <label for="end_time">End Time:</label>
         <input type="datetime-local" id="end_time" name="end_time" class="form-control" required>
     </div>
-    <button type="submit" class="btn btn-primary">Add Activity</button>
+    <button type="submit" class="btn btn-primary">Next</button>
 </form>
 {% endblock %}

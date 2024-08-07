@@ -5,7 +5,7 @@ from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
 from module.models import Module
-from activity.models import Activity ,StudentActivity, ActivityQuestion
+from activity.models import Activity ,StudentQuestion, ActivityQuestion
 from django.views import View
 from django.http import JsonResponse
 import json
@@ -182,8 +182,8 @@ def subjectDetail(request, pk):
     is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
     
     if is_student:
-        completed_activities = StudentActivity.objects.filter(student=user, status=True).values_list('activity_id', flat=True)
-        answered_essays = StudentActivity.objects.filter(student=user, essay_answer__isnull=False).values_list('activity_id', flat=True)
+        completed_activities = StudentQuestion.objects.filter(student=user, score__gt=0).values_list('activity_question__activity_id', flat=True).distinct()
+        answered_essays = StudentQuestion.objects.filter(student=user, activity_question__quiz_type__name='Essay', student_answer__isnull=False).values_list('activity_question__activity_id', flat=True).distinct()
         activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities.union(answered_essays))
     else:
         activities = Activity.objects.filter(subject=subject)

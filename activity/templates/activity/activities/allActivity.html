@@ -15,7 +15,7 @@ Student Activities
             <th>Student</th>
             <th>Section</th>
             <th>Score</th>
-             <!-- Added Section column -->
+            <th>Max Score</th> <!-- Added Max Score column -->
         </tr>
     </thead>
     <tbody>
@@ -27,7 +27,7 @@ Student Activities
                 <td>{{ detail.student.first_name }} {{ detail.student.last_name }}</td>
                 <td>{{ detail.section }}</td>
                 <td>{{ detail.score }}</td>
-                 <!-- Display section name -->
+                <td>{{ detail.max_score }}</td> <!-- Display max score -->
             </tr>
         {% endfor %}
     </tbody>

@@ -1,6 +1,7 @@
 from django.db import models
 from subject.models import Subject
 from accounts.models import CustomUser
+from course.models import Term
 
 
 class ActivityType(models.Model):
@@ -28,6 +29,7 @@ class Activity(models.Model):
     activity_name = models.CharField(max_length=100)
     activity_type = models.ForeignKey(ActivityType, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
 
@@ -44,7 +46,9 @@ class ActivityQuestion(models.Model):
 
     def __str__(self):
         return f"Question for {self.activity.activity_name}"
-    
+
+
+
 class QuestionChoice(models.Model):
     question = models.ForeignKey(ActivityQuestion, related_name='choices', on_delete=models.CASCADE)
     choice_text = models.TextField()
@@ -56,9 +60,18 @@ class QuestionChoice(models.Model):
 class StudentActivity(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
-    score = models.FloatField(default=0)
-    status = models.BooleanField(default=False)
-    essay_answer = models.TextField(null=True, blank=True)
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return f"{self.student.email} - {self.activity.activity_name}"
+    
+
+class StudentQuestion(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    activity_question = models.ForeignKey(ActivityQuestion, on_delete=models.CASCADE)
+    score = models.FloatField(default=0)
+    student_answer = models.TextField(null=True, blank=True)
+    status = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.student.email} - {self.activity_question.activity.activity_name} - {self.activity_question.question_text}"
