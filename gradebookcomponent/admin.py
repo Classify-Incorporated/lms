@@ -1,5 +1,5 @@
 from django.contrib import admin
 from .models import GradeBookComponents
-# Register your models here.
 
-admin.register(GradeBookComponents)
+
+admin.site.register(GradeBookComponents)
