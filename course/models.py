@@ -16,9 +16,7 @@ class Course(models.Model):
 class Section(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     section_name = models.CharField(max_length=100)
-    subjects = models.ManyToManyField(Subject)
-    assign_teacher = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    
+    subjects = models.ManyToManyField(Subject) 
 
     def __str__(self):
         return self.section_name
