@@ -27,6 +27,7 @@ urlpatterns = [
     path('accounts/microsoft/login/callback/', oauth2_callback, name='microsoft_callback'),
     path('', include('accounts.urls')),
     path('', include('module.urls')),
+    path('', include('calendars.urls')),
     path('', include('subject.urls')),
     path('', include('roles.urls')),
     path('', include('course.urls')),
