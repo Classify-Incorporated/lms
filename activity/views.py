@@ -248,6 +248,8 @@ def activityCompletedView(request, score, activity_id, show_score):
         'show_score': show_score == 'True'
     })
 
+
+
 class GradeEssayView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -286,7 +288,9 @@ class GradeEssayView(View):
                 student_question.status = True 
                 student_question.save()
 
-        return redirect('activity_completed', score=0)
+        # Assuming you want to show the score and redirect correctly
+        total_score = sum([student_question.score for student_question in student_questions])
+        return redirect('activity_completed', score=int(total_score), activity_id=activity_id, show_score='true')
 
 
 

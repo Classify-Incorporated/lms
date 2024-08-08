@@ -18,11 +18,22 @@
   </ul>
 
   {% if is_student %}
-    <h2>Activities</h2>
+    <h2>Ongoing Activities</h2>
     <ul>
-      {% for activity in activities %}
+      {% for activity in ongoing_activities %}
         <li>
           <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
+          <span>({{ activity.activity_type.name }})</span>
+          <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <h2>Upcoming Activities</h2>
+    <ul>
+      {% for activity in upcoming_activities %}
+        <li>
+          {{ activity.activity_name }}
           <span>({{ activity.activity_type.name }})</span>
           <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
         </li>
@@ -31,10 +42,10 @@
   {% endif %}
 
   {% if is_teacher %}
-    <h2>Activities</h2>
+    <h2>Ongoing Activities</h2>
     <ul>
-      {% for activity in activities %}
-      <li>
+      {% for activity in ongoing_activities %}
+        <li>
           <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
           <span>({{ activity.activity_type.name }})</span>
           <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
@@ -47,9 +58,25 @@
           {% if activity.id in activities_with_essays %}
               <a href="{% url 'grade_essays' activity.id %}" class="btn btn-sm btn-secondary">Grade Essays</a>
           {% endif %}
-      </li>
-  {% endfor %}
-  
+        </li>
+      {% endfor %}
+    </ul>
+
+    <h2>Upcoming Activities</h2>
+    <ul>
+      {% for activity in upcoming_activities %}
+        <li>
+          {{ activity.activity_name }}
+          <span>({{ activity.activity_type.name }})</span>
+          <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
+          <form method="post" action="{% url 'deleteActivityView' activity.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this activity?');">
+                  <i class="fas fa-trash"></i>
+              </button>
+          </form>
+        </li>
+      {% endfor %}
     </ul>
   {% endif %}
 
