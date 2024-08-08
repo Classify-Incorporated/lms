@@ -22,10 +22,5 @@ class sectionForm(forms.ModelForm):
                 'class': 'form-control selectpicker',
                 'data-live-search': 'true',
                 'data-actions-box': 'true',
-            }), 
-            'assign_teacher': forms.SelectMultiple(attrs={
-                'class': 'form-control selectpicker',
-                'data-live-search': 'true',
-                'data-actions-box': 'true',
             }),  
         }
