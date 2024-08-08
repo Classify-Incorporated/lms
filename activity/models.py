@@ -72,6 +72,7 @@ class StudentQuestion(models.Model):
     score = models.FloatField(default=0)
     student_answer = models.TextField(null=True, blank=True)
     status = models.BooleanField(default=False)
+    submission_time = models.DateTimeField(null=True, blank=True, default=None)
 
     def __str__(self):
         return f"{self.student.email} - {self.activity_question.activity.activity_name} - {self.activity_question.question_text}"

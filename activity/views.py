@@ -6,7 +6,7 @@ from accounts.models import CustomUser
 from course.models import Section, Term
 from django.db.models import Sum
 from django.db.models import Max
-
+from django.utils import timezone
 
 class AddActivityView(View):
     def get(self, request, subject_id):
@@ -83,7 +83,9 @@ class AddQuestionView(View):
         choices = []
         if quiz_type.name == 'Multiple Choice':
             choices = request.POST.getlist('choices')
-            correct_answer = request.POST.get('correct_answer', '')
+            correct_answer_index = int(request.POST.get('correct_answer'))
+            if correct_answer_index < len(choices):
+                correct_answer = choices[correct_answer_index]
 
         if quiz_type.name == 'Matching':
             matching_left = request.POST.getlist('matching_left')
@@ -168,7 +170,7 @@ class SaveAllQuestionsView(View):
         # Clear the questions from the session
         request.session.pop('questions', None)
         
-        return redirect('subjectDetail', pk=activity.subject.id)
+        return redirect('courseList')
     
 
 class DisplayQuestionsView(View):
@@ -225,6 +227,7 @@ class SubmitAnswersView(View):
                     student_question.score = question.score
                 student_question.status = True  # Non-essay questions are graded directly
             
+            student_question.submission_time = timezone.now()  # Update the submission time
             student_question.save()
 
         student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
@@ -243,7 +246,8 @@ class GradeEssayView(View):
         student_questions = StudentQuestion.objects.filter(
             activity_question__activity=activity,
             activity_question__quiz_type__name='Essay',
-            student_answer__isnull=False  # Only include answered essays
+            student_answer__isnull=False,
+            status=False  # Only show ungraded essays
         )
         return render(request, 'activity/grade/gradeEssay.html', {
             'activity': activity,
@@ -255,12 +259,13 @@ class GradeEssayView(View):
         student_questions = StudentQuestion.objects.filter(
             activity_question__activity=activity,
             activity_question__quiz_type__name='Essay',
-            student_answer__isnull=False  # Only include answered essays
+            student_answer__isnull=False,
+            status=False  # Only show ungraded essays
         )
 
         for student_question in student_questions:
             score = request.POST.get(f'score_{student_question.id}')
-            max_score = student_question.activity_question.score  # Get the max score for the question
+            max_score = student_question.activity_question.score 
             if score:
                 score = float(score)
                 if score > max_score:
@@ -275,7 +280,7 @@ class GradeEssayView(View):
 
         return redirect('activity_completed', score=0)
 
-    
+
 
 def studentQuizzesExams(request):
     teacher = request.user

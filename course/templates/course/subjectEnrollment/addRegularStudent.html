@@ -1,30 +1,35 @@
-<!-- enrollRegularStudent.html -->
+<!-- addRegularStudent.html -->
+
 {% extends 'base.html' %}
+
 {% block content %}
-<h2>Enroll Regular Student</h2>
+<h1>Enroll Regular Student</h1>
 <form method="post" action="{% url 'enroll_regular_student' %}">
     {% csrf_token %}
-    <label for="student_profile">Select Student:</label>
-    <select name="student_profile" id="student_profile">
-        {% for profile in profiles %}
-        <option value="{{ profile.id }}">{{ profile.first_name }} {{ profile.last_name }}</option>
-        {% endfor %}
-    </select>
-
-    <label for="course_id">Select Course:</label>
-    <select name="course_id" id="course_id">
-        {% for course in courses %}
-        <option value="{{ course.id }}">{{ course.course_name }}</option>
-        {% endfor %}
-    </select>
-
-    <label for="semester_id">Select Semester:</label>
-    <select name="semester_id" id="semester_id">
-        {% for semester in semesters %}
-        <option value="{{ semester.id }}">{{ semester.semester_name }} ({{ semester.school_year }})</option>
-        {% endfor %}
-    </select>
-
+    <div>
+        <label for="student_profile">Student:</label>
+        <select name="student_profile" id="student_profile">
+            {% for profile in profiles %}
+                <option value="{{ profile.id }}">{{ profile.first_name }} {{ profile.last_name }} - {{ profile.student_status }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="course_id">Course:</label>
+        <select name="course_id" id="course_id">
+            {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.course_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="semester_id">Semester:</label>
+        <select name="semester_id" id="semester_id">
+            {% for semester in semesters %}
+                <option value="{{ semester.id }}">{{ semester.semester_name }} - {{ semester.school_year }}</option>
+            {% endfor %}
+        </select>
+    </div>
     <button type="submit">Enroll</button>
 </form>
 {% endblock %}

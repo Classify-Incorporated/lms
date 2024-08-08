@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 #Role List
 def roleList(request):
     roles = Role.objects.all()
-    return render(request, 'role/role.html',{'roles': roles})
+    return render(request, 'role/roleList.html',{'roles': roles})
 
 # Create your views here.
 def createRole(request):
@@ -17,7 +17,7 @@ def createRole(request):
             return redirect('roleList')
     else:
         form = roleForm()
-    return render(request, 'role/add_role.html', {'form': form})
+    return render(request, 'role/addRole.html', {'form': form})
 
 def updateRole(request, pk):
     role = get_object_or_404(Role, pk=pk)
@@ -25,11 +25,11 @@ def updateRole(request, pk):
         form = roleForm(request.POST, instance=role)
         if form.is_valid():
             form.save()
-            return redirect('success')
+            return redirect('roleList')
     else:
         form = roleForm(instance=role)
     
-    return render(request, 'edit_role.html', {'form': form})
+    return render(request, 'role/updateRole.html', {'form': form})
 
 def deleteRole(request, pk):
     role = get_object_or_404(Role, pk=pk)

@@ -1,44 +1,54 @@
-<h1>{{ subject.subject_name }}</h1>
-<p>Learn more about {{ subject.subject_name }}.</p>
+<!-- viewSubjectModule.html -->
 
-{% if is_teacher %}
-  <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary mb-3">Add Activity</a>
-{% endif %}
+{% block title %}
+  {{ subject.subject_name }} - Modules
+{% endblock %}
 
-<h2>Modules</h2>
-<ul>
-  {% for module in modules %}
-    <li>
-      <a href="{{ module.file.url }}">{{ module.file_name }}</a>
-    </li>
-  {% endfor %}
-</ul>
+{% block content %}
+  <h1>{{ subject.subject_name }}</h1>
+  <p>Learn more about {{ subject.subject_name }}.</p>
 
-{% if is_student %}
-  <h2>Activities</h2>
+  {% if is_teacher %}
+    <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
+    <h2>Ungraded Essays</h2>
+    <p>Total ungraded essays: {{ ungraded_essay_count }}</p>
+  {% endif %}
+
+  <h2>Modules</h2>
   <ul>
-    {% for activity in activities %}
+    {% for module in modules %}
       <li>
-        <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
-        <span>({{ activity.activity_type.name }})</span>
-        <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
+        <a href="{{ module.file.url }}">{{ module.file_name }}</a>
       </li>
     {% endfor %}
   </ul>
-{% endif %}
 
-{% if is_teacher %}
-  <h2>Activities</h2>
-  <ul>
-    {% for activity in activities %}
-      <li>
-        <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
-        <span>({{ activity.activity_type.name }})</span>
-        <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
-        {% if activity.id in activities_with_essays %}
-          <a href="{% url 'grade_essays' activity.id %}" class="btn btn-sm btn-secondary">Grade Essays</a>
-        {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-{% endif %}
+  {% if is_student %}
+    <h2>Activities</h2>
+    <ul>
+      {% for activity in activities %}
+        <li>
+          <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
+          <span>({{ activity.activity_type.name }})</span>
+          <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if is_teacher %}
+    <h2>Activities</h2>
+    <ul>
+      {% for activity in activities %}
+        <li>
+          <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
+          <span>({{ activity.activity_type.name }})</span>
+          <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
+          {% if activity.id in activities_with_essays %}
+            <a href="{% url 'grade_essays' activity.id %}" class="btn btn-sm btn-secondary">Grade Essays</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}

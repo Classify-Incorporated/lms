@@ -1,0 +1,24 @@
+
+
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Course
+{% endblock %}
+{% block content %}
+
+
+    <div class="custom-modal-body">
+      <form method="POST" action="{% url 'createRole' %}">
+        <!-- Example form fields -->
+        <div class="form-group">
+          <label for="Role">Role</label>
+          {{ form.name}}
+          <label for="Role">Description</label>
+          {{ form.description}}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+
+    </div>
+{% endblock %}

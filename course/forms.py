@@ -7,11 +7,7 @@ class courseForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'course_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'subjects': forms.SelectMultiple(attrs={
-                'class': 'form-control selectpicker',
-                'data-live-search': 'true',
-                'data-actions-box': 'true',
-            }),  
+            'course_short_name': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 
@@ -20,8 +16,14 @@ class sectionForm(forms.ModelForm):
         model = Section
         fields = '__all__'
         widgets = {
-            'course_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'course': forms.TextInput(attrs={'class': 'form-control'}),
+            'section_name': forms.TextInput(attrs={'class': 'form-control'}),
             'subjects': forms.SelectMultiple(attrs={
+                'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+                'data-actions-box': 'true',
+            }), 
+            'assign_teacher': forms.SelectMultiple(attrs={
                 'class': 'form-control selectpicker',
                 'data-live-search': 'true',
                 'data-actions-box': 'true',

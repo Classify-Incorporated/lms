@@ -48,7 +48,7 @@ def viewCourse(request, pk):
     else:
         subjects = Subject.objects.filter(section__course=course).distinct()
     
-    faculty = CustomUser.objects.filter(section__subjects__in=subjects, profile__role__name__iexact='teacher').distinct()
+    faculty = CustomUser.objects.filter(subject__in=subjects, profile__role__name__iexact='teacher').distinct()
     
     html_content = render_to_string('course/viewCourse.html', {
         'course': course,
@@ -112,15 +112,16 @@ class EnrollRegularStudentView(View):
         student = student_profile.user
         course = get_object_or_404(Course, id=course_id)
         semester = get_object_or_404(Semester, id=semester_id)
-        sections = Section.objects.filter(course=course)
+        
+        # Fetch subjects related to the course
+        subjects = Subject.objects.filter(section__course=course)
         
         subject_enrollment, created = SubjectEnrollment.objects.get_or_create(student=student, semester=semester)
-        for section in sections:
-            subject_enrollment.subjects.add(*section.subjects.all())
+        subject_enrollment.subjects.add(*subjects)
         
         return JsonResponse({
             'message': f'Student {student.email} enrolled in course {course.course_name} for {semester.semester_name} successfully.',
-            'enrolled_subjects': [subject.subject_name for section in sections for subject in section.subjects.all()]
+            'enrolled_subjects': [subject.subject_name for subject in subjects]
         })
 
 # Handle the enrollment of irregular students
@@ -153,7 +154,9 @@ class EnrollIrregularStudentView(View):
             'message': f'Student {student.email} enrolled successfully for {semester.semester_name}.',
             'enrolled_subjects': [subject.subject_name for subject in subjects]
         })
+    
 
+#add Regular Student
 def addRegularStudent(request):
     student_role = Role.objects.get(name__iexact='student')
     profiles = Profile.objects.filter(role=student_role, student_status__iexact='Regular')
@@ -162,13 +165,14 @@ def addRegularStudent(request):
 
     profiles_json = json.dumps(list(profiles.values('id', 'first_name', 'last_name', 'student_status')), cls=DjangoJSONEncoder)
     
-    return render(request, 'course/addRegularStudent.html', {
+    return render(request, 'course/subjectEnrollment/addRegularStudent.html', {
         'profiles': profiles,
         'profiles_json': profiles_json,
         'courses': courses,
         'semesters': semesters,
     })
 
+# add Irregular Student
 def addIrregularStudent(request):
     student_role = Role.objects.get(name__iexact='student')
     profiles = Profile.objects.filter(role=student_role, student_status__iexact='Irregular')
@@ -177,7 +181,7 @@ def addIrregularStudent(request):
 
     profiles_json = json.dumps(list(profiles.values('id', 'first_name', 'last_name', 'student_status')), cls=DjangoJSONEncoder)
     
-    return render(request, 'course/addIrregularStudent.html', {
+    return render(request, 'course/subjectEnrollment/addIrregularStudent.html', {
         'profiles': profiles,
         'profiles_json': profiles_json,
         'subjects': subjects,
@@ -189,27 +193,34 @@ def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
     
+    is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
+    is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
+    
     if is_student:
         completed_activities = StudentQuestion.objects.filter(student=user, score__gt=0).values_list('activity_question__activity_id', flat=True).distinct()
         answered_essays = StudentQuestion.objects.filter(student=user, activity_question__quiz_type__name='Essay', student_answer__isnull=False).values_list('activity_question__activity_id', flat=True).distinct()
         activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities.union(answered_essays))
-
+        modules = Module.objects.filter(subject=subject)  # Add this line to define modules for students as well
     else:
         modules = Module.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject)
     
     activities_with_essays = set()
-    for activity in activities:
-        if ActivityQuestion.objects.filter(activity=activity, quiz_type__name='Essay').exists():
-            activities_with_essays.add(activity.id)
+    ungraded_essay_count = 0
+    if is_teacher:
+        for activity in activities:
+            if ActivityQuestion.objects.filter(activity=activity, quiz_type__name='Essay').exists():
+                activities_with_essays.add(activity.id)
+                ungraded_essay_count += StudentQuestion.objects.filter(activity_question__activity=activity, activity_question__quiz_type__name='Essay', status=False).count()
     
     html_content = render_to_string('course/viewSubjectModule.html', {
         'subject': subject,
         'modules': modules,
         'activities': activities,
         'activities_with_essays': activities_with_essays,
-        'is_student': user.profile.role.name.lower() == 'student',
-        'is_teacher': user.profile.role.name.lower() == 'teacher'
+        'is_student': is_student,
+        'is_teacher': is_teacher,
+        'ungraded_essay_count': ungraded_essay_count  # Add ungraded essay count to context
     })
 
     return JsonResponse({
@@ -217,17 +228,16 @@ def subjectDetail(request, pk):
         'html_content': html_content
     })
 
-def courseStudentList(request, pk):
-    course = get_object_or_404(Course, pk=pk)
-    students = CustomUser.objects.filter(subjectenrollment__subjects__section__course=course).distinct()
+# Display course list
+def courseStudentList(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    subjects = Subject.objects.filter(section__course=course)
     
-    html_content = render_to_string('course/viewStudentByCourse.html', {
-        'course': course,
-        'students': students
-    })
+    students = CustomUser.objects.filter(subjectenrollment__subjects__in=subjects).distinct()
 
-    return JsonResponse({
-        'html_content': html_content
+    return render(request, 'course/studentRoster.html', {
+        'course': course,
+        'students': students,
     })
 
 #Display Section
