@@ -75,9 +75,6 @@ def dashboard(request):
 def activity_stream(request):
     return render(request, 'accounts/activity_stream.html')
 
-def calendar(request):
-    return render(request, 'accounts/calendar.html')
-
 def grades(request):
     return render(request, 'accounts/grades.html')
 
