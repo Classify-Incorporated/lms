@@ -212,6 +212,7 @@ class SubmitAnswersView(View):
         activity = get_object_or_404(Activity, id=activity_id)
         student = request.user
         total_score = 0
+        has_non_essay_questions = False
 
         for question in ActivityQuestion.objects.filter(activity=activity):
             answer = request.POST.get(f'question_{question.id}')
@@ -226,6 +227,7 @@ class SubmitAnswersView(View):
                     total_score += question.score
                     student_question.score = question.score
                 student_question.status = True  # Non-essay questions are graded directly
+                has_non_essay_questions = True
             
             student_question.submission_time = timezone.now()  # Update the submission time
             student_question.save()
@@ -233,12 +235,18 @@ class SubmitAnswersView(View):
         student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
         student_activity.save()
 
-        return redirect('activity_completed', score=int(total_score))
+        return redirect('activity_completed', score=int(total_score), activity_id=activity_id, show_score=has_non_essay_questions)
 
 
-def activityCompletedView(request, score):
-    return render(request, 'activity/activities/activityCompleted.html', {'score': score})
+def activityCompletedView(request, score, activity_id, show_score):
+    activity = get_object_or_404(Activity, id=activity_id)
+    max_score = activity.activityquestion_set.aggregate(total_score=Sum('score'))['total_score'] or 0
     
+    return render(request, 'activity/activities/activityCompleted.html', {
+        'score': score,
+        'max_score': max_score,
+        'show_score': show_score == 'True'
+    })
 
 class GradeEssayView(View):
     def get(self, request, activity_id):
@@ -322,3 +330,9 @@ class ActivityDetailView(View):
         return render(request, 'activity/activityDetail.html', {
             'activity': activity
         })
+
+
+def deleteActivityView(request, activity_id):
+    activity = get_object_or_404(Activity, id=activity_id)
+    activity.delete()
+    return redirect('courseList')

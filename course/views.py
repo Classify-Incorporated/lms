@@ -208,10 +208,12 @@ def subjectDetail(request, pk):
         completed_activities = StudentQuestion.objects.filter(student=user, score__gt=0).values_list('activity_question__activity_id', flat=True).distinct()
         answered_essays = StudentQuestion.objects.filter(student=user, activity_question__quiz_type__name='Essay', student_answer__isnull=False).values_list('activity_question__activity_id', flat=True).distinct()
         activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities.union(answered_essays))
-        modules = Module.objects.filter(subject=subject)  # Add this line to define modules for students as well
+        finished_activities = Activity.objects.filter(subject=subject, id__in=completed_activities.union(answered_essays))
+        modules = Module.objects.filter(subject=subject)
     else:
         modules = Module.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject)
+        finished_activities = Activity.objects.filter(subject=subject, id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct())
     
     activities_with_essays = set()
     ungraded_essay_count = 0
@@ -225,16 +227,18 @@ def subjectDetail(request, pk):
         'subject': subject,
         'modules': modules,
         'activities': activities,
+        'finished_activities': finished_activities,
         'activities_with_essays': activities_with_essays,
         'is_student': is_student,
         'is_teacher': is_teacher,
-        'ungraded_essay_count': ungraded_essay_count  # Add ungraded essay count to context
+        'ungraded_essay_count': ungraded_essay_count
     })
 
     return JsonResponse({
         'subject_name': subject.subject_name,
         'html_content': html_content
     })
+
 
 # Display course list
 def courseStudentList(request, pk):

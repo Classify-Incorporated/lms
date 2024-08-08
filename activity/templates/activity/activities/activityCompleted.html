@@ -1,11 +1,63 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Activity Completed
+  Activity Completed
 {% endblock %}
 
 {% block content %}
-<h1>Thank you!</h1>
-<p>Your answers have been submitted successfully.</p>
-<p>Your score: {{ score }}</p>
+  <h1>Thank you!</h1>
+  <p>Your answers have been submitted successfully.</p>
+  {% if show_score %}
+    <div class="progress-circle" data-score="{{ score }}" data-max="{{ max_score }}">
+      <span class="progress-text">{{ score|floatformat:"0" }} / {{ max_score|floatformat:"0" }}</span>
+      <div class="progress-inner-circle"></div>
+    </div>
+
+    <style>
+      .progress-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(#4caf50 0% 0%, transparent 0% 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px; /* Adjust font size as needed */
+        font-weight: bold;
+        color: #000;
+        transition: transform 0.3s ease;
+      }
+      .progress-circle:hover {
+        transform: scale(1.1);
+      }
+      .progress-inner-circle {
+        width: 102px;
+        height: 102px;
+        border-radius: 50%;
+        background-color: #f3f3f3;
+        position: absolute;
+        top: 9px;
+        left: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .progress-text {
+        position: absolute;
+        z-index: 1;
+      }
+    </style>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.progress-circle').forEach(function(circle) {
+          const score = parseFloat(circle.getAttribute('data-score'));
+          const max = parseFloat(circle.getAttribute('data-max'));
+          const percentage = (score / max) * 100;
+          circle.style.background = `conic-gradient(#4caf50 0% ${percentage}%, transparent ${percentage}% 100%)`;
+        });
+      });
+    </script>
+  {% endif %}
 {% endblock %}

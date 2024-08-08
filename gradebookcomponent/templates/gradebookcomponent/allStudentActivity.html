@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}
+  All Students' Activity Scores
+{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-2 text-gray-800">All Students' Activity Scores</h1>
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Activity Name</th>
+              <th>Total Score</th>
+              <th>Progress</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in student_activity_scores %}
+              <tr>
+                <td>{{ entry.student.get_full_name }}</td>
+                <td>{{ entry.activity.activity_name }}</td>
+                <td>{{ entry.total_score|floatformat:"0" }} / {{ entry.max_score|floatformat:"0" }}</td>
+                <td>
+                  <div class="progress-circle" data-score="{{ entry.total_score }}" data-max="{{ entry.max_score }}">
+                    <span class="progress-text">{{ entry.total_score|floatformat:"0" }} / {{ entry.max_score|floatformat:"0" }}</span>
+                    <div class="progress-inner-circle"></div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <h2>Finished Activities</h2>
+  <ul>
+    {% for activity in finished_activities %}
+      <li>
+        <a href="{% url 'finished_activity_scores_view' activity.id %}">{{ activity.activity_name }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <style>
+    .progress-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: conic-gradient(#4caf50 0% 0%, transparent 0% 100%);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px; /* Adjust font size as needed */
+      font-weight: bold;
+      color: #000;
+      transition: transform 0.3s ease;
+    }
+    .progress-circle:hover {
+      transform: scale(1.1);
+    }
+    .progress-inner-circle {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      background-color: #f3f3f3;
+      position: absolute;
+      top: 7px;
+      left: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .progress-text {
+      position: absolute;
+      z-index: 1;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.progress-circle').forEach(function(circle) {
+        const score = parseFloat(circle.getAttribute('data-score'));
+        const max = parseFloat(circle.getAttribute('data-max'));
+        const percentage = (score / max) * 100;
+        circle.style.background = `conic-gradient(#4caf50 0% ${percentage}%, transparent ${percentage}% 100%)`;
+      });
+    });
+  </script>
+{% endblock %}
