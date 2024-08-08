@@ -142,10 +142,10 @@
       <div class="card-body">
         <ul class="list-unstyled">
           {% if course %}
-            <li>
-              <a href="{% url 'courseStudentList' course.id %}" class="d-block mb-2">Student Roster</a>
-            </li>
-          {% endif %}
+        <li>
+            <a href="{% url 'courseStudentList' course.id %}" class="d-block mb-2">Student Roster</a>
+        </li>
+        {% endif %}
           <li>
             <a href="#" class="d-block mb-2">Progress Tracking</a>
           </li>

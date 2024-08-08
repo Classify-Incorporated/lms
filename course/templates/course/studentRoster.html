@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Student Roster for {{ course.course_name }}
+{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-2 text-gray-800">Student Roster for {{ course.course_name }}</h1>
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Student Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in regular_students %}
+              <tr>
+                <td>
+                  {% if student.profile.student_photo %}
+                    <img src="{{ student.profile.student_photo.url }}" class="rounded-image" alt="Student" width="25" height="25" />
+                  {% else %}
+                    <img src="{% static 'images/default-profile.jpg' %}" class="rounded-image" alt="Student" width="25" height="25" />
+                  {% endif %}
+                  {{ student.profile.first_name }} {{ student.profile.last_name }}
+                </td>
+                <td>Regular</td>
+              </tr>
+            {% endfor %}
+            {% for student in irregular_students %}
+              <tr>
+                <td>
+                  {% if student.profile.student_photo %}
+                    <img src="{{ student.profile.student_photo.url }}" class="rounded-image" alt="Student" width="25" height="25" />
+                  {% else %}
+                    <img src="{% static 'images/default-profile.jpg' %}" class="rounded-image" alt="Student" width="25" height="25" />
+                  {% endif %}
+                  {{ student.profile.first_name }} {{ student.profile.last_name }}
+                </td>
+                <td>Irregular</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .rounded-image {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+  }
+</style>
+{% endblock %}

@@ -13,24 +13,32 @@ from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
 from django.template.loader import render_to_string
 
+
 def courseList(request):
     form = courseForm()
-    courses = Course.objects.all()
+    user = request.user
+
+    if user.profile.role.name.lower() == 'student':
+        courses = Course.objects.filter(section__subjects__subjectenrollment__student=user).distinct()
+    elif user.profile.role.name.lower() == 'teacher':
+        courses = Course.objects.filter(section__subjects__assign_teacher=user).distinct()
+    else:
+        courses = Course.objects.all()
+
     selected_course = None
     subjects = []
     faculty = []
-    
+
     if 'course_id' in request.GET:
         selected_course = get_object_or_404(Course, pk=request.GET['course_id'])
-        user = request.user
-        
+
         if user.profile.role.name.lower() == 'student':
             subjects = Subject.objects.filter(subjectenrollment__student=user, section__course=selected_course).distinct()
         else:
             subjects = Subject.objects.filter(section__course=selected_course).distinct()
-        
+
         faculty = CustomUser.objects.filter(section__subjects__in=subjects, profile__role__name__iexact='teacher').distinct()
-    
+
     return render(request, 'course/course.html', {
         'courses': courses,
         'form': form,
@@ -229,15 +237,17 @@ def subjectDetail(request, pk):
     })
 
 # Display course list
-def courseStudentList(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
-    subjects = Subject.objects.filter(section__course=course)
-    
-    students = CustomUser.objects.filter(subjectenrollment__subjects__in=subjects).distinct()
+def courseStudentList(request, pk):
+    course = get_object_or_404(Course, pk=pk)
+    students = CustomUser.objects.filter(subjectenrollment__subjects__section__course=course).distinct()
+
+    regular_students = students.filter(profile__student_status='Regular')
+    irregular_students = students.filter(profile__student_status='Irregular')
 
     return render(request, 'course/studentRoster.html', {
         'course': course,
-        'students': students,
+        'regular_students': regular_students,
+        'irregular_students': irregular_students,
     })
 
 #Display Section
