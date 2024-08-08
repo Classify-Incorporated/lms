@@ -12,7 +12,7 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
 from django.template.loader import render_to_string
-
+from django.utils import timezone
 
 def courseList(request):
     form = courseForm()
@@ -204,16 +204,22 @@ def subjectDetail(request, pk):
     is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
     is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
     
+    now = timezone.now()
+    
     if is_student:
         completed_activities = StudentQuestion.objects.filter(student=user, score__gt=0).values_list('activity_question__activity_id', flat=True).distinct()
         answered_essays = StudentQuestion.objects.filter(student=user, activity_question__quiz_type__name='Essay', student_answer__isnull=False).values_list('activity_question__activity_id', flat=True).distinct()
         activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities.union(answered_essays))
         finished_activities = Activity.objects.filter(subject=subject, id__in=completed_activities.union(answered_essays))
+        upcoming_activities = activities.filter(start_time__gt=now)
+        ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
         modules = Module.objects.filter(subject=subject)
     else:
         modules = Module.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject)
         finished_activities = Activity.objects.filter(subject=subject, id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct())
+        upcoming_activities = activities.filter(start_time__gt=now)
+        ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
     
     activities_with_essays = set()
     ungraded_essay_count = 0
@@ -226,7 +232,8 @@ def subjectDetail(request, pk):
     html_content = render_to_string('course/viewSubjectModule.html', {
         'subject': subject,
         'modules': modules,
-        'activities': activities,
+        'ongoing_activities': ongoing_activities,
+        'upcoming_activities': upcoming_activities,
         'finished_activities': finished_activities,
         'activities_with_essays': activities_with_essays,
         'is_student': is_student,
