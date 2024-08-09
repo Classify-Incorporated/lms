@@ -174,8 +174,7 @@
                   <img src="{{ subject.subject_photo.url }}" alt="Subject Image" class="subject-image" />
                 {% else %}
                   <img src="{% static 'images/default-subject.jpg' %}" alt="Subject Image" class="subject-image" />
-                {% endif %}
-                <div class="subject-details">
+                {% endif %}<div class="subject-details">
                   <h6 class="subject-title">{{ subject.subject_name }}</h6>
                   <p class="subject-description">Learn more about {{ subject.subject_name }}.</p>
                   <div class="assigned-teachers">

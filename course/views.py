@@ -198,7 +198,6 @@ def addIrregularStudent(request):
     })
 
 # Display the module based on the subject
-# Display the module based on the subject
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
