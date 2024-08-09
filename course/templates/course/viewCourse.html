@@ -1,192 +1,191 @@
 {% load static %}
-<div id="viewCourseModal" class="custom-modal">
-  <div class="custom-modal-header">
-    <button class="close-btn" id="closeViewCourseModalBtn"></button>
-    <h5>Course Details</h5>
+<div class="row">
+  <div class="col-md-12">
+    <h3>{{ course.course_name }}</h3>
   </div>
-  <div class="custom-modal-body">
-    <div class="container-fluid mt-4">
-      <div class="row">
-        <div class="col-md-12">
-          <h3>{{ selected_course.course_name }} </h3>
-        </div>
-      </div>
-      <div class="row">
-        <!-- Navigation Tabs -->
-        <div class="col-md-12">
-          <ul class="nav nav-tabs" id="courseTabs" role="tablist"> 
-            <li class="nav-item">
-              <a class="nav-link active" id="content-tab" data-toggle="tab" href="#content" role="tab" aria-controls="content" aria-selected="true">Content</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" id="calendar-tab" data-toggle="tab" href="#calendar" role="tab" aria-controls="calendar" aria-selected="false">Calendar</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" id="announcements-tab" data-toggle="tab" href="#announcements" role="tab" aria-controls="announcements" aria-selected="false">Announcements</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" id="discussions-tab" data-toggle="tab" href="#discussions" role="tab" aria-controls="discussions" aria-selected="false">Discussions</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" id="gradebook-tab" data-toggle="tab" href="#gradebook" role="tab" aria-controls="gradebook" aria-selected="false">Gradebook</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" id="messages-tab" data-toggle="tab" href="#messages" role="tab" aria-controls="messages" aria-selected="false">Messages</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" id="groups-tab" data-toggle="tab" href="#groups" role="tab" aria-controls="groups" aria-selected="false">Groups</a>
-            </li>
-          </ul>
-          <div class="tab-content" id="courseTabsContent">
-            <div class="tab-pane fade show active" id="content" role="tabpanel" aria-labelledby="content-tab">
-              <div class="card mt-3">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Course Content</h5>
-                </div>
-                <div class="card-body">
-                  <div class="media">
-                    <img src="{% static 'images/content.jpg' %}" class="mr-3" alt="Content" width="50" />
-                    <div class="media-body">
-                      <h6 class="mt-0">Exemplary Course Design</h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="tab-pane fade" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
-              <div class="card mt-3">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Calendar</h5>
-                </div>
-                <div class="card-body">
-                  <!-- Calendar content goes here -->
-                </div>
-              </div>
-            </div>
-            <div class="tab-pane fade" id="announcements" role="tabpanel" aria-labelledby="announcements-tab">
-              <div class="card mt-3">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Announcements</h5>
-                </div>
-                <div class="card-body">
-                  <!-- Announcements content goes here -->
-                </div>
-              </div>
-            </div>
-            <div class="tab-pane fade" id="discussions" role="tabpanel" aria-labelledby="discussions-tab">
-              <div class="card mt-3">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Discussions</h5>
-                </div>
-                <div class="card-body">
-                  <!-- Discussions content goes here -->
-                </div>
-              </div>
-            </div>
-            <div class="tab-pane fade" id="gradebook" role="tabpanel" aria-labelledby="gradebook-tab">
-              <div class="card mt-3">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Gradebook</h5>
-                </div>
-                <div class="card-body">
-                  <!-- Gradebook content goes here -->
-                </div>
-              </div>
-            </div>
-            <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab">
-              <div class="card mt-3">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Messages</h5>
-                </div>
-                <div class="card-body">
-                  <!-- Messages content goes here -->
-                </div>
-              </div>
-            </div>
-            <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
-              <div class="card mt-3">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Groups</h5>
-                </div>
-                <div class="card-body">
-                  <!-- Groups content goes here -->
-                </div>
+</div>
+<div class="row">
+  <!-- Navigation Tabs -->
+  <div class="col-md-12">
+    <ul class="nav nav-tabs" id="courseTabs" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="content-tab" data-toggle="tab" href="#content" role="tab" aria-controls="content" aria-selected="true">Content</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="calendar-tab" data-toggle="tab" href="#calendar" role="tab" aria-controls="calendar" aria-selected="false">Calendar</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="announcements-tab" data-toggle="tab" href="#announcements" role="tab" aria-controls="announcements" aria-selected="false">Announcements</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="discussions-tab" data-toggle="tab" href="#discussions" role="tab" aria-controls="discussions" aria-selected="false">Discussions</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="gradebook-tab" data-toggle="tab" href="#gradebook" role="tab" aria-controls="gradebook" aria-selected="false">Gradebook</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="messages-tab" data-toggle="tab" href="#messages" role="tab" aria-controls="messages" aria-selected="false">Messages</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="groups-tab" data-toggle="tab" href="#groups" role="tab" aria-controls="groups" aria-selected="false">Groups</a>
+      </li>
+    </ul>
+    <div class="tab-content" id="courseTabsContent">
+      <div class="tab-pane fade show active" id="content" role="tabpanel" aria-labelledby="content-tab">
+        <div class="card mt-3">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Course Content</h5>
+          </div>
+          <div class="card-body">
+            <div class="media">
+              <img src="{% static 'images/content.jpg' %}" class="mr-3" alt="Content" width="50" />
+              <div class="media-body">
+                <h6 class="mt-0">Exemplary Course Design</h6>
+                <p>Here you can place your course content and any other information relevant to the course.</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="row mt-3">
-        <!-- Sidebar -->
-        <div class="col-md-3">
-          <div class="card mb-4">
-            <div class="card-header">
-              <h5 class="card-title mb-0">Faculty</h5>
-            </div>
-            <div class="card-body">
-              {% for teacher in faculty %}
-                <li class="media mb-3">
-                  {% if teacher.profile.student_photo %}
-                  <img src="{{ teacher.profile.student_photo.url }}" class="rounded-image" alt="Instructor" />
-                  {% else %}
-                  <img src="{% static 'images/default-profile.jpg' %}" class="rounded-image" alt="Instructor" />
-                  {% endif %}
-                  <div class="media-body">
-                    <h6 class="mt-0 mb-1">{{ teacher.first_name }} {{ teacher.last_name }}</h6>
-                    <span class="badge badge-primary">INSTRUCTOR</span>
-                  </div>
-                </li>
-                {% endfor %}
-            </div>
+      <div class="tab-pane fade" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
+        <div class="card mt-3">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Calendar</h5>
           </div>
-          <div class="card">
-            <div class="card-header">
-              <h5 class="card-title mb-0">Details & Actions</h5>
-            </div>
-            <div class="card-body">
-              <ul class="list-unstyled">
-                <li>
-                  <a href="#" class="d-block mb-2">Roster</a>
-                </li>
-                <li>
-                  <a href="#" class="d-block mb-2">Progress Tracking</a>
-                </li>
-                <li>
-                  <a href="#" class="d-block mb-2">Attendance</a>
-                </li>
-                <li>
-                  <a href="#" class="d-block">Books & Tools</a>
-                </li>
-              </ul>
-            </div>
+          <div class="card-body">
+            <!-- Calendar content goes here -->
           </div>
         </div>
-        <!-- Main Content -->
-        <div class="col-md-9">
-          <div class="card">
-            <div class="card-header">
-              <h5 class="card-title mb-0">Course Content</h5>
-            </div>
-            <div class="card-body">
-              <div class="media">
-                {% for subject in selected_course.subjects.all %}
-                      <div class="col-md-4 mb-3">
-                        <div class="subject-card">
-                          {% if subject.subject_photo %}
-                            <img src="{{ subject.subject_photo.url }}" alt="Subject Image" class="subject-image"/>
-                          {% else %}
-                            <img src="{% static 'images/default-subject.jpg' %}" alt="Subject Image" class="subject-image"/>
-                          {% endif %}
-                          <div class="subject-details">
-                            <h6 class="subject-title">{{ subject.subject_name }}</h6>
-                            <p class="subject-description">Learn more about {{ subject.subject_name }}.</p>
-                          </div>
-                        </div>
-                      </div>
-                    {% endfor %}
-              </div>
-            </div>
+      </div>
+      <div class="tab-pane fade" id="announcements" role="tabpanel" aria-labelledby="announcements-tab">
+        <div class="card mt-3">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Announcements</h5>
           </div>
+          <div class="card-body">
+            <!-- Announcements content goes here -->
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="discussions" role="tabpanel" aria-labelledby="discussions-tab">
+        <div class="card mt-3">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Discussions</h5>
+          </div>
+          <div class="card-body">
+            <!-- Discussions content goes here -->
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="gradebook" role="tabpanel" aria-labelledby="gradebook-tab">
+        <div class="card mt-3">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Gradebook</h5>
+          </div>
+          <div class="card-body">
+            <!-- Gradebook content goes here -->
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab">
+        <div class="card mt-3">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Messages</h5>
+          </div>
+          <div class="card-body">
+            <!-- Messages content goes here -->
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+        <div class="card mt-3">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Groups</h5>
+          </div>
+          <div class="card-body">
+            <!-- Groups content goes here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row mt-3">
+  <!-- Sidebar -->
+  <div class="col-md-3">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Faculty</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled">
+          {% for teacher in faculty %}
+            <li class="media mb-3">
+              {% if teacher.profile.student_photo %}
+                <img src="{{ teacher.profile.student_photo.url }}" class="rounded-image" alt="Instructor" />
+              {% else %}
+                <img src="{% static 'images/default-profile.jpg' %}" class="rounded-image" alt="Instructor" />
+              {% endif %}
+              <div class="media-body">
+                <h6 class="mt-0 mb-1">{{ teacher.first_name }} {{ teacher.last_name }}</h6>
+                <span class="badge badge-primary">INSTRUCTOR</span>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Details & Actions</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled">
+          {% if course %}
+        <li>
+            <a href="{% url 'courseStudentList' course.id %}" class="d-block mb-2">Student Roster</a>
+        </li>
+        {% endif %}
+          <li>
+            <a href="#" class="d-block mb-2">Progress Tracking</a>
+          </li>
+          <li>
+            <a href="#" class="d-block mb-2">Attendance</a>
+          </li>
+          <li>
+            <a href="#" class="d-block">Books & Tools</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- Main Content -->
+  <div class="col-md-9">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Course Content</h5>
+      </div>
+      <div class="card-body">
+        <div class="media">
+          {% for subject in subjects %}
+            <a href="{% url 'subjectDetail' subject.id %}" class="subject-card-link">
+              <div class="subject-card">
+                {% if subject.subject_photo %}
+                  <img src="{{ subject.subject_photo.url }}" alt="Subject Image" class="subject-image" />
+                {% else %}
+                  <img src="{% static 'images/default-subject.jpg' %}" alt="Subject Image" class="subject-image" />
+                {% endif %}
+                <div class="subject-details">
+                  <h6 class="subject-title">{{ subject.subject_name }}</h6>
+                  <p class="subject-description">Learn more about {{ subject.subject_name }}.</p>
+                  <div class="assigned-teachers">
+                    <strong>Assigned Teacher:</strong>
+                    <p class="teacher-name">{{ subject.assign_teacher.first_name }} {{ subject.assign_teacher.last_name }}</p>
+                  </div>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
         </div>
       </div>
     </div>
@@ -194,46 +193,60 @@
 </div>
 
 <style>
-.subject-card {
-  display: flex;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  width: 100%;
-  margin-bottom: 16px;
-  flex-direction: row;
-}
-
-.subject-image {
-  width: 150px; /* Set a fixed width for the image */
-  height: auto;
-}
-
-.subject-details {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex-grow: 1; /* Ensure the details section takes up the remaining space */
-}
-
-.subject-title {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.subject-description {
-  font-size: 14px;
-  color: #666;
-}
-
-.rounded-image {
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-  margin-right: 10px;
-}
+  .subject-card {
+    display: flex;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
+    margin-bottom: 16px;
+    flex-direction: row;
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .subject-card-link {
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .subject-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .subject-image {
+    width: 150px; /* Set a fixed width for the image */
+    height: auto;
+  }
+  
+  .subject-details {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1; /* Ensure the details section takes up the remaining space */
+  }
+  
+  .subject-title {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .subject-description {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .rounded-image {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    margin-right: 10px;
+  }
+  
+  .teacher-name {
+    font-size: 14px;
+    color: #666;
+  }
 </style>
-
-<div id="viewCourseModalBackdrop" class="custom-modal-backdrop"></div>

@@ -6,7 +6,7 @@
 {% block content %}
   <h1 class="h3 mb-2 text-gray-800">Course</h1>
 
-  <!-- DataTales Example -->
+  <!-- DataTables Example -->
   <div class="card shadow mb-4">
     <div class="card-header py-3">
       <button class="btn btn-primary" id="openAddCourseModalBtn">Add Course</button>
@@ -23,7 +23,7 @@
             {% for course in courses %}
               <tr>
                 <td>
-                  <a href="?course_id={{ course.id }}" class="view-course">{{ course.course_name }}</a>
+                  <a href="#" class="view-course" data-id="{{ course.id }}">{{ course.course_name }}</a>
                 </td>
               </tr>
             {% endfor %}
@@ -37,7 +37,19 @@
   {% include 'course/addCourse.html' with form=form %}
 
   <!-- Include the modal for viewing a course -->
-  {% include 'course/viewCourse.html' with selected_course=selected_course %}
+  <div id="viewCourseModal" class="custom-modal">
+    <div class="custom-modal-header">
+      <button class="close-btn" id="closeViewCourseModalBtn"></button>
+      <h5 id="viewCourseModalTitle">Course Details</h5>
+    </div>
+    <div class="custom-modal-body">
+      <div id="viewCourseModalContent" class="container-fluid mt-4">
+        <!-- Dynamic course content will be inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <div id="viewCourseModalBackdrop" class="custom-modal-backdrop"></div>
 
   <!-- Custom Modal Script -->
   <script>
@@ -50,24 +62,90 @@
       document.getElementById('customModal').classList.remove('show')
       document.getElementById('customModalBackdrop').classList.remove('show')
     })
-
+    
     document.querySelectorAll('.view-course').forEach(function (element) {
       element.addEventListener('click', function (event) {
         event.preventDefault()
-        window.location.href = this.getAttribute('href') // Redirect to the selected course
+        var courseId = this.getAttribute('data-id')
+        fetchCourseDetails(courseId)
       })
     })
-
+    
     document.getElementById('closeViewCourseModalBtn').addEventListener('click', function () {
       document.getElementById('viewCourseModal').classList.remove('show')
       document.getElementById('viewCourseModalBackdrop').classList.remove('show')
     })
-
-    {% if selected_course %}
-      document.getElementById('viewCourseModal').classList.add('show')
-      document.getElementById('viewCourseModalBackdrop').classList.add('show')
-    {% endif %}
+    
+    function fetchCourseDetails(courseId) {
+      fetch(`/viewCourse/${courseId}/`)
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById('viewCourseModalTitle').innerText = data.course_name
+          document.getElementById('viewCourseModalContent').innerHTML = data.html_content
+          document.getElementById('viewCourseModal').classList.add('show')
+          document.getElementById('viewCourseModalBackdrop').classList.add('show')
+    
+          // Add event listener for student roster link
+          document.querySelector('.d-block.mb-2[href^="/courseStudentList"]').addEventListener('click', function (event) {
+            event.preventDefault()
+            fetchStudentRoster(this.getAttribute('href'))
+          })
+    
+          // Add event listener for subject links
+          document.querySelectorAll('.subject-card-link').forEach(function (element) {
+            element.addEventListener('click', function (event) {
+              event.preventDefault()
+              fetchSubjectDetails(this.getAttribute('href'))
+            })
+          })
+    
+          // Add event listener for activity links
+          document.querySelectorAll('.activity-link').forEach(function (element) {
+            element.addEventListener('click', function (event) {
+              event.preventDefault()
+              fetchActivityDetails(this.getAttribute('href'))
+            })
+          })
+        })
+        .catch((error) => console.error('Error fetching course details:', error))
+    }
+    
+    function fetchStudentRoster(url) {
+      fetch(url)
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById('viewCourseModalTitle').innerText = 'Student Roster'
+          document.getElementById('viewCourseModalContent').innerHTML = data.html_content
+        })
+        .catch((error) => console.error('Error fetching student roster:', error))
+    }
+    
+    function fetchSubjectDetails(url) {
+      fetch(url)
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById('viewCourseModalTitle').innerText = data.subject_name
+          document.getElementById('viewCourseModalContent').innerHTML = data.html_content
+    
+          // Add event listener for activity links
+          document.querySelectorAll('.activity-link').forEach(function (element) {
+            element.addEventListener('click', function (event) {
+              event.preventDefault()
+              fetchActivityDetails(this.getAttribute('href'))
+            })
+          })
+        })
+        .catch((error) => console.error('Error fetching subject details:', error))
+    }
+    
+    function fetchActivityDetails(url) {
+      fetch(url)
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById('viewCourseModalTitle').innerText = data.activity_name
+          document.getElementById('viewCourseModalContent').innerHTML = data.html_content
+        })
+        .catch((error) => console.error('Error fetching activity details:', error))
+    }
   </script>
 {% endblock %}
-
-

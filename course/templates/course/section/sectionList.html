@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+Section
+{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-2 text-gray-800">Section</h1>
+
+  <!-- DataTales Example -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <a class="btn btn-primary" href="{% url 'createSection'%}"><i class="fas fa-plus"></i> Add Section</a>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Course Name</th>
+              <th>Section Name</th>
+              <th>Subjects</th>
+              <th>Teacher Name</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for section in sections %}
+              <tr>
+                  <td>{{ section.course.course_name }}</td>
+                  <td>{{ section.section_name }}</td>
+                  <td>
+                    <ul>
+                        {% for subject in section.subjects.all %}
+                          <li>{{ subject.subject_name }}</li>
+                        {% endfor %}
+                      </ul>
+                  </td>
+                  <td>{{ section.assign_teacher.first_name }} {{ section.assign_teacher.last_name }}</td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ profile.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ profile.id }}">
+                        <a class="dropdown-item" href="{% url 'updateSection' section.id %}"><i class="fas fa-edit"></i> Update</a>
+                      </div>
+                    </div>
+                  </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+

@@ -131,4 +131,8 @@ $(document).ready(function() {
         $('.brand-link').toggleClass('text-sm', settings.smallTextBrand);
         $('.nav-sidebar').toggleClass('text-sm', settings.smallTextSidebarNav);
     }
+
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker()
+      })
 });

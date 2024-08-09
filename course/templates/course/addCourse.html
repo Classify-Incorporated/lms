@@ -7,16 +7,29 @@
     </div>
     <div class="custom-modal-body">
       <!-- Your add course form goes here -->
-      <form method="post" action="{% url 'add_course' %}">
+      <form method="post" action="{% url 'addCourse' %}">
         {% csrf_token %}
-        {{ form.as_p }}
-        <!-- Add more form fields as needed -->
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="id_course_name">Course name:</label>
+                {{ form.course_name }}
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="id_subjects">Short Name:</label>
+                {{ form.course_short_name }}
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
       </form>
     </div>
   </div>
 
   <!-- Custom Modal Backdrop -->
   <div id="customModalBackdrop" class="custom-modal-backdrop"></div>
-  
 {% endblock %}

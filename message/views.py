@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Message, MessageReadStatus
-from course.models import Course, SubjectEnrollment
+from course.models import Course, SubjectEnrollment, Section
 from subject.models import Subject
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -9,7 +9,7 @@ from accounts.models import CustomUser
 from django.contrib.auth.decorators import login_required
 from allauth.socialaccount.models import SocialToken
 
-# Create your views here.
+@login_required
 def send_message(request):
     if request.method == 'POST':
         subject = request.POST.get('subject')
@@ -20,8 +20,9 @@ def send_message(request):
         recipients = []
         if recipient_type.startswith('course_'):
             course_id = recipient_type.split('_')[1]
-            course = Course.objects.get(id=course_id)
-            subject_enrollments = SubjectEnrollment.objects.filter(subjects__in=course.subjects.all()).distinct()
+            sections = Section.objects.filter(course_id=course_id)
+            subjects = Subject.objects.filter(section__in=sections).distinct()
+            subject_enrollments = SubjectEnrollment.objects.filter(subjects__in=subjects).distinct()
             recipients = [enrollment.student for enrollment in subject_enrollments]
         elif recipient_type.startswith('subject_'):
             subject_id = recipient_type.split('_')[1]
@@ -46,27 +47,20 @@ def send_message(request):
 
     unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
 
-    return render(request, 'message/message.html', {
+    return render(request, 'message/inbox.html', {
         'courses': courses,
         'subjects': subjects,
         'instructors': instructors,
         'unread_messages_count': unread_messages_count,
     })
-
-
-
+    
 @login_required
-def message(request):
+def inbox(request):
     if not request.user.is_authenticated:
         return redirect('account_login')  # Ensure user is redirected to login if not authenticated
 
-    print(f"Authenticated user: {request.user}")  # Verify user is authenticated
-
     messages = Message.objects.filter(recipients=request.user)
-    print(f"Messages for user {request.user}: {messages}")  # Check retrieved messages
-
     unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
-    print(f"Unread messages count: {unread_messages_count}")
 
     message_status_list = []
     for message in messages:
@@ -76,9 +70,16 @@ def message(request):
             'read': read_status.read_at is not None if read_status else False
         })
 
+    courses = Course.objects.all()
+    subjects = Subject.objects.all()
+    instructors = CustomUser.objects.filter(groups__name='Instructor')
+
     return render(request, 'message/inbox.html', {
         'message_status_list': message_status_list,
         'unread_messages_count': unread_messages_count,
+        'courses': courses,
+        'subjects': subjects,
+        'instructors': instructors,
     })
 
 

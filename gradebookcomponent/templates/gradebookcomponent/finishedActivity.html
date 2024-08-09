@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}
+  Scores for {{ activity.activity_name }}
+{% endblock %}
+{% block content %}
+  <h1>Scores for {{ activity.activity_name }}</h1>
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Submission Date</th>
+              <th>Total Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in student_scores %}
+              <tr>
+                <td>{{ entry.student.first_name }} {{ entry.student.last_name }}</td>
+                <td>{{ entry.submission_date }}</td>
+                <td>
+                  <div class="progress-circle" data-score="{{ entry.total_score }}" data-max="{{ entry.max_score }}">
+                    <span class="progress-text">{{ entry.total_score|floatformat:"0" }} / {{ entry.max_score|floatformat:"0" }}</span>
+                    <div class="progress-inner-circle"></div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .progress-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: conic-gradient(#4caf50 0% 0%, transparent 0% 100%);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: #000;
+      transition: transform 0.3s ease;
+    }
+    .progress-circle:hover {
+      transform: scale(1.1);
+    }
+    .progress-inner-circle {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      background-color: #f3f3f3;
+      position: absolute;
+      top: 7px;
+      left: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .progress-text {
+      position: absolute;
+      z-index: 1;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.progress-circle').forEach(function(circle) {
+        const score = parseFloat(circle.getAttribute('data-score'));
+        const max = parseFloat(circle.getAttribute('data-max'));
+        if (!isNaN(score) && !isNaN(max) && max > 0) {
+          const percentage = (score / max) * 100;
+          circle.style.background = `conic-gradient(#4caf50 0% ${percentage}%, transparent ${percentage}% 100%)`;
+        }
+      });
+    });
+  </script>
+{% endblock %}

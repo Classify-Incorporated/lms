@@ -46,12 +46,12 @@ class Profile(models.Model):
     identification = models.CharField(max_length=255, null=True, blank=True)
     YEAR_LEVEL_CHOICES = [
         ('College 1st Year', 'College 1st Year'),
-        ('College 2st Year', 'College 2st Year'),
-        ('College 3st Year', 'College 3st Year'),
-        ('College 4st Year', 'College 4st Year'),
+        ('College 2nd Year', 'College 2nd Year'),
+        ('College 3rd Year', 'College 3rd Year'),
+        ('College 4th Year', 'College 4th Year'),
     ]
     grade_year_level = models.CharField(max_length=255, choices=YEAR_LEVEL_CHOICES, null=True, blank=True)
     major = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return self.user.email
+        return f"{self.first_name} {self.last_name}"

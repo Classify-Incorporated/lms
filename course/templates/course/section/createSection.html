@@ -1,0 +1,21 @@
+
+{% load static %}
+{% block content %}
+  <div id="customSectionModal" class="custom-modal">
+    <div class="custom-modal-header">
+      <button class="close-btn" id="closeSectionModal"></button>
+      <h5>Create Section</h5>
+    </div>
+    <div class="custom-modal-body">
+      <!-- Your add user form goes here -->
+      <form method="post" action="{% url 'createSection' %}">
+        {% csrf_token %}
+        {{form.as_p}}
+        <button type="submit">Submit</button>
+    </form>
+    </div>
+  </div>
+
+  <!-- Custom Modal Backdrop -->
+  <div id="customSectionModalBackdrop" class="custom-modal-backdrop"></div>
+{% endblock %}

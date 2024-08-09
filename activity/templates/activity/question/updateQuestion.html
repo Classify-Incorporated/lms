@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Edit Question
+{% endblock %}
+
+{% block content %}
+<h1>Edit Question for {{ question.activity.activity_name }} ({{ quiz_type.name }})</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="question_text">Question:</label>
+        <textarea id="question_text" name="question_text" class="form-control" required>{{ question.question_text }}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="score">Score:</label>
+        <input type="number" id="score" name="score" class="form-control" value="{{ question.score }}" required>
+    </div>
+    {% if quiz_type.name == 'Multiple Choice' %}
+        <div id="choices">
+            {% for choice in question.choices.all %}
+                <div class="form-group">
+                    <label for="choices">Choice:</label>
+                    <input type="text" name="choices" class="form-control" value="{{ choice.choice_text }}" required>
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" onclick="addChoice()">Add Another Choice</button>
+    {% elif quiz_type.name == 'True/False' %}
+        <div class="form-group">
+            <label for="correct_answer">Correct Answer:</label>
+            <select id="correct_answer" name="correct_answer" class="form-control" required>
+                <option value="True" {% if question.correct_answer == 'True' %}selected{% endif %}>True</option>
+                <option value="False" {% if question.correct_answer == 'False' %}selected{% endif %}>False</option>
+            </select>
+        </div>
+    {% elif quiz_type.name != 'Essay' %}
+        <div class="form-group">
+            <label for="correct_answer">Correct Answer:</label>
+            <input type="text" id="correct_answer" name="correct_answer" class="form-control" value="{{ question.correct_answer }}" required>
+        </div>
+    {% endif %}
+    <button type="submit" class="btn btn-primary">Update Question</button>
+</form>
+
+<script>
+function addChoice() {
+    const choiceInput = document.createElement('input');
+    choiceInput.type = 'text';
+    choiceInput.name = 'choices';
+    choiceInput.classList.add('form-control');
+    choiceInput.required = true;
+    document.getElementById('choices').appendChild(choiceInput);
+}
+</script>
+{% endblock %}
