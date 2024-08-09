@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Total Scores for All Students - {{ current_semester.semester_name }} {{ current_semester.school_year }}
+{% endblock %}
+
+{% block content %}
+  <h1>Total Scores for All Students</h1>
+  <h2>{{ current_semester.semester_name }} - {{ current_semester.school_year }}</h2>
+  
+  {% if term_scores_data %}
+    {% for term_data in term_scores_data %}
+      <h3>{{ term_data.term.term_name }} - {{ term_data.activity_type.name }} - {{ term_data.subject.subject_name }}</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Total Score</th>
+              <th>Max Score</th>
+              <th>Percentage</th>
+              <th>Weighted Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for data in term_data.student_scores_data %}
+              <tr {% if data.missed %}class="text-danger"{% endif %}>
+                <td>{{ data.student.get_full_name }}</td>
+                <td>{{ data.total_score }}</td>
+                <td>{{ data.max_score }}</td>
+                <td>{{ data.percentage|floatformat:2 }}%</td>
+                <td>{{ data.weighted_score|floatformat:2 }}%</td>
+                <td>{% if data.missed %}Missed{% else %}Completed{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No data available for the current semester.</p>
+  {% endif %}
+
+{% endblock %}
