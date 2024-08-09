@@ -13,6 +13,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.db.models import Sum
 
 def courseList(request):
     form = courseForm()
@@ -197,6 +198,7 @@ def addIrregularStudent(request):
     })
 
 # Display the module based on the subject
+# Display the module based on the subject
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
@@ -227,7 +229,7 @@ def subjectDetail(request, pk):
         for activity in activities:
             if ActivityQuestion.objects.filter(activity=activity, quiz_type__name='Essay').exists():
                 activities_with_essays.add(activity.id)
-                ungraded_essay_count += StudentQuestion.objects.filter(activity_question__activity=activity, activity_question__quiz_type__name='Essay', status=False, student_answer__isnull = False ).count()
+                ungraded_essay_count += StudentQuestion.objects.filter(activity_question__activity=activity, activity_question__quiz_type__name='Essay', status=False).count()
     
     html_content = render_to_string('course/viewSubjectModule.html', {
         'subject': subject,
@@ -292,3 +294,49 @@ def updateSection(request, id):
         form = sectionForm(instance=section)
     return render(request, 'course/section/updateSection.html', {'form': form, 'section': section})
     
+
+
+def get_current_semester():
+    current_date = timezone.now().date()
+    try:
+        current_semester = Semester.objects.get(start_date__lte=current_date, end_date__gte=current_date)
+        return current_semester
+    except Semester.DoesNotExist:
+        return None
+    
+
+def total_scores_for_current_semester(request):
+    current_semester = get_current_semester()
+
+    if not current_semester:
+        return render(request, 'gradebookcomponent/allStudentTotalScores.html', {
+            'error': 'No current semester found.'
+        })
+
+    students = CustomUser.objects.filter(profile__role__name__iexact='student')
+    
+    student_scores_data = []
+
+    for student in students:
+        activities = Activity.objects.filter(term__semester=current_semester)
+        
+        student_questions = StudentQuestion.objects.filter(
+            student=student,
+            activity_question__activity__in=activities,
+            status=True 
+        )
+        
+        total_score = student_questions.aggregate(total_score=Sum('score'))['total_score'] or 0
+        max_score = student_questions.aggregate(max_score=Sum('activity_question__score'))['max_score'] or 0
+
+        student_scores_data.append({
+            'student': student,
+            'total_score': total_score,
+            'max_score': max_score,
+            'activities': activities,
+        })
+
+    return render(request, 'gradebookcomponent/allStudentTotalScores.html', {
+        'current_semester': current_semester,
+        'student_scores_data': student_scores_data,
+    })

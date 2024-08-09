@@ -8,6 +8,7 @@ from django.db.models import Sum
 from django.db.models import Max
 from django.utils import timezone
 
+
 class AddActivityView(View):
     def get(self, request, subject_id):
         subject = get_object_or_404(Subject, id=subject_id)
@@ -102,6 +103,8 @@ class AddQuestionView(View):
             'score': score,
             'choices': choices
         }
+
+        print(f"Question being created: {question}")
 
         questions = request.session.get('questions', {})
         if str(activity_id) not in questions:

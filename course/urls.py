@@ -19,7 +19,7 @@ urlpatterns = [
     path('addIrregularStudent/', addIrregularStudent, name='addIrregularStudent'),
 
     path('subjectDetail/<int:pk>/', subjectDetail, name='subjectDetail'),
-    path('courseStudentList/<int:pk>/', courseStudentList, name='courseStudentList'),
+    path('course/<int:pk>/students/', courseStudentList, name='courseStudentList'),
 
     path('enroll_regular_student/', EnrollRegularStudentView.as_view(), name='enroll_regular_student'),
     path('enroll_irregular_student/', EnrollIrregularStudentView.as_view(), name='enroll_irregular_student'),
