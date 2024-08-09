@@ -227,7 +227,7 @@ def subjectDetail(request, pk):
         for activity in activities:
             if ActivityQuestion.objects.filter(activity=activity, quiz_type__name='Essay').exists():
                 activities_with_essays.add(activity.id)
-                ungraded_essay_count += StudentQuestion.objects.filter(activity_question__activity=activity, activity_question__quiz_type__name='Essay', status=False).count()
+                ungraded_essay_count += StudentQuestion.objects.filter(activity_question__activity=activity, activity_question__quiz_type__name='Essay', status=False, student_answer__isnull = False ).count()
     
     html_content = render_to_string('course/viewSubjectModule.html', {
         'subject': subject,

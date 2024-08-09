@@ -39,19 +39,26 @@
   <table class="table">
     <thead>
       <tr>
-        <th>#</th> <!-- Added column for numbering -->
+        <th>#</th>
         <th>Question</th>
         <th>Score</th>
         <th>Quiz Type</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for question in questions %}
         <tr>
-          <td>{{ forloop.counter }}</td> <!-- Display question number -->
+          <td>{{ forloop.counter }}</td>
           <td>{{ question.question_text }}</td>
           <td>{{ question.score }}</td>
           <td>{{ question.quiz_type }}</td>
+          <td>
+            <form method="post" action="{% url 'delete_temp_question' activity.id forloop.counter0 %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </td>
         </tr>
       {% endfor %}
     </tbody>
@@ -66,78 +73,76 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       $('#quizTypeModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget) // Button that triggered the modal
-        var quizTypeId = button.data('id') // Extract info from data-* attributes
-        var quizTypeName = button.data('name') // Extract info from data-* attributes
+        var button = $(event.relatedTarget)
+        var quizTypeId = button.data('id')
+        var quizTypeName = button.data('name')
         var modal = $(this)
         modal.find('.modal-title').text('Add Question for ' + quizTypeName)
     
-        // Set form action dynamically
         var form = modal.find('#quizTypeForm')
         var action = "{% url 'add_question' activity.id 0 %}".replace('0', quizTypeId)
         form.attr('action', action)
     
-        // Clear and populate dynamic fields based on quiz type
         var quizTypeFields = modal.find('#quiz-type-fields')
         quizTypeFields.empty()
         quizTypeFields.append(`
-                                  <div class="form-group">
-                                    <label for="question_text">Question:</label>
-                                    <textarea id="question_text" name="question_text" class="form-control" required></textarea>
-                                  </div>
-                                  <div class="form-group">
-                                    <label for="score">Score:</label>
-                                    <input type="number" id="score" name="score" class="form-control" required>
-                                  </div>
-                                `)
+          <div class="form-group">
+            <label for="question_text">Question:</label>
+            <textarea id="question_text" name="question_text" class="form-control" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="score">Score:</label>
+            <input type="number" id="score" name="score" class="form-control" required>
+          </div>
+        `)
     
         if (quizTypeName == 'Multiple Choice') {
           quizTypeFields.append(`
-                                    <div id="choices">
-                                      <div class="form-group">
-                                        <label>Choices:</label>
-                                        <div class="input-group mb-3">
-                                          <input type="radio" name="correct_answer" value="0" required>
-                                          <input type="text" name="choices" class="form-control ml-2" placeholder="Choice 1" required>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <button type="button" class="btn btn-secondary mb-2" onclick="addChoice()">Add Another Choice</button>
-                                  `)
+            <div id="choices">
+              <div class="form-group">
+                <label>Choices:</label>
+                <div class="input-group mb-3">
+                  <input type="radio" name="correct_answer" value="0" required>
+                  <input type="text" name="choices" class="form-control ml-2" placeholder="Choice 1" required>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary mb-2" onclick="addChoice()">Add Another Choice</button>
+          `)
         } else if (quizTypeName == 'True/False') {
           quizTypeFields.append(`
-                                    <div class="form-group">
-                                      <label for="correct_answer">Correct Answer:</label>
-                                      <select id="correct_answer" name="correct_answer" class="form-control" required>
-                                        <option value="True">True</option>
-                                        <option value="False">False</option>
-                                      </select>
-                                    </div>
-                                  `)
+            <div class="form-group">
+              <label for="correct_answer">Correct Answer:</label>
+              <select id="correct_answer" name="correct_answer" class="form-control" required>
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
+            </div>
+          `)
         } else if (quizTypeName == 'Matching') {
           quizTypeFields.append(`
-                                    <div id="matching_pairs">
-                                      <div class="form-group">
-                                        <label for="matching_pair">Matching Pairs:</label>
-                                        <div class="input-group mb-3">
-                                          <input type="text" name="matching_left" class="form-control" placeholder="Left side" required>
-                                          <input type="text" name="matching_right" class="form-control" placeholder="Right side" required>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <button type="button" class="btn btn-secondary" onclick="addMatchingPair()">Add Another Pair</button>
-                                  `)
+            <div id="matching_pairs">
+              <div class="form-group">
+                <label for="matching_pair">Matching Pairs:</label>
+                <div class="input-group mb-3">
+                  <input type="text" name="matching_left" class="form-control" placeholder="Left side" required>
+                  <input type="text" name="matching_right" class="form-control" placeholder="Right side" required>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addMatchingPair()">Add Another Pair</button>
+          `)
         } else if (quizTypeName == 'Calculated Numeric' || quizTypeName == 'Fill in the Blank') {
           quizTypeFields.append(`
-                                    <div class="form-group">
-                                      <label for="correct_answer">Correct Answer:</label>
-                                      <input type="text" id="correct_answer" name="correct_answer" class="form-control" required>
-                                    </div>
-                                  `)
+            <div class="form-group">
+              <label for="correct_answer">Correct Answer:</label>
+              <input type="text" id="correct_answer" name="correct_answer" class="form-control" required>
+            </div>
+          `)
         }
       })
     })
-    
+
     function addChoice() {
       const choiceCount = document.querySelectorAll('input[name="choices"]').length
       const choiceIndex = choiceCount
@@ -189,9 +194,18 @@
       rightInput.classList.add('form-control')
       rightInput.placeholder = 'Right side'
       rightInput.required = true
+
+      const deleteButton = document.createElement('button')
+      deleteButton.type = 'button'
+      deleteButton.classList.add('btn', 'btn-danger', 'btn-sm', 'ml-2')
+      deleteButton.textContent = 'Delete'
+      deleteButton.onclick = function () {
+        pairContainer.remove()
+      }
     
       pairContainer.appendChild(leftInput)
       pairContainer.appendChild(rightInput)
+      pairContainer.appendChild(deleteButton)
     
       document.getElementById('matching_pairs').appendChild(pairContainer)
     }

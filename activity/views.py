@@ -103,8 +103,6 @@ class AddQuestionView(View):
             'choices': choices
         }
 
-        print(f"Question being created: {question}")
-
         questions = request.session.get('questions', {})
         if str(activity_id) not in questions:
             questions[str(activity_id)] = []
@@ -114,34 +112,19 @@ class AddQuestionView(View):
         return redirect('add_quiz_type', activity_id=activity.id)
     
 
-class EditQuestionView(View):
-    def get(self, request, question_id):
-        question = get_object_or_404(ActivityQuestion, id=question_id)
-        quiz_type = question.quiz_type
-        return render(request, 'activity/question/updateQuestion.html', {
-            'question': question,
-            'quiz_type': quiz_type
-        })
-
-    def post(self, request, question_id):
-        question = get_object_or_404(ActivityQuestion, id=question_id)
-        question_text = request.POST.get('question_text')
-        correct_answer = request.POST.get('correct_answer') if question.quiz_type.name != 'Essay' else ''
-        score = request.POST.get('score')
-
-        question.question_text = question_text
-        question.correct_answer = correct_answer
-        question.score = score
-        question.save()
-
-        if question.quiz_type.name == 'Multiple Choice':
-            question.choices.all().delete()
-            choices = request.POST.getlist('choices')
-            for choice_text in choices:
-                QuestionChoice.objects.create(question=question, choice_text=choice_text)
-
-        return redirect('add_question', activity_id=question.activity.id, quiz_type_id=question.quiz_type.id)
-
+class DeleteTempQuestionView(View):
+    def post(self, request, activity_id, index):
+        questions = request.session.get('questions', {})
+        activity_questions = questions.get(str(activity_id), [])
+        
+        if index < len(activity_questions):
+            del activity_questions[index]
+        
+        questions[str(activity_id)] = activity_questions
+        request.session['questions'] = questions
+        
+        return redirect('add_quiz_type', activity_id=activity_id)
+    
 
 class SaveAllQuestionsView(View):
     def post(self, request, activity_id):

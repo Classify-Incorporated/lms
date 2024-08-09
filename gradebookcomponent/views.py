@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import GradeBookComponentsForm
 from .models import GradeBookComponents
-from activity.models import StudentQuestion, Activity, ActivityQuestion
+from activity.models import StudentQuestion, Activity, ActivityQuestion, ActivityType, QuizType
 from accounts.models import CustomUser
-from django.db.models import Sum
+from django.db.models import Sum, Max
+from django.utils import timezone
+from course.models import Semester, Term
+from subject.models import Subject
 # Create your views here.
 
 #View GradeBookComponents
@@ -111,15 +114,17 @@ def teacherActivityView(request, activity_id):
     max_score = ActivityQuestion.objects.filter(activity=activity).aggregate(total_score=Sum('score'))['total_score'] or 0
     for entry in student_scores:
         student = get_object_or_404(CustomUser, id=entry['student'])
+        submission_date = StudentQuestion.objects.filter(activity_question__activity=activity, student=student).aggregate(last_submission=Max('submission_time'))['last_submission']
         student_scores_with_names.append({
             'student': student,
             'total_score': entry['total_score'],
-            'max_score': max_score
+            'max_score': max_score,
+            'submission_date': submission_date
         })
 
     return render(request, 'gradebookcomponent/finishedActivity.html', {
         'activity': activity,
-        'student_scores': student_scores_with_names
+        'student_scores': student_scores_with_names,
     })
 
 
@@ -148,6 +153,7 @@ def studentActivityView(request, activity_id):
                 'question_text': question.activity_question.question_text,
                 'correct_answer': question.activity_question.correct_answer,
                 'student_answer': question.student_answer,
+                
             })
         detailed_scores.append({
             'student': student,
@@ -156,7 +162,78 @@ def studentActivityView(request, activity_id):
             'questions': question_details
         })
 
-    return render(request, 'gradebookcomponent/detailedfinishActivity.html', {
+    return render(request, 'gradebookcomponent/studentTotalScore.html', {
         'activity': activity,
-        'detailed_scores': detailed_scores
+        'detailed_scores': detailed_scores,
+        'submission_time': question.submission_time,
+    })
+
+
+def get_current_semester():
+    current_date = timezone.now().date()
+    try:
+        current_semester = Semester.objects.get(start_date__lte=current_date, end_date__gte=current_date)
+        return current_semester
+    except Semester.DoesNotExist:
+        return None
+    
+
+def studentTotalScore(request):
+    current_semester = get_current_semester()
+
+    if not current_semester:
+        return render(request, 'gradebookcomponent/allStudentTotalScores.html', {
+            'error': 'No current semester found.'
+        })
+
+    students = CustomUser.objects.filter(profile__role__name__iexact='student')
+    activity_types = ActivityType.objects.all()  # Get all activity types to loop through them
+    quiz_types = QuizType.objects.all()  # Get all quiz types to loop through them
+    subjects = Subject.objects.all()  # Get all subjects to loop through them
+    
+    terms = Term.objects.filter(semester=current_semester)
+    term_scores_data = []
+
+    for term in terms:
+        for activity_type in activity_types:
+            for quiz_type in quiz_types:
+                for subject in subjects:
+                    student_scores_data = []
+                    term_has_data = False
+
+                    for student in students:
+                        student_questions = StudentQuestion.objects.filter(
+                            student=student,
+                            activity_question__activity__term=term,
+                            activity_question__activity__activity_type=activity_type,
+                            activity_question__activity__subject=subject,
+                            activity_question__quiz_type=quiz_type,
+                            status=True 
+                        )
+                        
+                        total_score = student_questions.aggregate(total_score=Sum('score'))['total_score'] or 0
+                        max_score = student_questions.aggregate(max_score=Sum('activity_question__score'))['max_score'] or 0
+                        percentage = (total_score / max_score * 100) if max_score > 0 else 0
+
+                        if total_score > 0:
+                            term_has_data = True
+                            student_scores_data.append({
+                                'student': student,
+                                'total_score': total_score,
+                                'max_score': max_score,
+                                'percentage': percentage,
+                            })
+
+                    if term_has_data:
+                        term_scores_data.append({
+                            'term': term,
+                            'activity_type': activity_type,
+                            'quiz_type': quiz_type,
+                            'subject': subject,
+                            'student_scores_data': student_scores_data,
+                        })
+
+    return render(request, 'gradebookcomponent/studentTotalScore.html', {
+        'current_semester': current_semester,
+        'term_scores_data': term_scores_data,
     })

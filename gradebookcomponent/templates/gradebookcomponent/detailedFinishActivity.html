@@ -15,10 +15,12 @@
             </div>
             <div class="student-info">
               <h4>{{ entry.student.first_name }} {{ entry.student.last_name }}</h4>
+              <p><strong>Submision date:</strong> {{ submission_time }}</p>
               {% for question in entry.questions %}
                 <p><strong>Question {{ question.number }}:</strong> {{ question.question_text }}</p>
                 <p><strong>Correct Answer:</strong> {{ question.correct_answer }}</p>
                 <p><strong>Student Answer:</strong> {{ question.student_answer }}</p>
+                
               {% endfor %}
             </div>
           </div>
