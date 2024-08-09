@@ -163,7 +163,7 @@ def studentActivityView(request, activity_id):
             'questions': question_details
         })
 
-    return render(request, 'gradebookcomponent/studentTotalScore.html', {
+    return render(request, 'gradebookcomponent/detailedFinishActivity.html', {
         'activity': activity,
         'detailed_scores': detailed_scores,
         'submission_time': question.submission_time,
