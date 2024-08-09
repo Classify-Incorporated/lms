@@ -9,7 +9,7 @@
   <p>Your answers have been submitted successfully.</p>
   {% if show_score %}
     <div class="progress-circle" data-score="{{ score }}" data-max="{{ max_score }}">
-      <span class="progress-text">{{ score|floatformat:"0" }} / {{ max_score|floatformat:"0" }}</span>
+      <span class="progress-text">{{ score|floatformat:'0' }} / {{ max_score|floatformat:'0' }}</span>
       <div class="progress-inner-circle"></div>
     </div>
 
@@ -50,14 +50,14 @@
     </style>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.progress-circle').forEach(function(circle) {
-          const score = parseFloat(circle.getAttribute('data-score'));
-          const max = parseFloat(circle.getAttribute('data-max'));
-          const percentage = (score / max) * 100;
-          circle.style.background = `conic-gradient(#4caf50 0% ${percentage}%, transparent ${percentage}% 100%)`;
-        });
-      });
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.progress-circle').forEach(function (circle) {
+          const score = parseFloat(circle.getAttribute('data-score'))
+          const max = parseFloat(circle.getAttribute('data-max'))
+          const percentage = (score / max) * 100
+          circle.style.background = `conic-gradient(#4caf50 0% ${percentage}%, transparent ${percentage}% 100%)`
+        })
+      })
     </script>
   {% endif %}
 {% endblock %}
