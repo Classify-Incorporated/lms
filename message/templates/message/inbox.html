@@ -142,14 +142,9 @@
           <label for="recipient_type">To:</label>
           <select class="form-control" id="recipient_type" name="recipient_type" required>
             <option value="" disabled selected>Select Recipient</option>
-            <optgroup label="Courses">
-              {% for course in courses %}
-                <option value="course_{{ course.id }}">{{ course.course_name }}</option>
-              {% endfor %}
-            </optgroup>
             <optgroup label="Subjects">
               {% for subject in subjects %}
-                <option value="subject_{{ subject.id }}">{{ subject.name }}</option>
+                <option value="subject_{{ subject.id }}">{{ subject.subject_name }}</option>
               {% endfor %}
             </optgroup>
             <optgroup label="Instructors">

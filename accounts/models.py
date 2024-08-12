@@ -15,6 +15,17 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
+    def has_perm(self, perm, obj=None):
+        if super().has_perm(perm, obj):
+            return True
+
+        if hasattr(self, 'profile') and self.profile.role:
+            role_permissions = self.profile.role.permissions.all()
+            if role_permissions.filter(codename=perm.split('.')[1]).exists():
+                return True
+        
+        return False
+
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)

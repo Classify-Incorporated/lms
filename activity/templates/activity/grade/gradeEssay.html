@@ -29,7 +29,15 @@
             <td>{{ student_question.activity_question.question_text }}</td>
             <td>{{ student_question.student_answer }}</td>
             <td>
-              <input type="number" name="score_{{ student_question.id }}" class="form-control" value="{{ student_question.score }}" max="{{ student_question.activity_question.score }}" />
+              <input 
+                type="number" 
+                name="score_{{ student_question.id }}" 
+                class="form-control" 
+                value="{{ student_question.score }}" 
+                max="{{ student_question.activity_question.score }}" 
+                step="0.01" 
+                required
+              />
               <small>Max: {{ student_question.activity_question.score }}</small>
             </td>
           </tr>
@@ -37,7 +45,7 @@
       </tbody>
     </table>
     <button type="submit" class="btn btn-primary">Submit Grades</button>
-    <a href="{% url 'courseList' %}" class="btn btn-secondary">Back</a>
+    <a href="{% url 'subjectDetail' activity.subject.id %}" class="btn btn-secondary">Back</a>
   </form>
 
   <script>

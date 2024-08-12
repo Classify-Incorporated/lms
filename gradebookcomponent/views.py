@@ -22,7 +22,7 @@ def createGradeBookComponents(request):
         form = GradeBookComponentsForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('courseList')
+            return redirect('viewGradeBookComponents')
     else:
         form = GradeBookComponentsForm()
     
@@ -35,7 +35,7 @@ def updateGradeBookComponents(request, pk):
         form = GradeBookComponentsForm(request.POST, instance=gradebookcomponent)
         if form.is_valid():
             form.save()
-            return redirect('courseList')
+            return redirect('viewGradeBookComponents')
     else:
         form = GradeBookComponentsForm(instance=gradebookcomponent)
     
@@ -202,14 +202,11 @@ def studentTotalScore(request):
 
                 # Get the component percentage for the activity type
                 gradebook_component = GradeBookComponents.objects.filter(activity_type=activity_type).first()
-                if gradebook_component:
-                    component_percentage = gradebook_component.percentage
-                else:
-                    component_percentage = Decimal(0)  # Ensure this is a Decimal
+                component_percentage = gradebook_component.percentage if gradebook_component else Decimal(0)
 
                 for student in students:
                     # Check if the student is enrolled in this subject
-                    if not student.subjectenrollment_set.filter(subjects=subject).exists():
+                    if not student.subjectenrollment_set.filter(subject=subject).exists():
                         continue  # Skip to the next student if not enrolled
                     
                     # Fetch all activities for the term, subject, and activity type

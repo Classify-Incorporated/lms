@@ -4,7 +4,7 @@ from django.conf import settings
 
 
 class Message(models.Model):
-    subject = models.CharField(max_length=255)
+    subject = models.CharField(max_length=255, null=True, blank=True)
     body = models.TextField()
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sent_messages', on_delete=models.CASCADE)
     recipients = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='received_messages')

@@ -1,8 +1,8 @@
 <!-- enrollRegularStudent.html -->
 {% extends 'base.html' %}
 {% block content %}
-<h2>Create Section</h2>
-<form method="post" action="{% url 'updateSection' section.id %}">
+<h2>Create Semester</h2>
+<form method="post" action="{% url 'createSemester' %}">
     {% csrf_token %}
     {{form.as_p}}
     <button type="submit">Submit</button>

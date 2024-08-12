@@ -3,21 +3,21 @@ from django.views import View
 from .models import Activity, ActivityType, StudentActivity, ActivityQuestion, QuizType, QuestionChoice, StudentQuestion
 from subject.models import Subject
 from accounts.models import CustomUser
-from course.models import Section, Term
-from django.db.models import Sum
-from django.db.models import Max
+from course.models import Term, SubjectEnrollment
+from django.db.models import Sum, Max
 from django.utils import timezone
 
-
+# Add type of activity
 class AddActivityView(View):
     def get(self, request, subject_id):
         subject = get_object_or_404(Subject, id=subject_id)
-        activity_types = ActivityType.objects.all()
-        terms = Term.objects.filter(semester__subjectenrollment__subjects=subject).distinct()
+        subject_enrollments = SubjectEnrollment.objects.filter(subject=subject)
+        terms = Term.objects.filter(semester__in=[se.semester for se in subject_enrollments]).distinct()
+        
         return render(request, 'activity/activities/createActivity.html', {
             'subject': subject,
-            'activity_types': activity_types,
-            'terms': terms
+            'activity_types': ActivityType.objects.all(),
+            'terms': terms,
         })
 
     def post(self, request, subject_id):
@@ -40,14 +40,13 @@ class AddActivityView(View):
             end_time=end_time
         )
 
-        # Filter students only
-        students = CustomUser.objects.filter(subjectenrollment__subjects=subject, profile__role__name__iexact='Student').distinct()
+        students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
         for student in students:
             StudentActivity.objects.create(student=student, activity=activity, term=term)
 
         return redirect('add_quiz_type', activity_id=activity.id)
 
-
+# Add quiz type
 class AddQuizTypeView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -63,7 +62,7 @@ class AddQuizTypeView(View):
         quiz_type_id = request.POST.get('quiz_type')
         return redirect('add_question', activity_id=activity_id, quiz_type_id=quiz_type_id)
 
-
+# Add question to quiz
 class AddQuestionView(View):
     def get(self, request, activity_id, quiz_type_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -104,8 +103,6 @@ class AddQuestionView(View):
             'choices': choices
         }
 
-        print(f"Question being created: {question}")
-
         questions = request.session.get('questions', {})
         if str(activity_id) not in questions:
             questions[str(activity_id)] = []
@@ -114,7 +111,7 @@ class AddQuestionView(View):
 
         return redirect('add_quiz_type', activity_id=activity.id)
     
-
+# Delete temporary question
 class DeleteTempQuestionView(View):
     def post(self, request, activity_id, index):
         questions = request.session.get('questions', {})
@@ -128,7 +125,7 @@ class DeleteTempQuestionView(View):
         
         return redirect('add_quiz_type', activity_id=activity_id)
     
-
+# Save all created questions
 class SaveAllQuestionsView(View):
     def post(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -148,17 +145,21 @@ class SaveAllQuestionsView(View):
                 for choice_text in question_data['choices']:
                     QuestionChoice.objects.create(question=question, choice_text=choice_text)
 
-            # Create individual student questions
-            students = CustomUser.objects.filter(subjectenrollment__subjects=activity.subject, profile__role__name__iexact='Student').distinct()
+            # Corrected query to fetch students enrolled in the subject
+            students = CustomUser.objects.filter(
+                profile__role__name__iexact='Student',
+                subjectenrollment__subject=activity.subject
+            ).distinct()
+            
             for student in students:
                 StudentQuestion.objects.create(student=student, activity_question=question)
 
         # Clear the questions from the session
         request.session.pop('questions', None)
         
-        return redirect('courseList')
+        return redirect('subjectList')
     
-
+# Display questions the student will answer
 class DisplayQuestionsView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -175,24 +176,12 @@ class DisplayQuestionsView(View):
                         left, right = pair.split(" -> ")
                         question.pairs.append({"left": left, "right": right})
 
-        # Debugging output
-        print(f"User: {student.username}")
-        print(f"Activity: {activity.activity_name}")
-        for question in questions:
-            print(f"Question: {question.question_text}")
-            print(f"Quiz Type: {question.quiz_type.name}")
-            if question.quiz_type.name == 'Matching':
-                for pair in question.pairs:
-                    print(f"Matching Pair: {pair['left']} -> {pair['right']}")
-            elif question.quiz_type.name == 'Multiple Choice':
-                for choice in question.choices.all():
-                    print(f"Choice: {choice.choice_text}")
-
         return render(request, 'activity/question/displayQuestion.html', {
             'activity': activity,
             'questions': questions
         })
 
+# Submit answers
 class SubmitAnswersView(View):
     def post(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -223,7 +212,7 @@ class SubmitAnswersView(View):
 
         return redirect('activity_completed', score=int(total_score), activity_id=activity_id, show_score=has_non_essay_questions)
 
-
+# Display activity after activity is completed
 def activityCompletedView(request, score, activity_id, show_score):
     activity = get_object_or_404(Activity, id=activity_id)
     max_score = activity.activityquestion_set.aggregate(total_score=Sum('score'))['total_score'] or 0
@@ -234,8 +223,7 @@ def activityCompletedView(request, score, activity_id, show_score):
         'show_score': show_score == 'True'
     })
 
-
-
+# Teacher grade essay
 class GradeEssayView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -259,6 +247,8 @@ class GradeEssayView(View):
             status=False  # Only show ungraded essays
         )
 
+        total_score = 0
+
         for student_question in student_questions:
             score = request.POST.get(f'score_{student_question.id}')
             max_score = student_question.activity_question.score 
@@ -273,47 +263,41 @@ class GradeEssayView(View):
                 student_question.score = score
                 student_question.status = True 
                 student_question.save()
+                total_score += score
 
-        # Assuming you want to show the score and redirect correctly
-        total_score = sum([student_question.score for student_question in student_questions])
-        return redirect('activity_completed', score=int(total_score), activity_id=activity_id, show_score='true')
+        # Redirect to the subject detail page after grading
+        return redirect('subjectDetail', pk=activity.subject.id)
 
-
-
+# List all quizzes and exams for a teacher's students
 def studentQuizzesExams(request):
     teacher = request.user
 
-    # Get sections where the teacher is assigned
-    sections = Section.objects.filter(assign_teacher=teacher)
-    subjects = Subject.objects.filter(section__in=sections).distinct()
+    # Get subjects where the teacher is assigned
+    subjects = Subject.objects.filter(assign_teacher=teacher).distinct()
 
     # Get activities for these subjects
     activities = Activity.objects.filter(subject__in=subjects).distinct()
 
     activity_details = []
 
+    student_activities = StudentActivity.objects.filter(activity__in=activities).select_related('student', 'activity', 'activity__subject')
+    max_scores = ActivityQuestion.objects.filter(activity__in=activities).values('activity_id').annotate(Max('score'))
 
-    for activity in activities:
-        student_activities = StudentActivity.objects.filter(activity=activity).select_related('student', 'activity', 'activity__subject')
-        max_score = ActivityQuestion.objects.filter(activity=activity).aggregate(Max('score'))['score__max']
+    max_score_dict = {item['activity_id']: item['score__max'] for item in max_scores}
 
-        for student_activity in student_activities:
-            section = Section.objects.filter(subjects=student_activity.activity.subject, assign_teacher=teacher).first()
-            activity_detail = {
-                'activity': student_activity.activity,
-                'subject': student_activity.activity.subject.subject_name,
-                'student': student_activity.student,
-                'score': student_activity.score,
-                'max_score': max_score,
-                'section': section.section_name if section else 'N/A',  # Include section name
-            }
-            print(f"Activity Detail: {activity_detail}")
-            activity_details.append(activity_detail)
-
+    for student_activity in student_activities:
+        activity_detail = {
+            'activity': student_activity.activity,
+            'subject': student_activity.activity.subject.subject_name,
+            'student': student_activity.student,
+            'score': student_activity.score,
+            'max_score': max_score_dict.get(student_activity.activity_id, 0),
+        }
+        activity_details.append(activity_detail)
 
     return render(request, 'activity/activities/allActivity.html', {'activity_details': activity_details})
 
-
+# Display activity details
 class ActivityDetailView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -321,8 +305,8 @@ class ActivityDetailView(View):
             'activity': activity
         })
 
-
+# Delete activity
 def deleteActivityView(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
     activity.delete()
-    return redirect('courseList')
+    return redirect('subjectList')

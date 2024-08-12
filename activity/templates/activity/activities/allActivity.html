@@ -13,7 +13,6 @@ Student Activities
             <th>Category</th>
             <th>Subject</th>
             <th>Student</th>
-            <th>Section</th>
             <th>Score</th>
             <th>Max Score</th> <!-- Added Max Score column -->
         </tr>
@@ -25,7 +24,6 @@ Student Activities
                 <td>{{ detail.activity.activity_type.name }}</td>
                 <td>{{ detail.subject }}</td>
                 <td>{{ detail.student.first_name }} {{ detail.student.last_name }}</td>
-                <td>{{ detail.section }}</td>
                 <td>{{ detail.score }}</td>
                 <td>{{ detail.max_score }}</td> <!-- Display max score -->
             </tr>

@@ -38,6 +38,6 @@
       <input type="datetime-local" id="end_time" name="end_time" class="form-control" required />
     </div>
     <button type="submit" class="btn btn-primary">Next</button>
-    <a href="{% url 'courseList' %}" class="btn btn-secondary">Back</a>
+    <a href="{% url 'subjectDetail' subject.id%}" class="btn btn-secondary">Back</a>
   </form>
 {% endblock %}

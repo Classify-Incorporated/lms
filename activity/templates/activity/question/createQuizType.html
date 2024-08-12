@@ -60,7 +60,7 @@
   <form method="post" action="{% url 'save_all_questions' activity.id %}">
     {% csrf_token %}
     <button type="submit" class="btn btn-success">Save All Questions</button>
-    <a href="{% url 'courseList' %}" class="btn btn-secondary">Back</a>
+    <a href="{% url 'subjectList' %}" class="btn btn-secondary">Back</a> <!-- Changed URL to 'subjectList' -->
   </form>
 
   <script>

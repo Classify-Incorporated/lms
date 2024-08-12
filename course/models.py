@@ -1,40 +1,20 @@
 from django.db import models
 from accounts.models import CustomUser
 from subject.models import Subject
-import os
-import uuid
-# Create your models here.
 
-class Course(models.Model):
-    course_name = models.CharField(max_length=100)
-    course_short_name = models.CharField(max_length=10, null=True, blank=True)
-    
-
-    def __str__(self):
-        return self.course_name
-
-class Section(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    section_name = models.CharField(max_length=100)
-    subjects = models.ManyToManyField(Subject) 
-
-    def __str__(self):
-        return self.section_name
-    
 class SubjectEnrollment(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    subjects = models.ManyToManyField(Subject)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
     enrollment_date = models.DateField(auto_now_add=True)
     semester = models.ForeignKey('Semester', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.student} enrolled in subjects"
+        return f"{self.student} enrolled in {self.subject}"
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['student'], name='unique_student_subjects')
+            models.UniqueConstraint(fields=['student', 'subject'], name='unique_student_subject')
         ]
-
 
 class Semester(models.Model):
     SEMESTER_CHOICES  = [

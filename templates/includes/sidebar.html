@@ -1,4 +1,6 @@
 {% load static %}
+{% load permissions %}
+
 <!-- Sidebar -->
 <ul class="navbar-nav sidebar custom-sidebar accordion" id="accordionSidebar">
   <!-- Sidebar - Brand -->
@@ -19,24 +21,30 @@
       <span>Dashboard</span>
     </a>
   </li>
+  {% if user|has_perm:'accounts.view_profile' %}
   <li class="nav-item {% if request.resolver_match.url_name == 'student' %}active{% endif %}">
     <a class="nav-link" href="{% url 'student' %}">
       <i class="bx bx-user"></i>
       <span>Student</span>
     </a>
   </li>
+  {% endif %}
   <li class="nav-item {% if request.resolver_match.url_name == 'activity_stream' %}active{% endif %}">
     <a class="nav-link" href="{% url 'activity_stream' %}">
       <i class="bx bx-bar-chart-alt-2"></i>
       <span>Activity Stream</span>
     </a>
   </li>
-  <li class="nav-item {% if request.resolver_match.url_name == 'courseList' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'courseList' %}">
+
+  {% if user|has_perm:'course.view_course' %}
+  <li class="nav-item {% if request.resolver_match.url_name == 'SubjectList' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'SubjectList' %}">
       <i class="bx bx-book"></i>
       <span>Courses</span>
     </a>
   </li>
+  {% endif %}
+
   <li class="nav-item {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
     <a class="nav-link" href="{% url 'calendar' %}">
       <i class="bx bx-calendar"></i>
@@ -44,6 +52,7 @@
     </a>
   </li>
 
+  {% if user|has_perm:'message.view_message' %}
   <li class="nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">
     <a class="nav-link" href="{% url 'inbox' %}">
       <i class="bx bx-envelope"></i>
@@ -53,12 +62,54 @@
       {% endif %}
     </a>
   </li>
-  <li class="nav-item {% if request.resolver_match.url_name == 'grades' %}active{% endif %}">
+  {% endif %}
+
+  {% if user|has_perm:'gradebookcomponent.view_gradebookcomponents' %}
+  <li class="nav-item {% if request.resolver_match.url_name == 'studentTotalScore' %}active{% endif %}">
     <a class="nav-link" href="{% url 'studentTotalScore' %}">
       <i class="bx bx-clipboard"></i>
       <span>Grades</span>
     </a>
   </li>
+  {% endif %}
+
+  {% if user|has_perm:'roles.view_role' %}
+  <li class="nav-item {% if request.resolver_match.url_name == 'roleList' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'roleList' %}">
+      <i class="bx bx-user"></i>
+      <span>Role</span>
+    </a>
+  </li>
+  {% endif %}
+
+  {% if user|has_perm:'subject.view_subject' %}
+  <li class="nav-item {% if request.resolver_match.url_name == 'subject' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'subject' %}">
+      <i class="bx bx-book"></i>
+      <span>Subject</span>
+    </a>
+  </li>
+  {% endif %}
+
+  {% if user|has_perm:'course.view_subjectenrollment' %}
+  <li class="nav-item {% if request.resolver_match.url_name == 'subject' %}enrollStudent{% endif %}">
+    <a class="nav-link" href="{% url 'enrollStudent' %}">
+      <i class="bx bx-user"></i>
+      <span>Enroll Student</span>
+    </a>
+  </li>
+  {% endif %}
+
+
+   {% if user|has_perm:'course.view_semester' %}
+  <li class="nav-item {% if request.resolver_match.url_name == 'semesterList' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'semesterList' %}">
+      <i class="bx bx-book"></i>
+      <span>Semester</span>
+    </a>
+  </li>
+  {% endif %} 
+
   <li class="nav-item {% if request.resolver_match.url_name == 'assist' %}active{% endif %}">
     <a class="nav-link" href="{% url 'assist' %}">
       <i class="bx bx-help-circle"></i>
