@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    dashboard, activity_stream, calendar,
+    dashboard, activity_stream,
     grades, assist, tools, sign_out, createProfile, user_login_view, admin_login_view,
 
     viewProfile, updateProfile, activateProfile, deactivateProfile, student
@@ -21,7 +21,6 @@ urlpatterns = [
 
     path('dashboard/', dashboard, name='dashboard'),
     path('activity-stream/', activity_stream, name='activity_stream'),
-    path('calendar/', calendar, name='calendar'),
     path('grades/', grades, name='grades'),
     path('assist/', assist, name='assist'),
     path('tools/', tools, name='tools'),

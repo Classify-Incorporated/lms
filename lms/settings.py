@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'accounts',
     'roles',
     'subject',
+    'calendars',
     'module',
     'course',
     'message',

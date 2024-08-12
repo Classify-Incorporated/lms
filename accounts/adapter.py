@@ -24,7 +24,6 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         user = sociallogin.user
         extra_data = sociallogin.account.extra_data
 
-        print(f'Extra data received from Microsoft: {extra_data}')
 
         user.email = extra_data.get('mail', extra_data.get('userPrincipalName', ''))
         user.first_name = extra_data.get('givenName', '')

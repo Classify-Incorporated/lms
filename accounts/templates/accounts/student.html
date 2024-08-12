@@ -10,7 +10,6 @@
   <div class="card shadow mb-4">
     <div class="card-header py-3">
       <button class="btn btn-primary" id="openModalBtn">Add New User</button>
-      <button class="btn btn-primary" id="openSectionModal">Add Section</button>
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -55,9 +54,6 @@
   <!-- Include the modal from add_user.html -->
   {% include 'accounts/createStudentProfile.html' %}
 
-  {% include 'course/section/createSection.html' %}
-
-
   <!-- Custom Modal Script -->
   <script>
 
@@ -65,12 +61,6 @@
     document.getElementById('openModalBtn').addEventListener('click', function () {
       document.getElementById('customModal').classList.add('show')
       document.getElementById('customModalBackdrop').classList.add('show')
-    })
-
-    {% comment %} create section student {% endcomment %}
-    document.getElementById('openSectionModal').addEventListener('click', function () {
-      document.getElementById('customSectionModal').classList.add('show')
-      document.getElementById('customSectionModalBackdrop').classList.add('show')
     })
 
 
@@ -82,11 +72,6 @@
       document.getElementById('customModalBackdrop').classList.remove('show')
     })
 
-    {% comment %} close section {% endcomment %}
-    document.getElementById('closeSectionModal').addEventListener('click', function () {
-      document.getElementById('customSectionModal').classList.remove('show')
-      document.getElementById('customSectionModalBackdrop').classList.remove('show')
-    })
 
   </script>
 {% endblock %}

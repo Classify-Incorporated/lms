@@ -1,83 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  {{ subject.subject_name }}
+{% endblock %}
 {% block content %}
-  <h1>{{ subject.subject_name }}</h1>
-  <p>Learn more about {{ subject.subject_name }}.</p>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <h1>{{ subject.subject_name }}</h1>
+        <p>Learn more about {{ subject.subject_name }}.</p>
+      </div>
+    </div>
 
-  {% if is_teacher %}
-    <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary mb-3">Add Activity</a>
-  {% endif %}
+    {% if is_teacher %}
+    <div class="row">
+      <div class="col-12 mb-3">
+        <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
+      </div>
+    </div>
+    {% endif %}
+    <div class="row">
+  
+      <!-- Sidebar for Activities -->
+      <div class="col-md-3">
+        <div class="card mb-3">
+          <div class="card-header">Ongoing Activities</div>
+          <ul class="list-group list-group-flush">
+            {% for activity in ongoing_activities %}
+              <li class="list-group-item">
+                <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
 
-  <h2>Modules</h2>
-  <ul>
-    {% for module in modules %}
-      <li>
-        <a href="{{ module.file.url }}" target="_blank">{{ module.file_name }}</a>
-      </li>
-    {% endfor %}
-  </ul>
+        <div class="card mb-3">
+          <div class="card-header">Upcoming Activities</div>
+          <ul class="list-group list-group-flush">
+            {% for activity in upcoming_activities %}
+              <li class="list-group-item">{{ activity.activity_name }}</li>
+            {% endfor %}
+          </ul>
+        </div>
 
-  {% if is_student %}
-    <h2>Ongoing Activities</h2>
-    <ul>
-      {% for activity in ongoing_activities %}
-        <li>
-          <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
-          <span>({{ activity.activity_type.name }})</span>
-          <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
-        </li>
-      {% endfor %}
-    </ul>
+        <div class="card mb-3">
+          <div class="card-header">Finished Activities</div>
+          <ul class="list-group list-group-flush">
+            {% for activity in finished_activities %}
+              <li class="list-group-item">
+                <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}">{{ activity.activity_name }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
 
-    <h2>Upcoming Activities</h2>
-    <ul>
-      {% for activity in upcoming_activities %}
-        <li>
-          {{ activity.activity_name }}
-          <span>({{ activity.activity_type.name }})</span>
-          <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+      <!-- Main Content Area -->
+      <div class="col-md-9">
 
-  {% if is_teacher %}
-    <h2>Ongoing Activities</h2>
-    <ul>
-      {% for activity in ongoing_activities %}
-        <li>
-          <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
-          <span>({{ activity.activity_type.name }})</span>
-          <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
-          {% if activity.id in activities_with_essays %}
-              <a href="{% url 'grade_essays' activity.id %}" class="btn btn-sm btn-secondary">Essay to be Graded {{ ungraded_essay_count }}</a>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-
-    <h2>Upcoming Activities</h2>
-    <ul>
-      {% for activity in upcoming_activities %}
-        <li>
-          {{ activity.activity_name }}
-          <span>({{ activity.activity_type.name }})</span>
-          <span>{{ activity.start_time }} - {{ activity.end_time }}</span>
-          <form method="post" action="{% url 'deleteActivityView' activity.id %}" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this activity?');">
-                  <i class="fas fa-trash"></i>
-              </button>
-          </form>
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-
-  <h2>Finished Activities</h2>
-  <ul>
-    {% for activity in finished_activities %}
-      <li>
-        <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}">{{ activity.activity_name }}</a>
-      </li>
-    {% endfor %}
-  </ul>
+        <div class="card mb-3">
+          <div class="card-header">Modules</div>
+          <ul class="list-group list-group-flush">
+            {% for module in modules %}
+              <li class="list-group-item">
+                <a href="{{ module.file.url }}" target="_blank">{{ module.file_name }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}

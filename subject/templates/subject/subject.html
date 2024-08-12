@@ -23,7 +23,7 @@
           <tbody>
             {% for subjects in subjects %}
             <tr>
-              <td>{{ subjects.assigned_teacher }}</td>
+              <td>{{ subjects.assign_teacher }}</td>
               <td>{{ subjects.subject_name }}</td>
             </tr>
           {% endfor %}
@@ -34,7 +34,7 @@
   </div>
 
   <!-- Include the modal from add_user.html -->
-  {% include 'accounts/add_user.html' %}
+  {% include 'accounts/createStudentProfile.html' %}
 
   <!-- Custom Modal Script -->
   <script>
