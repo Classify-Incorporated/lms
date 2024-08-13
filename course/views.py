@@ -13,6 +13,7 @@ from accounts.models import CustomUser
 from django.template.loader import render_to_string
 from django.utils import timezone
 from .forms import semesterForm, termForm
+from django.db.models import Q
 
 # Handle the enrollment of irregular students
 class enrollStudentView(View):
@@ -70,9 +71,14 @@ def subjectDetail(request, pk):
     
     if is_student:
         completed_activities = StudentQuestion.objects.filter(student=user, score__gt=0).values_list('activity_question__activity_id', flat=True).distinct()
-        answered_essays = StudentQuestion.objects.filter(student=user, activity_question__quiz_type__name='Essay', student_answer__isnull=False).values_list('activity_question__activity_id', flat=True).distinct()
-        activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities.union(answered_essays))
-        finished_activities = Activity.objects.filter(subject=subject, id__in=completed_activities.union(answered_essays))
+        answered_essays_and_documents = StudentQuestion.objects.filter(
+            student=user,
+            activity_question__quiz_type__name__in=['Essay', 'Document']
+        ).filter(
+            Q(student_answer__isnull=False) | Q(uploaded_file__isnull=False)
+        ).values_list('activity_question__activity_id', flat=True).distinct()
+        activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities.union(answered_essays_and_documents))
+        finished_activities = Activity.objects.filter(subject=subject, id__in=completed_activities.union(answered_essays_and_documents))
         upcoming_activities = activities.filter(start_time__gt=now)
         ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
         modules = Module.objects.filter(subject=subject)
@@ -83,19 +89,22 @@ def subjectDetail(request, pk):
         upcoming_activities = activities.filter(start_time__gt=now)
         ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
     
-    activities_with_essays = []
-    ungraded_essay_count = 0
+    activities_with_grading_needed = []
+    ungraded_items_count = 0
     if is_teacher:
         for activity in activities:
-            essay_questions = ActivityQuestion.objects.filter(activity=activity, quiz_type__name='Essay')
-            ungraded_essays = StudentQuestion.objects.filter(
-                activity_question__in=essay_questions,
-                student_answer__isnull=False,
-                status=False
+            questions_requiring_grading = ActivityQuestion.objects.filter(
+                activity=activity,
+                quiz_type__name__in=['Essay', 'Document']
             )
-            if ungraded_essays.exists():
-                activities_with_essays.append(activity)
-                ungraded_essay_count += ungraded_essays.count()
+            ungraded_items = StudentQuestion.objects.filter(
+                Q(activity_question__in=questions_requiring_grading),
+                Q(student_answer__isnull=False) | Q(uploaded_file__isnull=False),
+                status=False  # Only include ungraded submissions
+            )
+            if ungraded_items.exists():
+                activities_with_grading_needed.append((activity, ungraded_items.count()))
+                ungraded_items_count += ungraded_items.count()
     
     return render(request, 'course/viewSubjectModule.html', {
         'subject': subject,
@@ -103,10 +112,10 @@ def subjectDetail(request, pk):
         'ongoing_activities': ongoing_activities,
         'upcoming_activities': upcoming_activities,
         'finished_activities': finished_activities,
-        'activities_with_essays': activities_with_essays,
+        'activities_with_grading_needed': activities_with_grading_needed,
         'is_student': is_student,
         'is_teacher': is_teacher,
-        'ungraded_essay_count': ungraded_essay_count
+        'ungraded_items_count': ungraded_items_count
     })
 
 # get all the finished activities

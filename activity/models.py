@@ -2,7 +2,12 @@ from django.db import models
 from subject.models import Subject
 from accounts.models import CustomUser
 from course.models import Term
+import uuid
+import os
 
+def get_upload_path(instance, filename):
+    filename = f"{uuid.uuid4()}{os.path.splitext(filename)[1]}"
+    return os.path.join('uploadDocuments', filename)
 
 class ActivityType(models.Model):
     name = models.CharField(max_length=50)
@@ -18,6 +23,7 @@ class QuizType(models.Model):
         ('Fill in the Blank', 'Fill in the Blank'),
         ('Matching', 'Matching'),
         ('Calculated Numeric', 'Calculated Numeric'),
+        ('Document', 'Document'),
     ]
 
     name = models.CharField(max_length=50, choices=QUIZ_CHOICES)
@@ -71,6 +77,7 @@ class StudentQuestion(models.Model):
     activity_question = models.ForeignKey(ActivityQuestion, on_delete=models.CASCADE)
     score = models.FloatField(default=0)
     student_answer = models.TextField(null=True, blank=True)
+    uploaded_file = models.FileField(upload_to=get_upload_path, null=True, blank=True)
     status = models.BooleanField(default=False)
     submission_time = models.DateTimeField(null=True, blank=True, default=None)
 

@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
-from .models import Activity, ActivityType, StudentActivity, ActivityQuestion, QuizType, QuestionChoice, StudentQuestion
+from .models import Activity, ActivityType, StudentActivity, ActivityQuestion, QuizType, QuestionChoice, StudentQuestion, get_upload_path  
 from subject.models import Subject
 from accounts.models import CustomUser
 from course.models import Term, SubjectEnrollment
 from django.db.models import Sum, Max
 from django.utils import timezone
+from django.core.files.storage import default_storage
 
 # Add type of activity
 class AddActivityView(View):
@@ -51,7 +52,7 @@ class AddActivityView(View):
 class AddQuizTypeView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
-        quiz_types = QuizType.objects.all()
+        quiz_types = QuizType.objects.all()  # Make sure "Document" is included here
         questions = request.session.get('questions', {}).get(str(activity_id), [])
         return render(request, 'activity/question/createQuizType.html', {
             'activity': activity,
@@ -80,6 +81,13 @@ class AddQuestionView(View):
         question_text = request.POST.get('question_text', '')
         correct_answer = ''
         score = float(request.POST.get('score', 0))
+
+        # For Document type, handle file upload
+        if quiz_type.name == 'Document':
+            uploaded_file = request.FILES.get('document_file')
+            if uploaded_file:
+                file_path = default_storage.save(get_upload_path(None, uploaded_file.name), uploaded_file)
+                correct_answer = file_path
 
         choices = []
         if quiz_type.name == 'Multiple Choice':
@@ -161,7 +169,6 @@ class SaveAllQuestionsView(View):
         return redirect('SubjectList')
     
 # Display questions the student will answer
-
 class DisplayQuestionsView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -182,20 +189,23 @@ class DisplayQuestionsView(View):
                         left, right = pair.split(" -> ")
                         question.pairs.append({"left": left, "right": right})
 
-        if is_teacher:
-            return render(request, 'activity/question/displayQuestion.html', {
-                'activity': activity,
-                'questions': questions,
-                'is_teacher': is_teacher,
-            })
-        elif is_student:
-            return render(request, 'activity/question/displayQuestion.html', {
-                'activity': activity,
-                'questions': questions,
-                'is_student': is_student,
-            })
-        else:
-            return redirect('subjectDetail', pk=activity.subject.id)
+            # Handle Document type questions (teachers can see the document, students can upload)
+            if question.quiz_type.name == 'Document':
+                if is_teacher:
+                    # Teacher will see the uploaded document link if available
+                    question.document_link = question.correct_answer if question.correct_answer else None
+                elif is_student:
+                    # Student will see an option to upload a document
+                    question.allow_upload = True
+
+        context = {
+            'activity': activity,
+            'questions': questions,
+            'is_teacher': is_teacher,
+            'is_student': is_student,
+        }
+
+        return render(request, 'activity/question/displayQuestion.html', context)
 
 # Submit answers
 class SubmitAnswersView(View):
@@ -214,25 +224,34 @@ class SubmitAnswersView(View):
             # Retrieve the student's answer from the form submission
             answer = request.POST.get(f'question_{question.id}')
             
-            # Check if the student has provided an answer for this question
-            if not answer and not student_question.student_answer:
-                all_questions_answered = False  # If any question is unanswered, set to False
-            else:
-                # Update the student's answer
-                student_question.student_answer = answer
-
-                if question.quiz_type.name == 'Essay':
-                    student_question.status = False  # Essays need manual grading
+            # Handle Document type separately for file uploads
+            if question.quiz_type.name == 'Document':
+                uploaded_file = request.FILES.get(f'question_{question.id}')
+                if uploaded_file:
+                    student_question.uploaded_file = uploaded_file
+                    student_question.status = False  # Mark as submitted but not graded
                 else:
-                    is_correct = (answer == question.correct_answer)
-                    if is_correct:
-                        total_score += question.score
-                        student_question.score = question.score
-                    student_question.status = True  # Non-essay questions are graded directly
-                    has_non_essay_questions = True
+                    all_questions_answered = False  # If no file is uploaded, consider the question unanswered
+            else:
+                # Check if the student has provided an answer for this question
+                if not answer and not student_question.student_answer:
+                    all_questions_answered = False  # If any question is unanswered, set to False
+                else:
+                    # Update the student's answer
+                    student_question.student_answer = answer
+
+                    if question.quiz_type.name == 'Essay':
+                        student_question.status = False  # Essays need manual grading
+                    else:
+                        is_correct = (answer == question.correct_answer)
+                        if is_correct:
+                            total_score += question.score
+                            student_question.score = question.score
+                        student_question.status = True  # Non-essay questions are graded directly
+                        has_non_essay_questions = True
                 
-                student_question.submission_time = timezone.now()  # Update the submission time
-                student_question.save()
+            student_question.submission_time = timezone.now()  # Update the submission time
+            student_question.save()
 
         # If all questions have been answered, mark the StudentActivity as completed
         if all_questions_answered:
@@ -246,10 +265,17 @@ def activityCompletedView(request, score, activity_id, show_score):
     activity = get_object_or_404(Activity, id=activity_id)
     max_score = activity.activityquestion_set.aggregate(total_score=Sum('score'))['total_score'] or 0
     
+    contains_document = activity.activityquestion_set.filter(quiz_type__name='Document').exists()
+    
+    if contains_document:
+        show_score = False
+    else:
+        show_score = show_score == 'True'
+    
     return render(request, 'activity/activities/activityCompleted.html', {
         'score': score,
         'max_score': max_score,
-        'show_score': show_score == 'True'
+        'show_score': show_score
     })
 
 # Teacher grade essay
@@ -258,9 +284,9 @@ class GradeEssayView(View):
         activity = get_object_or_404(Activity, id=activity_id)
         student_questions = StudentQuestion.objects.filter(
             activity_question__activity=activity,
-            activity_question__quiz_type__name='Essay',
+            activity_question__quiz_type__name__in=['Essay', 'Document'],
             student_answer__isnull=False,
-            status=False  # Only show ungraded essays
+            status=False  # Only show ungraded essays and documents
         )
         return render(request, 'activity/grade/gradeEssay.html', {
             'activity': activity,
@@ -271,9 +297,9 @@ class GradeEssayView(View):
         activity = get_object_or_404(Activity, id=activity_id)
         student_questions = StudentQuestion.objects.filter(
             activity_question__activity=activity,
-            activity_question__quiz_type__name='Essay',
+            activity_question__quiz_type__name__in=['Essay', 'Document'],
             student_answer__isnull=False,
-            status=False  # Only show ungraded essays
+            status=False  # Only show ungraded essays and documents
         )
 
         total_score = 0
@@ -329,6 +355,7 @@ class GradeIndividualEssayView(View):
 
         # Redirect to the subject detail page after grading
         return redirect('subjectDetail', pk=activity.subject.id)
+
 
 # List all quizzes and exams for a teacher's students
 def studentQuizzesExams(request):
