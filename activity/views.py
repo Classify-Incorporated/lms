@@ -157,7 +157,7 @@ class SaveAllQuestionsView(View):
         # Clear the questions from the session
         request.session.pop('questions', None)
         
-        return redirect('subjectList')
+        return redirect('SubjectList')
     
 # Display questions the student will answer
 class DisplayQuestionsView(View):

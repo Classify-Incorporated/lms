@@ -75,8 +75,6 @@ def dashboard(request):
 def activity_stream(request):
     return render(request, 'accounts/activity_stream.html')
 
-def grades(request):
-    return render(request, 'accounts/grades.html')
 
 def assist(request):
     return render(request, 'accounts/assist.html')

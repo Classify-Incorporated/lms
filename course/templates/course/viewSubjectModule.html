@@ -46,11 +46,16 @@
         <div class="card mb-3">
           <div class="card-header">Finished Activities</div>
           <ul class="list-group list-group-flush">
-            {% for activity in finished_activities %}
+            {% for activity in finished_activities|slice:":3" %}
               <li class="list-group-item">
                 <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}">{{ activity.activity_name }}</a>
               </li>
             {% endfor %}
+            {% if finished_activities|length > 3 %}
+              <li class="list-group-item">
+                <a href="{% url 'subject_finished_activities' subject.id %}">View More</a>
+              </li>
+            {% endif %}
           </ul>
         </div>
       </div>

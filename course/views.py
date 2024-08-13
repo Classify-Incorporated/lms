@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import SubjectEnrollment, Semester
+from .models import SubjectEnrollment, Semester, Term
 from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
@@ -12,7 +12,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
 from django.template.loader import render_to_string
 from django.utils import timezone
-from .forms import semesterForm
+from .forms import semesterForm, termForm
 
 # Handle the enrollment of irregular students
 class enrollStudentView(View):
@@ -134,13 +134,14 @@ def subjectList(request):
         'subjects': subjects,
     })
 
-
+# Display semester list
 def semesterList(request):
     semesters = Semester.objects.all()
     return render(request, 'course/semester/semesterList.html', {
         'semesters': semesters,
     })
 
+# Create Semester
 def createSemester(request):
     if request.method == 'POST':
         form = semesterForm(request.POST)
@@ -153,6 +154,7 @@ def createSemester(request):
         'form': form,
     })
 
+# Update Semester
 def updateSemeter(request, pk):
     semester = get_object_or_404(Semester, pk=pk)
     if request.method == 'POST':
@@ -165,3 +167,39 @@ def updateSemeter(request, pk):
     return render(request, 'course/semester/updateSemester.html', {
         'form': form,'semester': semester
     })
+
+# Display term list
+def termList(request):
+    terms = Term.objects.all()
+    return render(request, 'course/term/termList.html', {
+        'terms': terms,
+    })
+
+# Create Semester
+def createTerm(request):
+    if request.method == 'POST':
+        form = termForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('termList')
+    else:
+        form = termForm()
+    return render(request, 'course/term/createTerm.html', {
+        'form': form,
+    })
+
+# Update Semester
+def updateTerm(request, pk):
+    term = get_object_or_404(Term, pk=pk)
+    if request.method == 'POST':
+        form = termForm(request.POST, instance=term)
+        if form.is_valid():
+            form.save()
+            return redirect('termList')
+    else:
+        form = termForm(instance=term)
+    return render(request, 'course/term/updateterm.html', {
+        'form': form,'term': term
+    })
+
+

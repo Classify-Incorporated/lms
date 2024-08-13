@@ -1,40 +1,38 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
-  Student
+  Term List
 {% endblock %}
 {% block content %}
-  <h1 class="h3 mb-2 text-gray-800">Student</h1>
+  <h1 class="h3 mb-2 text-gray-800">Term</h1>
 
   <!-- DataTales Example -->
   <div class="card shadow mb-4">
     <div class="card-header py-3">
-      <a href="{% url 'createSemester' %}" class="btn btn-primary">Add Semester</a>
+      <button class="btn btn-primary" id="openModalBtn">Add New Term</button>
     </div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
           <thead>
             <tr>
+              <th>Term</th>
               <th>Semester</th>
-              <th>Start Date - End Date</th>
-              <th>Year</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {% for semester in semesters %}
+            {% for term in terms %}
             <tr>
-              <td>{{ semester.semester_name }}</td>
-              <td>{{ semester.start_date }} {{ semester.end_date }}</td> 
-              <td>{{ semester.school_year }}</td>  
+              <td>{{ term.term_name }}</td>
+              <td>{{ term.semester }}</td> 
               <td>
                 <div class="dropdown">
-                  <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ semester.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ term.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="fas fa-ellipsis-v"></i>
                   </button>
-                  <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ semester.id }}">
-                    <a class="dropdown-item" href="{% url 'updateSemeter' semester.id %}"><i class="fas fa-edit"></i> Update</a> 
+                  <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ term.id }}">
+                    <a class="dropdown-item" href="{% url 'updateTerm' term.id %}"><i class="fas fa-edit"></i> Update</a> 
                   </div>
                 </div>
               </td>
