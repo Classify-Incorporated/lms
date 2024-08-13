@@ -15,14 +15,16 @@
             </div>
             <div class="student-info">
               <h4>{{ entry.student.first_name }} {{ entry.student.last_name }}</h4>
-              <p><strong>Submision date:</strong> {{ submission_time }}</p>
+              <p><strong>Submission Date:</strong> {{ entry.submission_time }}</p>
               {% for question in entry.questions %}
                 <p><strong>Question {{ question.number }}:</strong> {{ question.question_text }}</p>
-                {% if question.quiz_type.name != 'Essay' %}
+                
+                <!-- Only display the correct answer if the quiz type is not Essay -->
+                {% if question.quiz_type.name != 'Essay' and question.correct_answer != None %}
                   <p><strong>Correct Answer:</strong> {{ question.correct_answer }}</p>
                 {% endif %}
-                <p><strong>Student Answer:</strong> {{ question.student_answer }}</p>
                 
+                <p><strong>Student Answer:</strong> {{ question.student_answer }}</p>
               {% endfor %}
             </div>
           </div>
@@ -30,6 +32,7 @@
       </div>
     </div>
   </div>
+  <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
 
   <style>
     .student-score-card {
@@ -52,7 +55,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px; /* Adjust font size as needed */
+      font-size: 12px;
       font-weight: bold;
       color: #000;
       transition: transform 0.3s ease;

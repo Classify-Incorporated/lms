@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Finished Activities - {{ subject.subject_name }}
+{% endblock %}
+
+{% block content %}
+  <h1 class="h3 mb-4 text-gray-800">Finished Activities for {{ subject.subject_name }}</h1>
+
+  {% if finished_activities.exists %}
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">List of Finished Activities</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+            <thead>
+              <tr>
+                <th>Activity Name</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Type</th>
+                <th>Action</th> <!-- Add Action column -->
+              </tr>
+            </thead>
+            <tbody>
+              {% for activity in finished_activities %}
+                <tr>
+                  <td>{{ activity.activity_name }}</td>
+                  <td>{{ activity.start_time|date:"F d, Y h:i A" }}</td>
+                  <td>{{ activity.end_time|date:"F d, Y h:i A" }}</td>
+                  <td>{{ activity.activity_type.name }}</td>
+                  <td>
+                    <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}" class="btn btn-sm btn-info">
+                      View Activity
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      <p>No finished activities available for this subject.</p>
+    </div>
+  {% endif %}
+
+  <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+{% endblock %}

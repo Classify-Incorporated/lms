@@ -133,40 +133,47 @@ def studentActivityView(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
     user = request.user
 
+    # Query based on whether the user is a student or teacher
     if user.profile.role.name.lower() == 'student':
         student_scores = StudentQuestion.objects.filter(
-            activity_question__activity=activity, student=user, score__gt=0
+            activity_question__activity=activity, student=user
         ).values('student').annotate(total_score=Sum('score'))
     else:  # Assume the user is a teacher
         student_scores = StudentQuestion.objects.filter(
-            activity_question__activity=activity, score__gt=0
+            activity_question__activity=activity
         ).values('student').annotate(total_score=Sum('score'))
 
     detailed_scores = []
+
     for student_score in student_scores:
         student = get_object_or_404(CustomUser, id=student_score['student'])
-        questions = StudentQuestion.objects.filter(student=student, activity_question__activity=activity, score__gt=0)
+        questions = StudentQuestion.objects.filter(student=student, activity_question__activity=activity)
         max_score = ActivityQuestion.objects.filter(activity=activity).aggregate(total_score=Sum('score'))['total_score'] or 0
         question_details = []
+        latest_submission_time = None
+
         for i, question in enumerate(questions, start=1):
             question_details.append({
                 'number': i,
                 'question_text': question.activity_question.question_text,
                 'correct_answer': question.activity_question.correct_answer,
                 'student_answer': question.student_answer,
-                
             })
+
+            if latest_submission_time is None or (question.submission_time and question.submission_time > latest_submission_time):
+                latest_submission_time = question.submission_time
+
         detailed_scores.append({
             'student': student,
             'total_score': student_score['total_score'],
             'max_score': max_score,
-            'questions': question_details
+            'questions': question_details,
+            'submission_time': latest_submission_time,
         })
 
     return render(request, 'gradebookcomponent/detailedFinishActivity.html', {
         'activity': activity,
         'detailed_scores': detailed_scores,
-        'submission_time': question.submission_time,
     })
 
 
