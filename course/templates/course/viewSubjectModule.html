@@ -43,15 +43,15 @@
           </ul>
         </div>
 
-        <!-- New Card Below the Upcoming Activities -->
+        <!-- Activities to be Graded -->
         <div class="card mb-3">
           <div class="card-header">Activities to be Graded</div>
           <ul class="list-group list-group-flush">
             {% if is_teacher %}
-              {% for activity in activities_with_essays %}
+              {% for activity, count in activities_with_grading_needed %}
                 <li class="list-group-item">
                   <a href="{% url 'grade_essays' activity.id %}">
-                    {{ activity.activity_name }} - {{ ungraded_essay_count }} essays to grade
+                    {{ activity.activity_name }} - {{ count }} items to grade
                   </a>
                 </li>
               {% endfor %}
@@ -78,7 +78,6 @@
 
       <!-- Main Content Area -->
       <div class="col-md-9">
-
         <div class="card mb-3">
           <div class="card-header">Modules</div>
           <ul class="list-group list-group-flush">

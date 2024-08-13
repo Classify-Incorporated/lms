@@ -26,14 +26,18 @@
           </ul>
         {% elif question.quiz_type.name == 'Calculated Numeric' %}
           <p>Correct Answer: {{ question.correct_answer }}</p>
+        {% elif question.quiz_type.name == 'Document' %}
+          <p>Uploaded Document: <a href="{{ question.correct_answer.url }}" target="_blank">View Document</a></p>
         {% else %}
           <p>Correct Answer: {{ question.correct_answer }}</p>
         {% endif %}
       </div>
+      <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+
     {% endfor %}
   {% elif is_student %}
     <!-- Display interactive form for students to answer the questions -->
-    <form method="post" action="{% url 'submit_answers' activity.id %}">
+    <form method="post" action="{% url 'submit_answers' activity.id %}" enctype="multipart/form-data">
       {% csrf_token %}
       {% for question in questions %}
         <div class="form-group">
@@ -68,13 +72,18 @@
             </div>
           {% elif question.quiz_type.name == 'Calculated Numeric' %}
             <input type="number" name="question_{{ question.id }}" class="form-control" />
+          {% elif question.quiz_type.name == 'Document' %}
+            <div class="form-group">
+              <label for="document_file_{{ question.id }}">Upload Document:</label>
+              <input type="file" id="document_file_{{ question.id }}" name="question_{{ question.id }}" class="form-control">
+            </div>
           {% else %}
             <input type="text" name="question_{{ question.id }}" class="form-control" />
           {% endif %}
         </div>
       {% endfor %}
       <button type="submit" class="btn btn-primary">Submit Answers</button>
-      <a href="{% url 'subjectDetail' activity.subject.id %}" class="btn btn-secondary">Back</a>
+      <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
     </form>
   {% endif %}
 {% endblock %}

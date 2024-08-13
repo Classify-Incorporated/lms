@@ -13,7 +13,7 @@ from decimal import Decimal
 #View GradeBookComponents
 def viewGradeBookComponents(request):
     gradebookcomponents = GradeBookComponents.objects.all()
-    return render(request, 'gradebookcomponent/gradeBook.html', {'gradebookcomponents': gradebookcomponents})
+    return render(request, 'gradebookcomponent/gradebook/gradeBook.html', {'gradebookcomponents': gradebookcomponents})
 
 
 #Create GradeBookComponents
@@ -26,7 +26,7 @@ def createGradeBookComponents(request):
     else:
         form = GradeBookComponentsForm()
     
-    return render(request, 'gradebookcomponent/createGradeBook.html', {'form': form})
+    return render(request, 'gradebookcomponent/gradebook/createGradeBook.html', {'form': form})
 
 #Modify GradeBookComponents
 def updateGradeBookComponents(request, pk):
@@ -39,19 +39,13 @@ def updateGradeBookComponents(request, pk):
     else:
         form = GradeBookComponentsForm(instance=gradebookcomponent)
     
-    return render(request, 'gradebookcomponent/updateGradeBook.html', {'form': form})
+    return render(request, 'gradebookcomponent/gradebook/updateGradeBook.html', {'form': form, 'gradebookcomponent':gradebookcomponent})
 
 #Delete GradeBookComponents
 def deleteGradeBookComponents(request, pk):
     gradebookcomponent = get_object_or_404(GradeBookComponents, pk=pk)
     gradebookcomponent.delete()
     return redirect('viewGradeBookComponents')
-
-#View GradeBookComponents
-def viewGradeBookComponents(request):
-    gradebookcomponents = GradeBookComponents.objects.all()
-    return render(request, 'gradebookcomponent/viewGradeBook.html', {'gradebookcomponents': gradebookcomponents})
-
 
 
 def calculate_student_grade(student_id):
@@ -153,11 +147,16 @@ def studentActivityView(request, activity_id):
         latest_submission_time = None
 
         for i, question in enumerate(questions, start=1):
+            if question.activity_question.quiz_type.name == 'Document' and question.uploaded_file:
+                student_answer_display = f"<a href='{question.uploaded_file.url}' target='_blank'>Download Document</a>"
+            else:
+                student_answer_display = question.student_answer or "No answer provided"
+
             question_details.append({
                 'number': i,
                 'question_text': question.activity_question.question_text,
                 'correct_answer': question.activity_question.correct_answer,
-                'student_answer': question.student_answer,
+                'student_answer': student_answer_display,
             })
 
             if latest_submission_time is None or (question.submission_time and question.submission_time > latest_submission_time):

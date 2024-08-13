@@ -24,7 +24,8 @@
                   <p><strong>Correct Answer:</strong> {{ question.correct_answer }}</p>
                 {% endif %}
                 
-                <p><strong>Student Answer:</strong> {{ question.student_answer }}</p>
+                <!-- Display student answer or document link -->
+                <p><strong>Student Answer:</strong> {{ question.student_answer|safe }}</p>
               {% endfor %}
             </div>
           </div>
