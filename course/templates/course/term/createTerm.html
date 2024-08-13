@@ -1,0 +1,10 @@
+<!-- enrollRegularStudent.html -->
+{% extends 'base.html' %}
+{% block content %}
+<h2>Create Semester</h2>
+<form method="post" action="{% url 'createTerm' %}">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button type="submit">Submit</button>
+</form>
+{% endblock %}

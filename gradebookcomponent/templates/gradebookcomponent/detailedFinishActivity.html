@@ -18,7 +18,9 @@
               <p><strong>Submision date:</strong> {{ submission_time }}</p>
               {% for question in entry.questions %}
                 <p><strong>Question {{ question.number }}:</strong> {{ question.question_text }}</p>
-                <p><strong>Correct Answer:</strong> {{ question.correct_answer }}</p>
+                {% if question.quiz_type.name != 'Essay' %}
+                  <p><strong>Correct Answer:</strong> {{ question.correct_answer }}</p>
+                {% endif %}
                 <p><strong>Student Answer:</strong> {{ question.student_answer }}</p>
                 
               {% endfor %}

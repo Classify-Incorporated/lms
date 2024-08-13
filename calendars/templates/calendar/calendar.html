@@ -5,4 +5,121 @@
 {% endblock %}
 {% block content %}
   <h1 class="h3 mb-4 text-gray-800">Calendar</h1>
+  
+  <!-- Calendar container -->
+  <div id="calendar"></div>
+
+  <style>
+    #calendar {
+      width: 100%;
+      max-width: none;
+      margin: 0 auto;
+    }
+    /* Define custom styles for different event statuses */
+    .fc-event-finished {
+      background-color: gray !important;
+      color: white !important;
+    }
+    .fc-event-upcoming {
+      background-color: orange !important;
+      color: white !important;
+    }
+    .fc-event-ongoing {
+      background-color: green !important;
+      color: white !important;
+    }
+    .fc-event-missed {
+      background-color: red !important;
+      color: white !important;
+    }
+    /* Remove blue outline on event hover/focus */
+    .fc .fc-event .fc-event-main {
+      outline: none !important;
+    }
+    /* Remove the dot before the event title */
+    .fc-event-dot {
+      display: none !important;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var calendarEl = document.getElementById('calendar');
+  
+      // Fetch events from the API
+      fetch('/api/activities/')
+          .then(response => response.json())
+          .then(events => {
+              console.log('Events data:', events);
+  
+              const now = new Date();
+  
+              // Assign classNames based on the event time
+              events = events.map(function(event) {
+                  const start = new Date(event.start);
+                  const end = event.end ? new Date(event.end) : null;
+  
+                  if (end && now > end) {
+                      event.classNames = ['fc-event-finished'];  // Finished
+                      event.clickable = false; // Finished events are not clickable
+                  } else if (start > now) {
+                      event.classNames = ['fc-event-upcoming'];  // Upcoming
+                      event.clickable = false; // Upcoming events are not clickable
+                  } else if (start <= now && (!end || now <= end)) {
+                      event.classNames = ['fc-event-ongoing'];  // Ongoing
+                      event.clickable = true; // Ongoing events are clickable
+                      event.url = `/display_question/${event.id}/`; // Set the URL for ongoing events
+                  } else if (end && now > end) {
+                      event.classNames = ['fc-event-missed'];    // Missed
+                      event.clickable = false; // Missed events are not clickable
+                  }
+  
+                  event.allDay = (event.allDay === true);
+  
+                  return event;
+              });
+  
+              var calendar = new FullCalendar.Calendar(calendarEl, {
+                  initialView: 'dayGridMonth',
+                  events: events,
+                  eventTimeFormat: { // Display both start and end time
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      meridiem: true
+                  },
+                  displayEventEnd: true,  // Ensure the end time is shown
+                  eventClick: function(info) {
+                      // Check if the event is clickable
+                      if (info.event.extendedProps.clickable) {
+                          // Redirect to the event's URL
+                          if (info.event.url) {
+                              window.location.href = info.event.url;
+                          }
+                      } else {
+                          // Prevent any action for non-clickable events
+                          info.jsEvent.preventDefault();
+                      }
+                  },
+                  eventContent: function(arg) {
+                      // Custom rendering of the event to show both start and end time
+                      let timeText = '';
+                      if (arg.event.allDay) {
+                          timeText = 'All day';
+                      } else if (arg.event.start && arg.event.end) {
+                          timeText = arg.timeText; // FullCalendar's default time text format
+                      } else {
+                          timeText = arg.timeText.split(' - ')[0]; // Just the start time if no end time
+                      }
+  
+                      return {
+                          html: `<div>${timeText} ${arg.event.title}</div>`
+                      };
+                  }
+              });
+  
+              calendar.render();
+          })
+          .catch((error) => console.error('Error fetching events:', error));
+  });
+  </script>
 {% endblock %}

@@ -45,8 +45,8 @@
   </li>
   {% endif %}
 
-  <li class="nav-item {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'calendar' %}">
+  <li class="nav-item {% if request.resolver_match.url_name == 'calendars' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'calendars' %}">
       <i class="bx bx-calendar"></i>
       <span>Calendar</span>
     </a>
@@ -106,6 +106,15 @@
     <a class="nav-link" href="{% url 'semesterList' %}">
       <i class="bx bx-book"></i>
       <span>Semester</span>
+    </a>
+  </li>
+  {% endif %} 
+
+  {% if user|has_perm:'course.view_term' %}
+  <li class="nav-item {% if request.resolver_match.url_name == 'termList' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'termList' %}">
+      <i class="bx bx-book"></i>
+      <span>Term</span>
     </a>
   </li>
   {% endif %} 
