@@ -1,8 +1,8 @@
 from django.urls import path
 from .views import (
-    AddActivityView, AddQuizTypeView, AddQuestionView, DisplayQuestionsView, 
+    AddActivityView, AddQuizTypeView, AddQuestionView, DisplayQuestionsView, GradeIndividualEssayView,
     SubmitAnswersView, GradeEssayView, SaveAllQuestionsView,ActivityDetailView,DeleteTempQuestionView,
-    activityCompletedView, studentQuizzesExams, deleteActivityView
+    activityCompletedView, studentQuizzesExams, deleteActivityView,
 )
 
 urlpatterns = [
@@ -13,6 +13,7 @@ urlpatterns = [
     path('display_question/<int:activity_id>/', DisplayQuestionsView.as_view(), name='display_question'),
     path('submit_answers/<int:activity_id>/', SubmitAnswersView.as_view(), name='submit_answers'),
     path('grade_essays/<int:activity_id>/', GradeEssayView.as_view(), name='grade_essays'),
+    path('grade_individual_essay/<int:activity_id>/<int:student_question_id>/', GradeIndividualEssayView.as_view(), name='grade_individual_essay'),
     path('save_all_questions/<int:activity_id>/', SaveAllQuestionsView.as_view(), name='save_all_questions'),
 
     path('activity_completed/<int:score>/<int:activity_id>/<str:show_score>/', activityCompletedView, name='activity_completed'),

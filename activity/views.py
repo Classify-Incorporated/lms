@@ -27,6 +27,7 @@ class AddActivityView(View):
         term_id = request.POST.get('term')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
+
         
         activity_type = get_object_or_404(ActivityType, id=activity_type_id)
         term = get_object_or_404(Term, id=term_id)
@@ -160,13 +161,18 @@ class SaveAllQuestionsView(View):
         return redirect('SubjectList')
     
 # Display questions the student will answer
+
 class DisplayQuestionsView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
-        student = request.user  # Assuming the user is a student
+        user = request.user
         questions = ActivityQuestion.objects.filter(activity=activity)
 
-        # Prepare data for matching type questions
+        # Check if the user is a teacher or a student
+        is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
+        is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
+
+        # Prepare data for matching type questions (relevant for both students and teachers)
         for question in questions:
             if question.quiz_type.name == 'Matching':
                 pairs = question.correct_answer.split(", ")
@@ -176,10 +182,20 @@ class DisplayQuestionsView(View):
                         left, right = pair.split(" -> ")
                         question.pairs.append({"left": left, "right": right})
 
-        return render(request, 'activity/question/displayQuestion.html', {
-            'activity': activity,
-            'questions': questions
-        })
+        if is_teacher:
+            return render(request, 'activity/question/displayQuestion.html', {
+                'activity': activity,
+                'questions': questions,
+                'is_teacher': is_teacher,
+            })
+        elif is_student:
+            return render(request, 'activity/question/displayQuestion.html', {
+                'activity': activity,
+                'questions': questions,
+                'is_student': is_student,
+            })
+        else:
+            return redirect('subjectDetail', pk=activity.subject.id)
 
 # Submit answers
 class SubmitAnswersView(View):
@@ -189,26 +205,39 @@ class SubmitAnswersView(View):
         total_score = 0
         has_non_essay_questions = False
 
+        all_questions_answered = True  # Assume all questions are answered initially
+
         for question in ActivityQuestion.objects.filter(activity=activity):
-            answer = request.POST.get(f'question_{question.id}')
+            # Get or create a StudentQuestion object for the student and the current question
             student_question, created = StudentQuestion.objects.get_or_create(student=student, activity_question=question)
-            student_question.student_answer = answer
-
-            if question.quiz_type.name == 'Essay':
-                student_question.status = False  # Essays need manual grading
-            else:
-                is_correct = (answer == question.correct_answer)
-                if is_correct:
-                    total_score += question.score
-                    student_question.score = question.score
-                student_question.status = True  # Non-essay questions are graded directly
-                has_non_essay_questions = True
             
-            student_question.submission_time = timezone.now()  # Update the submission time
-            student_question.save()
+            # Retrieve the student's answer from the form submission
+            answer = request.POST.get(f'question_{question.id}')
+            
+            # Check if the student has provided an answer for this question
+            if not answer and not student_question.student_answer:
+                all_questions_answered = False  # If any question is unanswered, set to False
+            else:
+                # Update the student's answer
+                student_question.student_answer = answer
 
-        student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
-        student_activity.save()
+                if question.quiz_type.name == 'Essay':
+                    student_question.status = False  # Essays need manual grading
+                else:
+                    is_correct = (answer == question.correct_answer)
+                    if is_correct:
+                        total_score += question.score
+                        student_question.score = question.score
+                    student_question.status = True  # Non-essay questions are graded directly
+                    has_non_essay_questions = True
+                
+                student_question.submission_time = timezone.now()  # Update the submission time
+                student_question.save()
+
+        # If all questions have been answered, mark the StudentActivity as completed
+        if all_questions_answered:
+            student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
+            student_activity.save()
 
         return redirect('activity_completed', score=int(total_score), activity_id=activity_id, show_score=has_non_essay_questions)
 
@@ -264,6 +293,39 @@ class GradeEssayView(View):
                 student_question.status = True 
                 student_question.save()
                 total_score += score
+
+        # Redirect to the subject detail page after grading
+        return redirect('subjectDetail', pk=activity.subject.id)
+
+# Grade student individual essay
+class GradeIndividualEssayView(View):
+    def get(self, request, activity_id, student_question_id):
+        activity = get_object_or_404(Activity, id=activity_id)
+        student_question = get_object_or_404(StudentQuestion, id=student_question_id)
+
+        return render(request, 'activity/grade/gradeIndividualEssay.html', {
+            'activity': activity,
+            'student_question': student_question,
+        })
+
+    def post(self, request, activity_id, student_question_id):
+        activity = get_object_or_404(Activity, id=activity_id)
+        student_question = get_object_or_404(StudentQuestion, id=student_question_id)
+
+        score = request.POST.get('score')
+        max_score = student_question.activity_question.score
+
+        if score:
+            score = float(score)
+            if score > max_score:
+                return render(request, 'activity/grade/gradeIndividualEssay.html', {
+                    'activity': activity,
+                    'student_question': student_question,
+                    'error': f"Score cannot exceed {max_score}",
+                })
+            student_question.score = score
+            student_question.status = True
+            student_question.save()
 
         # Redirect to the subject detail page after grading
         return redirect('subjectDetail', pk=activity.subject.id)

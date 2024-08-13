@@ -17,28 +17,15 @@
       <thead>
         <tr>
           <th>Student</th>
-          <th>Essay Question</th>
-          <th>Essay Answer</th>
-          <th>Score</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for student_question in student_questions %}
           <tr>
             <td>{{ student_question.student.first_name }} {{ student_question.student.last_name }}</td>
-            <td>{{ student_question.activity_question.question_text }}</td>
-            <td>{{ student_question.student_answer }}</td>
             <td>
-              <input 
-                type="number" 
-                name="score_{{ student_question.id }}" 
-                class="form-control" 
-                value="{{ student_question.score }}" 
-                max="{{ student_question.activity_question.score }}" 
-                step="0.01" 
-                required
-              />
-              <small>Max: {{ student_question.activity_question.score }}</small>
+              <a href="{% url 'grade_individual_essay' activity.id student_question.id %}" class="btn btn-sm btn-secondary">Grade Individually</a>
             </td>
           </tr>
         {% endfor %}

@@ -66,7 +66,7 @@ def subjectDetail(request, pk):
     is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
     is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
     
-    now = timezone.now()
+    now = timezone.localtime(timezone.now())
     
     if is_student:
         completed_activities = StudentQuestion.objects.filter(student=user, score__gt=0).values_list('activity_question__activity_id', flat=True).distinct()
@@ -83,13 +83,19 @@ def subjectDetail(request, pk):
         upcoming_activities = activities.filter(start_time__gt=now)
         ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
     
-    activities_with_essays = set()
+    activities_with_essays = []
     ungraded_essay_count = 0
     if is_teacher:
         for activity in activities:
-            if ActivityQuestion.objects.filter(activity=activity, quiz_type__name='Essay').exists():
-                activities_with_essays.add(activity.id)
-                ungraded_essay_count += StudentQuestion.objects.filter(activity_question__activity=activity, activity_question__quiz_type__name='Essay', status=False, student_answer__isnull=False).count()
+            essay_questions = ActivityQuestion.objects.filter(activity=activity, quiz_type__name='Essay')
+            ungraded_essays = StudentQuestion.objects.filter(
+                activity_question__in=essay_questions,
+                student_answer__isnull=False,
+                status=False
+            )
+            if ungraded_essays.exists():
+                activities_with_essays.append(activity)
+                ungraded_essay_count += ungraded_essays.count()
     
     return render(request, 'course/viewSubjectModule.html', {
         'subject': subject,
@@ -101,6 +107,28 @@ def subjectDetail(request, pk):
         'is_student': is_student,
         'is_teacher': is_teacher,
         'ungraded_essay_count': ungraded_essay_count
+    })
+
+# get all the finished activities
+def finishedActivities(request, pk):
+    subject = get_object_or_404(Subject, pk=pk)
+    user = request.user
+    
+    is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
+    is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
+    
+    if is_student:
+        completed_activities = StudentQuestion.objects.filter(student=user, score__gt=0).values_list('activity_question__activity_id', flat=True).distinct()
+        answered_essays = StudentQuestion.objects.filter(student=user, activity_question__quiz_type__name='Essay', student_answer__isnull=False).values_list('activity_question__activity_id', flat=True).distinct()
+        finished_activities = Activity.objects.filter(subject=subject, id__in=completed_activities.union(answered_essays))
+    else:
+        finished_activities = Activity.objects.filter(subject=subject, id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct())
+
+    return render(request, 'course/subjectFinishedActivity.html', {
+        'subject': subject,
+        'finished_activities': finished_activities,
+        'is_student': is_student,
+        'is_teacher': is_teacher
     })
 
 

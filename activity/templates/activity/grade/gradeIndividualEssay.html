@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Grade Essay for {{ activity.activity_name }}
+{% endblock %}
+
+{% block content %}
+  <h1>Grade Essay for {{ activity.activity_name }}</h1>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="{% url 'grade_individual_essay' activity.id student_question.id %}">
+    {% csrf_token %}
+    <div class="form-group">
+      <label>Student:</label>
+      <p>{{ student_question.student.first_name }} {{ student_question.student.last_name }}</p>
+    </div>
+    <div class="form-group">
+      <label>Essay Question:</label>
+      <p>{{ student_question.activity_question.question_text }}</p>
+    </div>
+    <div class="form-group">
+      <label>Student's Answer:</label>
+      <p>{{ student_question.student_answer }}</p>
+    </div>
+    <div class="form-group">
+      <label>Score (Max: {{ student_question.activity_question.score }}):</label>
+      <input 
+        type="number" 
+        name="score" 
+        class="form-control" 
+        value="{{ student_question.score }}" 
+        max="{{ student_question.activity_question.score }}" 
+        step="0.01" 
+        required
+      />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit Grade</button>
+    <a href="{% url 'subjectDetail' activity.subject.id %}" class="btn btn-secondary">Back</a>
+  </form>
+{% endblock %}

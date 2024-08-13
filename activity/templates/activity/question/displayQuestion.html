@@ -7,47 +7,74 @@
 {% block content %}
   <h1>{{ activity.activity_name }}</h1>
 
-  <form method="post" action="{% url 'submit_answers' activity.id %}">
-    {% csrf_token %}
+  {% if is_teacher %}
+    <!-- Display only questions and correct answers for teachers -->
     {% for question in questions %}
       <div class="form-group">
         <label>{{ forloop.counter }}. {{ question.question_text }}</label>
         {% if question.quiz_type.name == 'Multiple Choice' %}
-          {% for choice in question.choices.all %}
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="choice_{{ choice.id }}" value="{{ choice.choice_text }}" />
-              <label class="form-check-label" for="choice_{{ choice.id }}">{{ choice.choice_text }}</label>
-            </div>
-          {% endfor %}
+          <p>Correct Answer: {{ question.correct_answer }}</p>
         {% elif question.quiz_type.name == 'True/False' %}
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="true_{{ question.id }}" value="True" />
-            <label class="form-check-label" for="true_{{ question.id }}">True</label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="false_{{ question.id }}" value="False" />
-            <label class="form-check-label" for="false_{{ question.id }}">False</label>
-          </div>
+          <p>Correct Answer: {{ question.correct_answer }}</p>
         {% elif question.quiz_type.name == 'Essay' %}
-          <textarea name="question_{{ question.id }}" class="form-control"></textarea>
+          <p>Essay Question (No specific correct answer displayed)</p>
         {% elif question.quiz_type.name == 'Matching' %}
-          <div class="form-group">
-            <label>Match the pairs:</label>
+          <ul>
             {% for pair in question.pairs %}
-              <div class="input-group mb-3">
-                <input type="text" class="form-control" value="{{ pair.left }}" readonly />
-                <input type="text" name="question_{{ question.id }}_{{ pair.left }}" class="form-control" placeholder="Match for {{ pair.left }}" />
-              </div>
+              <li>{{ pair.left }} -> {{ pair.right }}</li>
             {% endfor %}
-          </div>
+          </ul>
         {% elif question.quiz_type.name == 'Calculated Numeric' %}
-          <input type="number" name="question_{{ question.id }}" class="form-control" />
+          <p>Correct Answer: {{ question.correct_answer }}</p>
         {% else %}
-          <input type="text" name="question_{{ question.id }}" class="form-control" />
+          <p>Correct Answer: {{ question.correct_answer }}</p>
         {% endif %}
       </div>
     {% endfor %}
-    <button type="submit" class="btn btn-primary">Submit Answers</button>
-    <a href="{% url 'subjectDetail' activity.subject.id %}" class="btn btn-secondary">Back</a> <!-- Changed URL to go back to the subject detail view -->
-  </form>
+  {% elif is_student %}
+    <!-- Display interactive form for students to answer the questions -->
+    <form method="post" action="{% url 'submit_answers' activity.id %}">
+      {% csrf_token %}
+      {% for question in questions %}
+        <div class="form-group">
+          <label>{{ forloop.counter }}. {{ question.question_text }}</label>
+          {% if question.quiz_type.name == 'Multiple Choice' %}
+            {% for choice in question.choices.all %}
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="choice_{{ choice.id }}" value="{{ choice.choice_text }}" />
+                <label class="form-check-label" for="choice_{{ choice.id }}">{{ choice.choice_text }}</label>
+              </div>
+            {% endfor %}
+          {% elif question.quiz_type.name == 'True/False' %}
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="true_{{ question.id }}" value="True" />
+              <label class="form-check-label" for="true_{{ question.id }}">True</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="false_{{ question.id }}" value="False" />
+              <label class="form-check-label" for="false_{{ question.id }}">False</label>
+            </div>
+          {% elif question.quiz_type.name == 'Essay' %}
+            <textarea name="question_{{ question.id }}" class="form-control"></textarea>
+          {% elif question.quiz_type.name == 'Matching' %}
+            <div class="form-group">
+              <label>Match the pairs:</label>
+              {% for pair in question.pairs %}
+                <div class="input-group mb-3">
+                  <input type="text" class="form-control" value="{{ pair.left }}" readonly />
+                  <input type="text" name="question_{{ question.id }}_{{ pair.left }}" class="form-control" placeholder="Match for {{ pair.left }}" />
+                </div>
+              {% endfor %}
+            </div>
+          {% elif question.quiz_type.name == 'Calculated Numeric' %}
+            <input type="number" name="question_{{ question.id }}" class="form-control" />
+          {% else %}
+            <input type="text" name="question_{{ question.id }}" class="form-control" />
+          {% endif %}
+        </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Submit Answers</button>
+      <a href="{% url 'subjectDetail' activity.subject.id %}" class="btn btn-secondary">Back</a>
+    </form>
+  {% endif %}
 {% endblock %}
