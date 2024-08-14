@@ -32,9 +32,15 @@
                   <td>{{ activity.end_time|date:"F d, Y h:i A" }}</td>
                   <td>{{ activity.activity_type.name }}</td>
                   <td>
-                    <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}" class="btn btn-sm btn-info">
-                      View Activity
-                    </a>
+                    <div class="dropdown">
+                      <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ activity.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ activity.id }}">
+                        <a class="dropdown-item" href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}"><i class="fas fa-eye"></i> View</a>
+                        <a class="dropdown-item" href="{% url 'UpdateActivity' activity.id %}"><i class="fas fa-edit"></i> Edit</a> 
+                      </div>
+                    </div>
                   </td>
                 </tr>
               {% endfor %}
