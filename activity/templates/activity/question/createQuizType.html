@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  Select Quiz Type
+  Select Question Type
 {% endblock %}
 
 {% block content %}
-  <h1>Select Quiz Type for {{ activity.activity_name }}</h1>
+  <h1> {{ activity.activity_name }}</h1>
 
   <div class="dropdown">
-    <button class="btn btn-primary dropdown-toggle mb-3" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Quiz Type</button>
+    <button class="btn btn-primary dropdown-toggle mb-3" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Question Type</button>
     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
       {% for quiz_type in quiz_types %}
         <a class="dropdown-item" href="#" data-toggle="modal" data-target="#quizTypeModal" data-id="{{ quiz_type.id }}" data-name="{{ quiz_type.name }}">{{ quiz_type.name }}</a>

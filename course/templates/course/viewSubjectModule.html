@@ -47,17 +47,18 @@
         <div class="card mb-3">
           <div class="card-header">Activities to be Graded</div>
           <ul class="list-group list-group-flush">
-            {% if is_teacher %}
-              {% for activity, count in activities_with_grading_needed %}
-                <li class="list-group-item">
-                  <a href="{% url 'grade_essays' activity.id %}">
-                    {{ activity.activity_name }} - {{ count }} items to grade
-                  </a>
-                </li>
-              {% endfor %}
-            {% endif %}
+              {% if is_teacher %}
+                  {% for activity, count in activities_with_grading_needed %}
+                      <li class="list-group-item">
+                          <a href="{% url 'grade_essays' activity.id %}">
+                              {{ activity.activity_name }} - {{ count }} submissions to grade
+                          </a>
+                      </li>
+                  {% endfor %}
+              {% endif %}
           </ul>
-        </div>
+      </div>
+      
 
         <div class="card mb-3">
           <div class="card-header">Finished Activities</div>

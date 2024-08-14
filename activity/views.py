@@ -7,6 +7,9 @@ from course.models import Term, SubjectEnrollment
 from django.db.models import Sum, Max
 from django.utils import timezone
 from django.core.files.storage import default_storage
+from .forms import ActivityForm
+import json 
+import re
 
 # Add type of activity
 class AddActivityView(View):
@@ -47,6 +50,19 @@ class AddActivityView(View):
             StudentActivity.objects.create(student=student, activity=activity, term=term)
 
         return redirect('add_quiz_type', activity_id=activity.id)
+
+
+def UpdateActivity(request, activity_id):
+    activity = get_object_or_404(Activity, id=activity_id)  
+    if request.method == 'POST':  
+        form = ActivityForm(request.POST, instance=activity)  
+        if form.is_valid():  
+            form.save()  
+            return redirect('activity_detail', activity_id=activity.id)  
+    else:
+        form = ActivityForm(instance=activity)  
+    return render(request, 'activity/activities/updateActivity.html', {'form': form, 'activity': activity}) 
+    
 
 # Add quiz type
 class AddQuizTypeView(View):
@@ -217,48 +233,70 @@ class SubmitAnswersView(View):
 
         all_questions_answered = True  # Assume all questions are answered initially
 
+        def normalize_text(text):
+            """Normalize the text by removing non-alphanumeric characters and converting to lowercase."""
+            return re.sub(r'\W+', '', text).lower()
+
         for question in ActivityQuestion.objects.filter(activity=activity):
-            # Get or create a StudentQuestion object for the student and the current question
             student_question, created = StudentQuestion.objects.get_or_create(student=student, activity_question=question)
-            
-            # Retrieve the student's answer from the form submission
             answer = request.POST.get(f'question_{question.id}')
-            
-            # Handle Document type separately for file uploads
+
             if question.quiz_type.name == 'Document':
                 uploaded_file = request.FILES.get(f'question_{question.id}')
                 if uploaded_file:
                     student_question.uploaded_file = uploaded_file
-                    student_question.status = False  # Mark as submitted but not graded
+                    student_question.status = True
                 else:
-                    all_questions_answered = False  # If no file is uploaded, consider the question unanswered
+                    all_questions_answered = False
+            elif question.quiz_type.name == 'Matching':
+                matching_left = request.POST.getlist(f'matching_left_{question.id}')
+                matching_right = request.POST.getlist(f'matching_right_{question.id}')
+                if matching_left and matching_right:
+                    student_answer = list(zip(matching_left, matching_right))
+                    student_question.student_answer = str(student_answer)
+                    student_question.status = True
+
+                    # Normalize the student's answer
+                    normalized_student_answer = [(normalize_text(left), normalize_text(right)) for left, right in student_answer]
+
+                    # Manually compare the correct answer to the student's answer
+                    correct_answer = question.correct_answer.split('->')
+                    correct_answer_pairs = [(normalize_text(correct_answer[i]), normalize_text(correct_answer[i + 1]))
+                                            for i in range(0, len(correct_answer), 2)]
+
+                    print(f"Normalized Student Answer: {normalized_student_answer}")
+                    print(f"Normalized Correct Answer: {correct_answer_pairs}")
+
+                    if normalized_student_answer == correct_answer_pairs:
+                        total_score += question.score
+                        student_question.score = question.score
+                else:
+                    all_questions_answered = False
             else:
-                # Check if the student has provided an answer for this question
                 if not answer and not student_question.student_answer:
-                    all_questions_answered = False  # If any question is unanswered, set to False
+                    all_questions_answered = False
                 else:
-                    # Update the student's answer
                     student_question.student_answer = answer
 
                     if question.quiz_type.name == 'Essay':
-                        student_question.status = False  # Essays need manual grading
+                        student_question.status = True
                     else:
-                        is_correct = (answer == question.correct_answer)
+                        is_correct = (normalize_text(answer) == normalize_text(question.correct_answer))
                         if is_correct:
                             total_score += question.score
                             student_question.score = question.score
-                        student_question.status = True  # Non-essay questions are graded directly
+                        student_question.status = True
                         has_non_essay_questions = True
-                
-            student_question.submission_time = timezone.now()  # Update the submission time
+            
+            student_question.submission_time = timezone.now()
             student_question.save()
 
-        # If all questions have been answered, mark the StudentActivity as completed
         if all_questions_answered:
             student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
             student_activity.save()
 
         return redirect('activity_completed', score=int(total_score), activity_id=activity_id, show_score=has_non_essay_questions)
+
 
 # Display activity after activity is completed
 def activityCompletedView(request, score, activity_id, show_score):
@@ -285,8 +323,8 @@ class GradeEssayView(View):
         student_questions = StudentQuestion.objects.filter(
             activity_question__activity=activity,
             activity_question__quiz_type__name__in=['Essay', 'Document'],
-            student_answer__isnull=False,
-            status=False  # Only show ungraded essays and documents
+            status=True,  # Only show submitted essays and documents
+            score=0  # Only show those that have not been graded yet
         )
         return render(request, 'activity/grade/gradeEssay.html', {
             'activity': activity,
@@ -298,8 +336,8 @@ class GradeEssayView(View):
         student_questions = StudentQuestion.objects.filter(
             activity_question__activity=activity,
             activity_question__quiz_type__name__in=['Essay', 'Document'],
-            student_answer__isnull=False,
-            status=False  # Only show ungraded essays and documents
+            status=True,  # Only show submitted essays and documents
+            score=0  # Only show those that have not been graded yet
         )
 
         total_score = 0
@@ -390,7 +428,7 @@ def studentQuizzesExams(request):
 class ActivityDetailView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
-        return render(request, 'activity/activityDetail.html', {
+        return render(request, 'activity/activities/activityDetail.html', {
             'activity': activity
         })
 

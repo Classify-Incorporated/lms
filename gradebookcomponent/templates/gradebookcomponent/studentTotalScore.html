@@ -7,7 +7,36 @@
 {% block content %}
   <h1>Total Scores for All Students</h1>
   <h2>{{ current_semester.semester_name }} - {{ current_semester.school_year }}</h2>
-  
+
+  <!-- Filter Form -->
+  <form method="get">
+    <div class="form-row">
+      <div class="form-group col-md-6">
+        <label for="term">Select Term:</label>
+        <select id="term" name="term" class="form-control" onchange="this.form.submit()">
+          <option value="all" {% if selected_term_id == 'all' %}selected{% endif %}>All Terms</option>
+          {% for term in terms %}
+            <option value="{{ term.id }}" {% if selected_term_id == term.id|stringformat:"s" %}selected{% endif %}>
+              {{ term.term_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group col-md-6">
+        <label for="subject">Select Subject:</label>
+        <select id="subject" name="subject" class="form-control" onchange="this.form.submit()">
+          <option value="all" {% if selected_subject_id == 'all' %}selected{% endif %}>All Subjects</option>
+          {% for subject in subjects %}
+            <option value="{{ subject.id }}" {% if selected_subject_id == subject.id|stringformat:"s" %}selected{% endif %}>
+              {{ subject.subject_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </form>
+
   {% if term_scores_data %}
     {% for term_data in term_scores_data %}
       <h3>{{ term_data.term.term_name }} - {{ term_data.activity_type.name }} - {{ term_data.subject.subject_name }}</h3>
