@@ -15,5 +15,5 @@ class roleForm(forms.ModelForm):
             'permissions',
         )
         widgets = {
-            'role_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control col-md-2'}),
         }

@@ -57,21 +57,9 @@ $(document).ready(function() {
     function getSettingsFromForm() {
         return {
             darkMode: $('#darkMode').is(':checked'),
-            headerFixed: $('#headerFixed').is(':checked'),
-            dropdownLegacyOffset: $('#dropdownLegacyOffset').is(':checked'),
+
             noBorder: $('#noBorder').is(':checked'),
-            sidebarCollapsed: $('#sidebarCollapsed').is(':checked'),
-            sidebarFixed: $('#sidebarFixed').is(':checked'),
-            sidebarMini: $('#sidebarMini').is(':checked'),
-            sidebarMiniMD: $('#sidebarMiniMD').is(':checked'),
-            sidebarMiniXS: $('#sidebarMiniXS').is(':checked'),
-            navFlatStyle: $('#navFlatStyle').is(':checked'),
-            navLegacyStyle: $('#navLegacyStyle').is(':checked'),
-            navCompact: $('#navCompact').is(':checked'),
-            navChildIndent: $('#navChildIndent').is(':checked'),
-            navChildHideOnCollapse: $('#navChildHideOnCollapse').is(':checked'),
-            disableHoverFocusAutoExpand: $('#disableHoverFocusAutoExpand').is(':checked'),
-            footerFixed: $('#footerFixed').is(':checked'),
+            
             smallTextBody: $('#smallTextBody').is(':checked'),
             smallTextNavbar: $('#smallTextNavbar').is(':checked'),
             smallTextBrand: $('#smallTextBrand').is(':checked'),
@@ -82,21 +70,9 @@ $(document).ready(function() {
     // Update form inputs from settings
     function updateFormFromSettings(settings) {
         $('#darkMode').prop('checked', settings.darkMode);
-        $('#headerFixed').prop('checked', settings.headerFixed);
-        $('#dropdownLegacyOffset').prop('checked', settings.dropdownLegacyOffset);
+      
         $('#noBorder').prop('checked', settings.noBorder);
-        $('#sidebarCollapsed').prop('checked', settings.sidebarCollapsed);
-        $('#sidebarFixed').prop('checked', settings.sidebarFixed);
-        $('#sidebarMini').prop('checked', settings.sidebarMini);
-        $('#sidebarMiniMD').prop('checked', settings.sidebarMiniMD);
-        $('#sidebarMiniXS').prop('checked', settings.sidebarMiniXS);
-        $('#navFlatStyle').prop('checked', settings.navFlatStyle);
-        $('#navLegacyStyle').prop('checked', settings.navLegacyStyle);
-        $('#navCompact').prop('checked', settings.navCompact);
-        $('#navChildIndent').prop('checked', settings.navChildIndent);
-        $('#navChildHideOnCollapse').prop('checked', settings.navChildHideOnCollapse);
-        $('#disableHoverFocusAutoExpand').prop('checked', settings.disableHoverFocusAutoExpand);
-        $('#footerFixed').prop('checked', settings.footerFixed);
+       
         $('#smallTextBody').prop('checked', settings.smallTextBody);
         $('#smallTextNavbar').prop('checked', settings.smallTextNavbar);
         $('#smallTextBrand').prop('checked', settings.smallTextBrand);
@@ -110,22 +86,9 @@ $(document).ready(function() {
         } else {
             document.documentElement.classList.remove('dark-mode');
         }
-
-        $('.navbar').toggleClass('fixed-top', settings.headerFixed);
-        $('.navbar').toggleClass('dropdown-legacy', settings.dropdownLegacyOffset);
+       
         $('.navbar').toggleClass('no-border', settings.noBorder);
-        $('.sidebar').toggleClass('sidebar-collapse', settings.sidebarCollapsed);
-        $('.sidebar').toggleClass('sidebar-fixed', settings.sidebarFixed);
-        $('.sidebar').toggleClass('sidebar-mini', settings.sidebarMini);
-        $('.sidebar').toggleClass('sidebar-mini-md', settings.sidebarMiniMD);
-        $('.sidebar').toggleClass('sidebar-mini-xs', settings.sidebarMiniXS);
-        $('.nav').toggleClass('nav-flat', settings.navFlatStyle);
-        $('.nav').toggleClass('nav-legacy', settings.navLegacyStyle);
-        $('.nav').toggleClass('nav-compact', settings.navCompact);
-        $('.nav').toggleClass('nav-child-indent', settings.navChildIndent);
-        $('.nav').toggleClass('nav-collapse-hide-child', settings.navChildHideOnCollapse);
-        $('.nav').toggleClass('nav-no-expand', settings.disableHoverFocusAutoExpand);
-        $('.footer').toggleClass('footer-fixed', settings.footerFixed);
+    
         $('body').toggleClass('text-sm', settings.smallTextBody);
         $('.navbar').toggleClass('text-sm', settings.smallTextNavbar);
         $('.brand-link').toggleClass('text-sm', settings.smallTextBrand);

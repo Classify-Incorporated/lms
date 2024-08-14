@@ -13,14 +13,13 @@
     </div>
 
     {% if is_teacher %}
-        <div class="row">
-          <div class="col-12 mb-3">
-            <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
-          </div>
+      <div class="row">
+        <div class="col-12 mb-3">
+          <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
         </div>
+      </div>
     {% endif %}
     <div class="row">
-  
       <!-- Sidebar for Activities -->
       <div class="col-md-3">
         <div class="card mb-3">
@@ -50,9 +49,7 @@
             {% if is_teacher %}
               {% for activity, count in activities_with_grading_needed %}
                 <li class="list-group-item">
-                  <a href="{% url 'grade_essays' activity.id %}">
-                    {{ activity.activity_name }} - {{ count }} items to grade
-                  </a>
+                  <a href="{% url 'grade_essays' activity.id %}">{{ activity.activity_name }} - {{ count }} items to grade</a>
                 </li>
               {% endfor %}
             {% endif %}
@@ -62,9 +59,15 @@
         <div class="card mb-3">
           <div class="card-header">Finished Activities</div>
           <ul class="list-group list-group-flush">
-            {% for activity in finished_activities|slice:":2" %}
+            {% for activity in finished_activities|slice:':2' %}
               <li class="list-group-item">
-                <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}">{{ activity.activity_name }}</a>
+                <a href="{% if is_student %}
+                    {% url 'studentActivityView' activity.id %}
+                  {% else %}
+                    {% url 'teacherActivityView' activity.id %}
+                  {% endif %}">
+                  {{ activity.activity_name }}
+                </a>
               </li>
             {% endfor %}
             {% if finished_activities|length > 2 %}
@@ -90,6 +93,6 @@
         </div>
       </div>
     </div>
+    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
   </div>
-  <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
 {% endblock %}
