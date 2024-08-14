@@ -22,12 +22,12 @@
     </a>
   </li>
   {% if user|has_perm:'accounts.view_profile' %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'student' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'student' %}">
-      <i class="bx bx-user"></i>
-      <span>Student</span>
-    </a>
-  </li>
+    <li class="nav-item {% if request.resolver_match.url_name == 'viewProfile' %}active{% endif %}">
+      <a class="nav-link" href="{% url 'viewProfile' request.user.id %}">
+        <i class="bx bx-user"></i>
+        <span>{{ request.user.first_name }} {{ request.user.last_name }}</span>
+      </a>
+    </li>
   {% endif %}
   <li class="nav-item {% if request.resolver_match.url_name == 'activity_stream' %}active{% endif %}">
     <a class="nav-link" href="{% url 'activity_stream' %}">
@@ -37,12 +37,12 @@
   </li>
 
   {% if user|has_perm:'course.view_course' %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'SubjectList' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'SubjectList' %}">
-      <i class="bx bx-book"></i>
-      <span>Courses</span>
-    </a>
-  </li>
+    <li class="nav-item {% if request.resolver_match.url_name == 'SubjectList' %}active{% endif %}">
+      <a class="nav-link" href="{% url 'SubjectList' %}">
+        <i class="bx bx-book"></i>
+        <span>Courses</span>
+      </a>
+    </li>
   {% endif %}
 
   <li class="nav-item {% if request.resolver_match.url_name == 'calendars' %}active{% endif %}">
@@ -53,71 +53,70 @@
   </li>
 
   {% if user|has_perm:'message.view_message' %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'inbox' %}">
-      <i class="bx bx-envelope"></i>
-      <span>Messages</span>
-      {% if unread_messages_count > 0 %}
-        <span class="badge badge-danger">{{ unread_messages_count }}</span>
-      {% endif %}
-    </a>
-  </li>
+    <li class="nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">
+      <a class="nav-link" href="{% url 'inbox' %}">
+        <i class="bx bx-envelope"></i>
+        <span>Messages</span>
+        {% if unread_messages_count > 0 %}
+          <span class="badge badge-danger">{{ unread_messages_count }}</span>
+        {% endif %}
+      </a>
+    </li>
   {% endif %}
 
   {% if user|has_perm:'gradebookcomponent.view_gradebookcomponents' %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'studentTotalScore' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'studentTotalScore' %}">
-      <i class="bx bx-clipboard"></i>
-      <span>Grades</span>
-    </a>
-  </li>
+    <li class="nav-item {% if request.resolver_match.url_name == 'studentTotalScore' %}active{% endif %}">
+      <a class="nav-link" href="{% url 'studentTotalScore' %}">
+        <i class="bx bx-clipboard"></i>
+        <span>Grades</span>
+      </a>
+    </li>
   {% endif %}
 
   {% if user|has_perm:'roles.view_role' %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'roleList' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'roleList' %}">
-      <i class="bx bx-user"></i>
-      <span>Role</span>
-    </a>
-  </li>
+    <li class="nav-item {% if request.resolver_match.url_name == 'roleList' %}active{% endif %}">
+      <a class="nav-link" href="{% url 'roleList' %}">
+        <i class="bx bx-user"></i>
+        <span>Role</span>
+      </a>
+    </li>
   {% endif %}
 
   {% if user|has_perm:'subject.view_subject' %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'subject' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'subject' %}">
-      <i class="bx bx-book"></i>
-      <span>Subject</span>
-    </a>
-  </li>
+    <li class="nav-item {% if request.resolver_match.url_name == 'subject' %}active{% endif %}">
+      <a class="nav-link" href="{% url 'subject' %}">
+        <i class="bx bx-book"></i>
+        <span>Subject</span>
+      </a>
+    </li>
   {% endif %}
 
   {% if user|has_perm:'course.view_subjectenrollment' %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'subject' %}enrollStudent{% endif %}">
-    <a class="nav-link" href="{% url 'enrollStudent' %}">
-      <i class="bx bx-user"></i>
-      <span>Enroll Student</span>
-    </a>
-  </li>
+    <li class="nav-item {% if request.resolver_match.url_name == 'subject' %}enrollStudent{% endif %}">
+      <a class="nav-link" href="{% url 'enrollStudent' %}">
+        <i class="bx bx-user"></i>
+        <span>Enroll Student</span>
+      </a>
+    </li>
   {% endif %}
 
-
-   {% if user|has_perm:'course.view_semester' %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'semesterList' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'semesterList' %}">
-      <i class="bx bx-book"></i>
-      <span>Semester</span>
-    </a>
-  </li>
-  {% endif %} 
+  {% if user|has_perm:'course.view_semester' %}
+    <li class="nav-item {% if request.resolver_match.url_name == 'semesterList' %}active{% endif %}">
+      <a class="nav-link" href="{% url 'semesterList' %}">
+        <i class="bx bx-book"></i>
+        <span>Semester</span>
+      </a>
+    </li>
+  {% endif %}
 
   {% if user|has_perm:'course.view_term' %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'termList' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'termList' %}">
-      <i class="bx bx-book"></i>
-      <span>Term</span>
-    </a>
-  </li>
-  {% endif %} 
+    <li class="nav-item {% if request.resolver_match.url_name == 'termList' %}active{% endif %}">
+      <a class="nav-link" href="{% url 'termList' %}">
+        <i class="bx bx-book"></i>
+        <span>Term</span>
+      </a>
+    </li>
+  {% endif %}
 
   <li class="nav-item {% if request.resolver_match.url_name == 'assist' %}active{% endif %}">
     <a class="nav-link" href="{% url 'assist' %}">

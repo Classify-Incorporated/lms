@@ -28,7 +28,7 @@
                 </td>
                 <td>
                   <div class="progress-circle" data-score="{{ entry.total_score }}" data-max="{{ entry.max_score }}">
-                    <span class="progress-text">{{ entry.total_score|floatformat:"0" }} / {{ entry.max_score|floatformat:"0" }}</span>
+                    <span class="progress-text">{{ entry.total_score|floatformat:'0' }} / {{ entry.max_score|floatformat:'0' }}</span>
                     <div class="progress-inner-circle"></div>
                   </div>
                 </td>
@@ -77,15 +77,15 @@
   </style>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('.progress-circle').forEach(function(circle) {
-        const score = parseFloat(circle.getAttribute('data-score'));
-        const max = parseFloat(circle.getAttribute('data-max'));
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.progress-circle').forEach(function (circle) {
+        const score = parseFloat(circle.getAttribute('data-score'))
+        const max = parseFloat(circle.getAttribute('data-max'))
         if (!isNaN(score) && !isNaN(max) && max > 0) {
-          const percentage = (score / max) * 100;
-          circle.style.background = `conic-gradient(#4caf50 0% ${percentage}%, transparent ${percentage}% 100%)`;
+          const percentage = (score / max) * 100
+          circle.style.background = `conic-gradient(#4caf50 0% ${percentage}%, transparent ${percentage}% 100%)`
         }
-      });
-    });
+      })
+    })
   </script>
 {% endblock %}

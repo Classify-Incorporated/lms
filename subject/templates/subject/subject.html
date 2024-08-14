@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
-  Course
+  Subject
 {% endblock %}
 {% block content %}
-  <h1 class="h3 mb-2 text-gray-800">Course</h1>
+  <h1 class="h3 mb-2 text-gray-800">Subject</h1>
 
   <!-- DataTales Example -->
   <div class="card shadow mb-4">
     <div class="card-header py-3">
-      <button class="btn btn-primary" id="openModalBtn">Add Course</button>
+      <button class="btn btn-primary" id="openModalBtn">Add Subject</button>
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -22,11 +22,11 @@
           </thead>
           <tbody>
             {% for subjects in subjects %}
-            <tr>
-              <td>{{ subjects.assign_teacher }}</td>
-              <td>{{ subjects.subject_name }}</td>
-            </tr>
-          {% endfor %}
+              <tr>
+                <td>{{ subjects.assign_teacher }}</td>
+                <td>{{ subjects.subject_name }}</td>
+              </tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>

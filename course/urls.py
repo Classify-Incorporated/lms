@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
 
-    enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemeter,semesterList,
+    enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,
     createTerm,termList,updateTerm,finishedActivities,
     enrollStudentView,
 )
@@ -18,7 +18,7 @@ urlpatterns = [
 
     # Semester Crud
     path('createSemester/', createSemester, name='createSemester'),
-    path('updateSemeter/<int:pk>/', updateSemeter, name='updateSemeter'),
+    path('updateSemester/<int:pk>/', updateSemester, name='updateSemester'),
     path('semesterList/', semesterList, name='semesterList'),
 
     # Term Crud

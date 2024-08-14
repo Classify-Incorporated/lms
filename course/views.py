@@ -246,8 +246,9 @@ def subjectList(request):
 # Display semester list
 def semesterList(request):
     semesters = Semester.objects.all()
+    form = semesterForm()
     return render(request, 'course/semester/semesterList.html', {
-        'semesters': semesters,
+        'semesters': semesters, 'form': form,
     })
 
 # Create Semester
@@ -264,7 +265,7 @@ def createSemester(request):
     })
 
 # Update Semester
-def updateSemeter(request, pk):
+def updateSemester(request, pk):
     semester = get_object_or_404(Semester, pk=pk)
     if request.method == 'POST':
         form = semesterForm(request.POST, instance=semester)
