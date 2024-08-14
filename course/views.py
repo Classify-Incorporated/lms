@@ -4,7 +4,7 @@ from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
 from module.models import Module
-from activity.models import Activity ,StudentQuestion, ActivityQuestion
+from activity.models import Activity ,StudentQuestion, ActivityQuestion, QuizType
 from django.views import View
 from django.http import JsonResponse
 import json
@@ -70,25 +70,48 @@ def subjectDetail(request, pk):
     now = timezone.localtime(timezone.now())
     
     if is_student:
-        completed_activities = StudentQuestion.objects.filter(student=user, score__gt=0).values_list('activity_question__activity_id', flat=True).distinct()
-        answered_essays_and_documents = StudentQuestion.objects.filter(
-            student=user,
-            activity_question__quiz_type__name__in=['Essay', 'Document']
-        ).filter(
-            Q(student_answer__isnull=False) | Q(uploaded_file__isnull=False)
+        completed_activities = StudentQuestion.objects.filter(
+            student=user, 
+            score__gt=0
         ).values_list('activity_question__activity_id', flat=True).distinct()
-        activities = Activity.objects.filter(subject=subject).exclude(id__in=completed_activities.union(answered_essays_and_documents))
-        finished_activities = Activity.objects.filter(subject=subject, id__in=completed_activities.union(answered_essays_and_documents))
+        
+        answered_essays = StudentQuestion.objects.filter(
+            student=user,
+            activity_question__quiz_type__name='Essay',
+            student_answer__isnull=False
+        ).values_list('activity_question__activity_id', flat=True).distinct()
+        
+        answered_documents = StudentQuestion.objects.filter(
+            student=user,
+            activity_question__quiz_type__name='Document',
+            uploaded_file__isnull=False,
+            status=True
+        ).values_list('activity_question__activity_id', flat=True).distinct()
+
+        excluded_activities = completed_activities.union(answered_essays, answered_documents)
+        
+        activities = Activity.objects.filter(subject=subject).exclude(id__in=excluded_activities)
+        
+        finished_activities = Activity.objects.filter(
+            subject=subject, 
+            end_time__lte=now, 
+            id__in=completed_activities.union(answered_essays, answered_documents)
+        )
         upcoming_activities = activities.filter(start_time__gt=now)
         ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
+
         modules = Module.objects.filter(subject=subject)
     else:
         modules = Module.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject)
-        finished_activities = Activity.objects.filter(subject=subject, id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct())
+        finished_activities = Activity.objects.filter(
+            subject=subject, 
+            end_time__lte=now, 
+            id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct()
+        )
         upcoming_activities = activities.filter(start_time__gt=now)
         ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
-    
+
     activities_with_grading_needed = []
     ungraded_items_count = 0
     if is_teacher:
@@ -100,7 +123,8 @@ def subjectDetail(request, pk):
             ungraded_items = StudentQuestion.objects.filter(
                 Q(activity_question__in=questions_requiring_grading),
                 Q(student_answer__isnull=False) | Q(uploaded_file__isnull=False),
-                status=False  # Only include ungraded submissions
+                status=True, 
+                score=0  
             )
             if ungraded_items.exists():
                 activities_with_grading_needed.append((activity, ungraded_items.count()))
@@ -118,6 +142,7 @@ def subjectDetail(request, pk):
         'ungraded_items_count': ungraded_items_count
     })
 
+
 # get all the finished activities
 def finishedActivities(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
@@ -126,12 +151,32 @@ def finishedActivities(request, pk):
     is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
     is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
     
+    now = timezone.localtime(timezone.now())
+    
     if is_student:
-        completed_activities = StudentQuestion.objects.filter(student=user, score__gt=0).values_list('activity_question__activity_id', flat=True).distinct()
-        answered_essays = StudentQuestion.objects.filter(student=user, activity_question__quiz_type__name='Essay', student_answer__isnull=False).values_list('activity_question__activity_id', flat=True).distinct()
-        finished_activities = Activity.objects.filter(subject=subject, id__in=completed_activities.union(answered_essays))
+        completed_activities = StudentQuestion.objects.filter(
+            student=user, 
+            score__gt=0
+        ).values_list('activity_question__activity_id', flat=True).distinct()
+
+        answered_essays = StudentQuestion.objects.filter(
+            student=user, 
+            activity_question__quiz_type__name__in=['Essay', 'Document']
+        ).filter(
+            Q(student_answer__isnull=False) | Q(uploaded_file__isnull=False)
+        ).values_list('activity_question__activity_id', flat=True).distinct()
+
+        finished_activities = Activity.objects.filter(
+            subject=subject,
+            end_time__lt=now,  # Ensure the activity has ended
+            id__in=completed_activities.union(answered_essays)
+        )
     else:
-        finished_activities = Activity.objects.filter(subject=subject, id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct())
+        finished_activities = Activity.objects.filter(
+            subject=subject,
+            end_time__lt=now,  # Ensure the activity has ended
+            id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct()
+        )
 
     return render(request, 'course/subjectFinishedActivity.html', {
         'subject': subject,
@@ -156,20 +201,47 @@ def subjectStudentList(request, pk):
     })
 
 
-
+# display subject based on semester
 def subjectList(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
     subjects = []
+    
+    # Fetch all semesters
+    semesters = Semester.objects.all()
 
+    # Determine the current semester based on the date
+    current_date = timezone.now().date()
+    current_semester = Semester.objects.filter(start_date__lte=current_date, end_date__gte=current_date).first()
+
+    # Get selected semester from the dropdown
+    selected_semester_id = request.GET.get('semester', None)
+
+    # If a semester is selected, filter subjects based on the selected semester
+    if selected_semester_id:
+        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
+    else:
+        selected_semester = current_semester
+
+    # Filter subjects based on the user's role and selected semester
     if profile.role.name.lower() == 'student':
-        subjects = Subject.objects.filter(subjectenrollment__student=user).distinct()
+        subjects = Subject.objects.filter(
+            subjectenrollment__student=user,
+            subjectenrollment__semester=selected_semester
+        ).distinct()
     elif profile.role.name.lower() == 'teacher':
-        subjects = Subject.objects.filter(assign_teacher=user).distinct()
+        subjects = Subject.objects.filter(
+            assign_teacher=user,
+            subjectenrollment__semester=selected_semester
+        ).distinct()
 
     return render(request, 'course/subjectList.html', {
         'subjects': subjects,
+        'semesters': semesters,
+        'selected_semester_id': selected_semester_id,
+        'current_semester': current_semester,
     })
+
 
 # Display semester list
 def semesterList(request):

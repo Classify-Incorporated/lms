@@ -67,7 +67,8 @@
               {% for pair in question.pairs %}
                 <div class="input-group mb-3">
                   <input type="text" class="form-control" value="{{ pair.left }}" readonly />
-                  <input type="text" name="question_{{ question.id }}_{{ pair.left }}" class="form-control" placeholder="Match for {{ pair.left }}" />
+                  <input type="text" name="matching_right_{{ question.id }}" class="form-control" placeholder="Match for {{ pair.left }}" />
+                  <input type="hidden" name="matching_left_{{ question.id }}" value="{{ pair.left }}" />
                 </div>
               {% endfor %}
             </div>

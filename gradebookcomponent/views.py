@@ -198,28 +198,34 @@ def studentTotalScore(request):
     subjects = Subject.objects.all()
     
     terms = Term.objects.filter(semester=current_semester)
+
+    selected_term_id = request.GET.get('term', 'all')
+    selected_subject_id = request.GET.get('subject', 'all')
+    
     term_scores_data = []
 
     for term in terms:
+        if selected_term_id != 'all' and str(term.id) != selected_term_id:
+            continue
+        
         for activity_type in activity_types:
             for subject in subjects:
+                if selected_subject_id != 'all' and str(subject.id) != selected_subject_id:
+                    continue
+
                 student_scores_data = []
                 term_has_data = False
 
-                # Get the component percentage for the activity type
                 gradebook_component = GradeBookComponents.objects.filter(activity_type=activity_type).first()
                 component_percentage = gradebook_component.percentage if gradebook_component else Decimal(0)
 
                 for student in students:
-                    # Check if the student is enrolled in this subject
                     if not student.subjectenrollment_set.filter(subject=subject).exists():
-                        continue  # Skip to the next student if not enrolled
-                    
-                    # Fetch all activities for the term, subject, and activity type
+                        continue
+
                     activities = Activity.objects.filter(term=term, activity_type=activity_type, subject=subject)
 
                     for activity in activities:
-                        # Fetch the student's answers for the activity
                         student_questions = StudentQuestion.objects.filter(
                             student=student,
                             activity_question__activity=activity,
@@ -229,12 +235,9 @@ def studentTotalScore(request):
                         total_score = student_questions.aggregate(total_score=Sum('score'))['total_score'] or 0
                         max_score = student_questions.aggregate(max_score=Sum('activity_question__score'))['max_score'] or 0
                         percentage = Decimal(total_score / max_score * 100) if max_score > 0 else Decimal(0)
-
-                        # Calculate the weighted score
                         weighted_score = (percentage * component_percentage / 100) if component_percentage > 0 else Decimal(0)
 
                         if activity.end_time < timezone.now() and not student_questions.exists():
-                            # If the activity has ended and the student didn't answer, include it with zero scores
                             term_has_data = True
                             student_scores_data.append({
                                 'student': student,
@@ -242,8 +245,8 @@ def studentTotalScore(request):
                                 'max_score': max_score or 0,
                                 'percentage': 0,
                                 'weighted_score': 0,
-                                'activity': activity,  # Include activity details for the frontend if needed
-                                'missed': True  # Flag to identify missed activities
+                                'activity': activity,
+                                'missed': True
                             })
                         elif total_score > 0:
                             term_has_data = True
@@ -254,7 +257,7 @@ def studentTotalScore(request):
                                 'percentage': percentage,
                                 'weighted_score': weighted_score,
                                 'activity': activity,
-                                'missed': False  # Not a missed activity
+                                'missed': False
                             })
 
                 if term_has_data:
@@ -267,5 +270,9 @@ def studentTotalScore(request):
 
     return render(request, 'gradebookcomponent/studentTotalScore.html', {
         'current_semester': current_semester,
+        'terms': terms,
+        'subjects': subjects,
         'term_scores_data': term_scores_data,
+        'selected_term_id': selected_term_id,
+        'selected_subject_id': selected_subject_id,
     })
