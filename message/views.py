@@ -64,7 +64,7 @@ def inbox(request):
 
     return render(request, 'message/inbox.html', {
         'message_status_list': message_status_list,
-        'unread_messages_count': unread_messages_count,
+        'unread_messages_count': unread_messages_count,  # Pass the unread count
         'subjects': subjects,
         'instructors': instructors,
     })

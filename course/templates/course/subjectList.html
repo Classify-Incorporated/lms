@@ -6,10 +6,10 @@
 
 <!-- Filter Form -->
 <form method="get" class="mb-4">
-    <div class="form-group">
+    <div class="form-group col-md-3">
         <label for="semester">Filter by Semester and School Year:</label>
         <select id="semester" name="semester" class="form-control" onchange="this.form.submit()">
-            <option value="">Select Semester</option>
+          <option value="" disabled selected hidden>Select semester</option>
             {% for semester in semesters %}
                 <option value="{{ semester.id }}" {% if semester.id|stringformat:"s" == selected_semester_id|stringformat:"s" %}selected{% endif %}>
                     {{ semester.semester_name }} - {{ semester.school_year }}

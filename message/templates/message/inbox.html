@@ -13,7 +13,7 @@
         <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
           <i class="fas fa-inbox mr-2"></i>
           <span>Inbox</span>
-          <span class="badge badge-primary badge-pill ml-auto" id="unreadCountBadge">0</span>
+          <span class="badge badge-primary badge-pill ml-auto" id="unreadCountBadge">{{ unread_messages_count }}</span>
         </a>
         <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
           <i class="fas fa-envelope mr-2"></i>
@@ -69,14 +69,46 @@
                     <td>
                       <span class="badge {% if item.read %}
                           
+                          
+                          
+                          
+                          
+                          
+                          
+                          
+                          
                                                                 
                           badge-success
+
+
+
+
+
+
+
+
 
 
                         {% else %}
                           
                           
+                          
+                          
+                          
+                          
+                          
+                          
+                          
+                          
                           badge-warning
+
+
+
+
+
+
+
+
 
 
                         {% endif %}">
@@ -175,6 +207,9 @@
       const unreadCount = document.querySelectorAll('.message-row.unread').length
       document.getElementById('unreadCountBadge').textContent = unreadCount
     }
+    
+    // You can call this function on page load to ensure the count is accurate
+    updateUnreadCount()
     
     // Open Send Message Modal
     document.getElementById('openSendMessageModalBtn').addEventListener('click', function () {

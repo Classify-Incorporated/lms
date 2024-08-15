@@ -86,6 +86,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'allauth.account.context_processors.account',  # Correct context processor
                 'allauth.socialaccount.context_processors.socialaccount',  # Correct context processor
+                'message.context_processors.unread_messages_count',
             ],
         },
     },
