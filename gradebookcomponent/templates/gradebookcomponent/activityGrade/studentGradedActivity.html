@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}
-  Detailed Scores for {{ activity.activity_name }}
+{{ activity.activity_name }}
 {% endblock %}
 {% block content %}
-  <h1>Detailed Scores for {{ activity.activity_name }}</h1>
+{{ activity.activity_name }}</h1>
   <div class="card shadow mb-4">
     <div class="card-body">
       <div class="container">
@@ -19,12 +19,10 @@
               {% for question in entry.questions %}
                 <p><strong>Question {{ question.number }}:</strong> {{ question.question_text }}</p>
                 
-                <!-- Only display the correct answer if the quiz type is not Essay -->
                 {% if question.quiz_type.name != 'Essay' and question.correct_answer != None %}
                   <p><strong>Correct Answer:</strong> {{ question.correct_answer }}</p>
                 {% endif %}
                 
-                <!-- Display student answer or document link -->
                 <p><strong>Student Answer:</strong> {{ question.student_answer|safe }}</p>
               {% endfor %}
             </div>

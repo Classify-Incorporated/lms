@@ -56,11 +56,11 @@
             {% for data in term_data.student_scores_data %}
               <tr {% if data.missed %}class="text-danger"{% endif %}>
                 <td>{{ data.student.get_full_name }}</td>
-                <td>{{ data.total_score }}</td>
+                <td {% if not data.activity %}style="background-color: #f0f8ff;"{% endif %}>{{ data.total_score }}</td>
                 <td>{{ data.max_score }}</td>
                 <td>{{ data.percentage|floatformat:2 }}%</td>
-                <td>{{ data.weighted_score|floatformat:2 }}%</td>
-                <td>{% if data.missed %}Missed{% else %}Completed{% endif %}</td>
+                <td>{{ data.weighted_score|floatformat:2 }}%</td> <!-- Show the weighted score in total score row -->
+                <td>{% if not data.activity %}Overall Score{% else %}{% if data.missed %}Missed{% else %}Completed{% endif %}{% endif %}</td>
               </tr>
             {% endfor %}
           </tbody>

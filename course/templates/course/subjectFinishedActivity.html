@@ -38,7 +38,9 @@
                       </button>
                       <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ activity.id }}">
                         <a class="dropdown-item" href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}"><i class="fas fa-eye"></i> View</a>
-                        <a class="dropdown-item" href="{% url 'UpdateActivity' activity.id %}"><i class="fas fa-edit"></i> Edit</a> 
+                        {% if is_teacher %}
+                        <a class="dropdown-item" href="{% url 'UpdateActivity' activity.id %}"><i class="fas fa-edit"></i> Update</a> 
+                        {% endif %}
                       </div>
                     </div>
                   </td>

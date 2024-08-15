@@ -13,13 +13,14 @@
     </div>
 
     {% if is_teacher %}
-      <div class="row">
-        <div class="col-12 mb-3">
-          <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
+        <div class="row">
+          <div class="col-12 mb-3">
+            <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
+          </div>
         </div>
-      </div>
     {% endif %}
     <div class="row">
+  
       <!-- Sidebar for Activities -->
       <div class="col-md-3">
         <div class="card mb-3">
@@ -46,46 +47,54 @@
         <div class="card mb-3">
           <div class="card-header">Activities to be Graded</div>
           <ul class="list-group list-group-flush">
-              {% if is_teacher %}
-                  {% for activity, count in activities_with_grading_needed %}
-                      <li class="list-group-item">
-                          <a href="{% url 'grade_essays' activity.id %}">
-                              {{ activity.activity_name }} - {{ count }} submissions to grade
-                          </a>
-                      </li>
-                  {% endfor %}
-              {% endif %}
+            {% if is_teacher %}
+              {% for activity, count in activities_with_grading_needed %}
+                <li class="list-group-item">
+                  <a href="{% url 'grade_essays' activity.id %}">
+                    {{ activity.activity_name }} - {{ count }} items to grade
+                  </a>
+                </li>
+              {% endfor %}
+            {% endif %}
           </ul>
-      </div>
-      
+        </div>
 
         <div class="card mb-3">
           <div class="card-header">Finished Activities</div>
           <ul class="list-group list-group-flush">
-            {% for activity in finished_activities|slice:':2' %}
+            {% for activity in finished_activities|slice:":2" %}
               <li class="list-group-item">
-                <a href="{% if is_student %}
-                    {% url 'studentActivityView' activity.id %}
-                  {% else %}
-                    {% url 'teacherActivityView' activity.id %}
-                  {% endif %}">
-                  {{ activity.activity_name }}
-                </a>
+                <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}">{{ activity.activity_name }}</a>
               </li>
             {% endfor %}
-            {% if finished_activities|length > 2 %}
+            {% if finished_activities|length > 0 %}
               <li class="list-group-item">
-                <a href="{% url 'finishedActivities' subject.id %}">View More</a>
+                <a href="{% url 'subjectFinishedActivities' subject.id %}">View More</a>
               </li>
             {% endif %}
           </ul>
         </div>
+        
+        {% if is_teacher %}
+        <div class="card mb-3">
+          <div class="card-header">Student Roster</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <a href="{% url 'subjectStudentList' subject.id %}">View List</a>
+            </li>
+          </ul>
+        </div>
+        {% endif %}
+        
       </div>
 
       <!-- Main Content Area -->
       <div class="col-md-9">
         <div class="card mb-3">
-          <div class="card-header">Modules</div>
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Modules</span>
+            <a href="{% url 'createModule' subject.id %}" class="btn btn-primary">Add</a>
+          </div>
           <ul class="list-group list-group-flush">
             {% for module in modules %}
               <li class="list-group-item">
@@ -94,9 +103,8 @@
             {% endfor %}
           </ul>
         </div>
-      </div>
+      </div>      
     </div>
-    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
   </div>
+  <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
 {% endblock %}
-

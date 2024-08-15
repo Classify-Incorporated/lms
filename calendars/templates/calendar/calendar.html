@@ -15,7 +15,6 @@
       max-width: none;
       margin: 0 auto;
     }
-    /* Define custom styles for different event statuses */
     .fc-event-finished {
       background-color: gray !important;
       color: white !important;
@@ -32,11 +31,13 @@
       background-color: red !important;
       color: white !important;
     }
-    /* Remove blue outline on event hover/focus */
+    .fc-event-answered {
+      background-color: #6c757d !important; /* Secondary color */
+      color: white !important;
+    }
     .fc .fc-event .fc-event-main {
       outline: none !important;
     }
-    /* Remove the dot before the event title */
     .fc-event-dot {
       display: none !important;
     }
@@ -44,88 +45,86 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      var calendarEl = document.getElementById('calendar')
-    
-      // Fetch events from the API
+      var calendarEl = document.getElementById('calendar');
+
       fetch('/api/activities/')
         .then((response) => response.json())
         .then((events) => {
-          console.log('Events data:', events)
-    
-          const now = new Date()
-    
-          // Assign classNames based on the event time
+          console.log('Events data:', events);
+
+          const now = new Date();
+
           events = events.map(function (event) {
-            const start = new Date(event.start)
-            const end = event.end ? new Date(event.end) : null
-    
+            const start = new Date(event.start);
+            const end = event.end ? new Date(event.end) : null;
+
             if (end && now > end) {
-              event.classNames = ['fc-event-finished'] // Finished
-              event.clickable = false // Finished events are not clickable
+              event.classNames = ['fc-event-finished'];
+              event.clickable = false;
             } else if (start > now) {
-              event.classNames = ['fc-event-upcoming'] // Upcoming
-              event.clickable = false // Upcoming events are not clickable
+              event.classNames = ['fc-event-upcoming'];
+              event.clickable = false;
             } else if (start <= now && (!end || now <= end)) {
-              event.classNames = ['fc-event-ongoing'] // Ongoing
-              event.clickable = true // Ongoing events are clickable
-              event.url = `/display_question/${event.id}/` // Set the URL for ongoing events
+              if (event.answered) {
+                event.classNames = ['fc-event-answered']; // Apply secondary color if answered
+                event.clickable = false; // Answered events are not clickable
+              } else {
+                event.classNames = ['fc-event-ongoing'];
+                event.clickable = true; // Ongoing events are clickable
+                event.url = `/display_question/${event.id}/`; // Set the URL for ongoing events
+              }
             } else if (end && now > end) {
-              event.classNames = ['fc-event-missed'] // Missed
-              event.clickable = false // Missed events are not clickable
+              event.classNames = ['fc-event-missed'];
+              event.clickable = false;
             }
-    
-            event.allDay = event.allDay === true
-    
-            return event
-          })
-    
+
+            event.allDay = event.allDay === true;
+
+            return event;
+          });
+
           var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth', // Default view
+            initialView: 'dayGridMonth',
             headerToolbar: {
               left: 'prev,next today',
               center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' // Add these options for different views
+              right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
             },
             events: events,
             eventTimeFormat: {
-              // Display both start and end time
               hour: '2-digit',
               minute: '2-digit',
               meridiem: true
             },
-            displayEventEnd: true, // Ensure the end time is shown
+            displayEventEnd: true,
             eventClick: function (info) {
-              // Check if the event is clickable
               if (info.event.extendedProps.clickable) {
-                // Redirect to the event's URL
                 if (info.event.url) {
-                  window.location.href = info.event.url
+                  window.location.href = info.event.url;
                 }
               } else {
-                // Prevent any action for non-clickable events
-                info.jsEvent.preventDefault()
+                info.jsEvent.preventDefault(); // Prevent any action for non-clickable events
               }
             },
             eventContent: function (arg) {
-              // Custom rendering of the event to show both start and end time
-              let timeText = ''
+              let timeText = '';
               if (arg.event.allDay) {
-                timeText = 'All day'
+                timeText = 'All day';
               } else if (arg.event.start && arg.event.end) {
-                timeText = arg.timeText // FullCalendar's default time text format
+                timeText = arg.timeText;
               } else {
-                timeText = arg.timeText.split(' - ')[0] // Just the start time if no end time
+                timeText = arg.timeText.split(' - ')[0];
               }
-    
+
               return {
                 html: `<div>${timeText} ${arg.event.title}</div>`
-              }
+              };
             }
-          })
-    
-          calendar.render()
+          });
+
+          calendar.render();
         })
-        .catch((error) => console.error('Error fetching events:', error))
-    })
+        .catch((error) => console.error('Error fetching events:', error));
+    });
   </script>
 {% endblock %}
