@@ -130,6 +130,7 @@ def subjectDetail(request, pk):
                 activities_with_grading_needed.append((activity, ungraded_items.count()))
                 ungraded_items_count += ungraded_items.count()
     
+    
     return render(request, 'course/viewSubjectModule.html', {
         'subject': subject,
         'modules': modules,
@@ -139,12 +140,12 @@ def subjectDetail(request, pk):
         'activities_with_grading_needed': activities_with_grading_needed,
         'is_student': is_student,
         'is_teacher': is_teacher,
-        'ungraded_items_count': ungraded_items_count
+        'ungraded_items_count': ungraded_items_count,
     })
 
 
 # get all the finished activities
-def finishedActivities(request, pk):
+def subjectFinishedActivities(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
     
@@ -189,12 +190,12 @@ def finishedActivities(request, pk):
 # Display the student list for a subject
 def subjectStudentList(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
-    students = CustomUser.objects.filter(subjectenrollment__subjects=subject).distinct()
+    students = CustomUser.objects.filter(subjectenrollment__subject=subject).distinct()
 
     regular_students = students.filter(profile__student_status='Regular')
     irregular_students = students.filter(profile__student_status='Irregular')
 
-    return render(request, 'course/studentRoster.html', {
+    return render(request, 'course/viewStudentRoster.html', {
         'subject': subject,
         'regular_students': regular_students,
         'irregular_students': irregular_students,

@@ -1,21 +1,23 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
-  Course
+  GradeBook 
 {% endblock %}
 {% block content %}
-  <h1 class="h3 mb-2 text-gray-800">Course</h1>
+  <h1 class="h3 mb-2 text-gray-800">GradeBook</h1>
 
   <!-- DataTales Example -->
   <div class="card shadow mb-4">
     <div class="card-header py-3">
         <a href="{% url 'createGradeBookComponents' %}" class="btn btn-primary" id="openModalBtn">Add Gradebook</a>
+        <a href="{% url 'copyGradeBookComponents' %}" class="btn btn-secondary" id="openModalBtn">Copy Gradebook</a>
     </div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
           <thead>
             <tr>
+              <th>Subject Name</th>
               <th>Activity Name</th>
               <th>Category Name</th>
               <th>Percentage</th>
@@ -25,6 +27,7 @@
           <tbody>
             {% for gradebookcomponent in gradebookcomponents %}
             <tr>
+              <td>{{ gradebookcomponent.subject }}</td>
               <td>{{ gradebookcomponent.activity_type }}</td>
               <td>{{ gradebookcomponent.category_name }}</td>
               <td>{{ gradebookcomponent.percentage }}</td>

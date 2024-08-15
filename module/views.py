@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import moduleForm
 from .models import Module
+from subject.models import Subject
 # Create your views here.
 
 #Module List
@@ -9,16 +10,19 @@ def moduleList(request):
     return render(request, 'module/module.html',{'modules': modules})
 
 #Create Module
-def createModule(request):
+def createModule(request, subject_id):
+    subject = get_object_or_404(Subject, id=subject_id)
     if request.method == 'POST':
-        form = moduleForm(request.POST)
+        form = moduleForm(request.POST, request.FILES)  
         if form.is_valid():
-            form.save()
-            return redirect('success')
+            module = form.save(commit=False)
+            module.subject = subject  
+            module.save()
+            return redirect('subjectDetail', pk=subject_id)
     else:
         form = moduleForm()
-    
-    return render(request, 'create_module.html', {'form': form})
+
+    return render(request, 'module/createModule.html', {'form': form, 'subject': subject})
 
 #Modify Module
 def updateModule(request, pk):

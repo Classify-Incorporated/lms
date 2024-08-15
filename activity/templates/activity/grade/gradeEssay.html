@@ -18,7 +18,6 @@
         <tr>
           <th>Student</th>
           <th>Type</th>
-          <th>Score</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -28,22 +27,13 @@
             <td>{{ student_question.student.first_name }} {{ student_question.student.last_name }}</td>
             <td>{{ student_question.activity_question.quiz_type.name }}</td>
             <td>
-              <input type="number" name="score_{{ student_question.id }}" min="0" max="{{ student_question.activity_question.score }}" step="0.1" class="form-control" required>
-            </td>
-            <td>
-              {% if student_question.activity_question.quiz_type.name == 'Document' %}
-                <a href="{{ student_question.uploaded_file.url }}" class="btn btn-sm btn-info" target="_blank">View Document</a>
-              {% endif %}
-              {% if student_question.activity_question.quiz_type.name == 'Essay' %}
                 <a href="{% url 'grade_individual_essay' activity.id student_question.id %}" class="btn btn-sm btn-secondary">View Answer</a>
-              {% endif %}
             </td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
-    <button type="submit" class="btn btn-primary">Submit Grades</button>
-    <a href="{% url 'subjectDetail' activity.subject.id %}" class="btn btn-secondary">Back</a>
+    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
   </form>
 
   <script>
