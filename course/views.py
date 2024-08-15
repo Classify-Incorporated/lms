@@ -192,13 +192,9 @@ def subjectStudentList(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     students = CustomUser.objects.filter(subjectenrollment__subject=subject).distinct()
 
-    regular_students = students.filter(profile__student_status='Regular')
-    irregular_students = students.filter(profile__student_status='Irregular')
-
     return render(request, 'course/viewStudentRoster.html', {
         'subject': subject,
-        'regular_students': regular_students,
-        'irregular_students': irregular_students,
+        'students':students
     })
 
 

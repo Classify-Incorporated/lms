@@ -264,8 +264,6 @@ class SubmitAnswersView(View):
                     correct_answer_pairs = [(normalize_text(correct_answer[i]), normalize_text(correct_answer[i + 1]))
                                             for i in range(0, len(correct_answer), 2)]
 
-                    print(f"Normalized Student Answer: {normalized_student_answer}")
-                    print(f"Normalized Correct Answer: {correct_answer_pairs}")
 
                     if normalized_student_answer == correct_answer_pairs:
                         total_score += question.score
@@ -323,8 +321,8 @@ class GradeEssayView(View):
         student_questions = StudentQuestion.objects.filter(
             activity_question__activity=activity,
             activity_question__quiz_type__name__in=['Essay', 'Document'],
-            status=True,  # Only show submitted essays and documents
-            score=0  # Only show those that have not been graded yet
+            status=True, 
+            score=0 
         )
         return render(request, 'activity/grade/gradeEssay.html', {
             'activity': activity,
@@ -336,8 +334,8 @@ class GradeEssayView(View):
         student_questions = StudentQuestion.objects.filter(
             activity_question__activity=activity,
             activity_question__quiz_type__name__in=['Essay', 'Document'],
-            status=True,  # Only show submitted essays and documents
-            score=0  # Only show those that have not been graded yet
+            status=True, 
+            score=0 
         )
 
         total_score = 0
@@ -358,8 +356,8 @@ class GradeEssayView(View):
                 student_question.save()
                 total_score += score
 
-        # Redirect to the subject detail page after grading
-        return redirect('subjectDetail', pk=activity.subject.id)
+
+        return redirect('grade_essay', activity_id=activity_id)
 
 # Grade student individual essay
 class GradeIndividualEssayView(View):
@@ -392,7 +390,7 @@ class GradeIndividualEssayView(View):
             student_question.save()
 
         # Redirect to the subject detail page after grading
-        return redirect('subjectDetail', pk=activity.subject.id)
+        return redirect('grade_essays', activity_id=activity_id)
 
 
 # List all quizzes and exams for a teacher's students
