@@ -31,6 +31,7 @@
                         <th>Assignment Total Score</th>
                         <th>Assignment Weighted Score</th>
                         <th>Total Weighted Score</th>
+                        <th>Term Weighted Score</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -59,6 +60,19 @@
             });
         }
 
+        function calculateGrade(termWeightedScore) {
+            if (termWeightedScore >= 97.5) return '1.00 (Excellent)';
+            if (termWeightedScore >= 94.5) return '1.25 (Very Good)';
+            if (termWeightedScore >= 91.5) return '1.50 (Very Good)';
+            if (termWeightedScore >= 88.5) return '1.75 (Very Good)';
+            if (termWeightedScore >= 85.5) return '2.00 (Satisfactory)';
+            if (termWeightedScore >= 82.5) return '2.25 (Satisfactory)';
+            if (termWeightedScore >= 79.5) return '2.50 (Satisfactory)';
+            if (termWeightedScore >= 76.5) return '2.75 (Fair)';
+            if (termWeightedScore >= 74.5) return '3.00 (Fair)';
+            return '5.00 (Failed)';
+        }
+
         function fetchScores() {
             const termId = $('#term').val();
             const subjectId = $('#subject').val();
@@ -82,6 +96,10 @@
                             const examWeightedScore = item.activities.Exam ? item.activities.Exam.weighted_score : 0;
                             const assignmentTotalScore = item.activities.Assignment ? item.activities.Assignment.total_score : 0;
                             const assignmentWeightedScore = item.activities.Assignment ? item.activities.Assignment.weighted_score : 0;
+                            const termWeightedScore = item.term_weighted_score || 0;
+
+                            // Calculate grade based on the term weighted score
+                            const grade = calculateGrade(termWeightedScore);
 
                             const row = `<tr>
                                 <td>${term}</td>
@@ -93,10 +111,20 @@
                                 <td>${assignmentTotalScore}</td>
                                 <td>${assignmentWeightedScore.toFixed(2)}%</td>
                                 <td>${item.total_weighted_score.toFixed(2)}%</td>
+                                <td>${termWeightedScore.toFixed(2)}%</td>
                             </tr>`;
                             scoresTableBody.append(row);
                         });
                     });
+
+                    // Display the total term weighted scores for each student below the table
+                    const totalTermWeightedScores = data.total_term_weighted_scores;
+                    let totalsRow = `<tr><td colspan="11"><strong>Total Term Weighted Scores:</strong></td></tr>`;
+                    $.each(totalTermWeightedScores, function(student, score) {
+                        const grade = calculateGrade(score);  // Calculate grade for the total term weighted score
+                        totalsRow += `<tr><td colspan="9"><strong>${student}:</strong></td><td>${score.toFixed(2)}%</td><td>${grade}</td></tr>`;
+                    });
+                    scoresTableBody.append(totalsRow);
                 },
                 error: function(xhr, status, error) {
                     console.error("An error occurred while fetching the scores: ", error);

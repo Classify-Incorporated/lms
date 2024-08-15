@@ -357,33 +357,46 @@ def studentTotalScoreApi(request):
     selected_term_id = request.GET.get('term', 'all')
     selected_subject_id = request.GET.get('subject', 'all')
     
-    # Filter terms based on selected term ID
     if selected_term_id != 'all':
         terms = terms.filter(id=selected_term_id)
-
-    # Filter subjects based on selected subject ID
+    
     if selected_subject_id != 'all':
         subjects = subjects.filter(id=selected_subject_id)
 
     term_data = {}
+    student_total_term_weighted_scores = defaultdict(Decimal)
 
     for term in terms:
-        term_name = term.term_name  # Assuming your Term model has a 'term_name' field
+        term_name = term.term_name
         aggregated_data = defaultdict(lambda: defaultdict(lambda: {'total_score': Decimal(0), 'weighted_score': Decimal(0)}))
         total_weighted_scores = defaultdict(Decimal)
 
+        try:
+            term_gradebook_components = TermGradeBookComponents.objects.filter(
+                teacher=user,
+                term=term,
+                subjects__in=subjects
+            ).distinct().first()
+
+            if term_gradebook_components:
+                term_percentage = term_gradebook_components.percentage
+            else:
+                term_percentage = Decimal(0)
+        except TermGradeBookComponents.DoesNotExist:
+            term_percentage = Decimal(0)
+
         for activity_type in activity_types:
             for subject in subjects:
-                # Get the activity type percentage from GradeBookComponents
-                try:
-                    gradebook_component = GradeBookComponents.objects.get(
-                        teacher=user, 
-                        subject=subject, 
-                        activity_type=activity_type
-                    )
-                    activity_percentage = gradebook_component.percentage
-                except GradeBookComponents.DoesNotExist:
+                gradebook_components = GradeBookComponents.objects.filter(
+                    teacher=user, 
+                    subject=subject, 
+                    activity_type=activity_type
+                )
+
+                if not gradebook_components.exists():
                     activity_percentage = Decimal(0)
+                else:
+                    activity_percentage = gradebook_components.aggregate(Sum('percentage'))['percentage__sum']
 
                 for student in students:
                     if not student.subjectenrollment_set.filter(subject=subject).exists():
@@ -407,16 +420,13 @@ def studentTotalScoreApi(request):
                         total_score_sum += Decimal(total_score)
                         max_score_sum += Decimal(max_score)
 
-                    # Calculate percentage and weighted score for the student
                     total_percentage = (total_score_sum / max_score_sum * 100) if max_score_sum > 0 else Decimal(0)
                     weighted_score = total_percentage * activity_percentage / 100
 
-                    # Aggregate the results for each student and activity type within this term
                     aggregated_data[student.get_full_name()][activity_type.name]['total_score'] += total_score_sum
                     aggregated_data[student.get_full_name()][activity_type.name]['weighted_score'] += weighted_score
                     total_weighted_scores[student.get_full_name()] += weighted_score
 
-        # Store the aggregated data for this term only
         term_data[term_name] = []
 
         for student, activities in aggregated_data.items():
@@ -430,10 +440,21 @@ def studentTotalScoreApi(request):
                     'weighted_score': float(scores['weighted_score'])
                 }
             student_data['total_weighted_score'] = float(total_weighted_scores[student])
-            term_data[term_name].append(student_data)
 
-    # Return the term data with all aggregated information
-    return JsonResponse({'term_data': term_data}, safe=False)
+            # Apply term percentage to the total weighted score
+            student_data['term_weighted_score'] = student_data['total_weighted_score'] * (float(term_percentage) / 100)
+
+            term_data[term_name].append(student_data)
+            
+            # Accumulate the term weighted score for each student across all terms
+            student_total_term_weighted_scores[student] += Decimal(student_data['term_weighted_score'])
+
+    # Include the total term weighted scores for each student in the response
+    total_term_weighted_scores = {student: float(score) for student, score in student_total_term_weighted_scores.items()}
+
+    return JsonResponse({'term_data': term_data, 'total_term_weighted_scores': total_term_weighted_scores}, safe=False)
+
+
 
 
 def get_terms(request):
