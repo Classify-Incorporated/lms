@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
 
     enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,
-    createTerm,termList,updateTerm,finishedActivities,
+    createTerm,termList,updateTerm,subjectFinishedActivities,
     enrollStudentView,
 )
 
@@ -13,8 +13,8 @@ urlpatterns = [
     path('SubjectList/', subjectList, name='SubjectList'),
 
     path('subjectDetail/<int:pk>/', subjectDetail, name='subjectDetail'),
-    path('finishedActivities/<int:pk>/', finishedActivities, name='finishedActivities'),
-    path('subjectStudentList/<int:pk>/students/', subjectStudentList, name='subjectStudentList'),
+    path('subjectFinishedActivities/<int:pk>/', subjectFinishedActivities, name='subjectFinishedActivities'),
+    path('subjectStudentList/<int:pk>/', subjectStudentList, name='subjectStudentList'),
 
     # Semester Crud
     path('createSemester/', createSemester, name='createSemester'),

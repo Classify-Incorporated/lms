@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Total Scores</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Student Total Scores</h1>
+        
+        <div class="form-group">
+            <label for="term">Select Term:</label>
+            <select id="term" class="form-control">
+                <!-- Options will be populated dynamically -->
+            </select>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="scores-table" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Term</th>
+                        <th>Student Name</th>
+                        <th>Quiz Total Score</th>
+                        <th>Quiz Weighted Score</th>
+                        <th>Exam Total Score</th>
+                        <th>Exam Weighted Score</th>
+                        <th>Assignment Total Score</th>
+                        <th>Assignment Weighted Score</th>
+                        <th>Total Weighted Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function fetchTerms() {
+            $.ajax({
+                url: '/getTerms/',  // URL to fetch terms
+                success: function(data) {
+                    const termSelect = $('#term');
+                    termSelect.empty();
+
+                    termSelect.append('<option value="all">All Terms</option>');
+                    data.terms.forEach(function(term) {
+                        termSelect.append(`<option value="${term.id}">${term.term_name}</option>`);
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error("An error occurred while fetching the terms: ", error);
+                }
+            });
+        }
+
+        function fetchScores() {
+            const termId = $('#term').val();
+            const subjectId = $('#subject').val();
+            
+            $.ajax({
+                url: '/studentTotalScoreApi/',  // URL to your Django API
+                data: {
+                    term: termId || 'all',
+                    subject: subjectId || 'all',
+                },
+                success: function(data) {
+                    const scoresTableBody = $('#scores-table tbody');
+                    scoresTableBody.empty();
+
+                    // Iterate over each term and display the data accordingly
+                    $.each(data.term_data, function(term, students) {
+                        students.forEach(function(item) {
+                            const quizTotalScore = item.activities.Quiz ? item.activities.Quiz.total_score : 0;
+                            const quizWeightedScore = item.activities.Quiz ? item.activities.Quiz.weighted_score : 0;
+                            const examTotalScore = item.activities.Exam ? item.activities.Exam.total_score : 0;
+                            const examWeightedScore = item.activities.Exam ? item.activities.Exam.weighted_score : 0;
+                            const assignmentTotalScore = item.activities.Assignment ? item.activities.Assignment.total_score : 0;
+                            const assignmentWeightedScore = item.activities.Assignment ? item.activities.Assignment.weighted_score : 0;
+
+                            const row = `<tr>
+                                <td>${term}</td>
+                                <td>${item.student}</td>
+                                <td>${quizTotalScore}</td>
+                                <td>${quizWeightedScore.toFixed(2)}%</td>
+                                <td>${examTotalScore}</td>
+                                <td>${examWeightedScore.toFixed(2)}%</td>
+                                <td>${assignmentTotalScore}</td>
+                                <td>${assignmentWeightedScore.toFixed(2)}%</td>
+                                <td>${item.total_weighted_score.toFixed(2)}%</td>
+                            </tr>`;
+                            scoresTableBody.append(row);
+                        });
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error("An error occurred while fetching the scores: ", error);
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            // Populate terms dropdown
+            fetchTerms();
+
+            // Fetch scores when the page loads
+            fetchScores();
+
+            // Re-fetch data when term changes
+            $('#term').change(fetchScores);
+        });
+    </script>
+</body>
+</html>
