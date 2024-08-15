@@ -1,12 +1,38 @@
 {% extends 'base.html' %}
 
-{% block title %}Edit Activity{% endblock %}
+{% block title %}
+  Edit Activity
+{% endblock %}
 
 {% block content %}
   <h1>Edit Activity: {{ activity.activity_name }}</h1>
+
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div class="form-group">
+      <label for="activity_name">Activity Name:</label>
+      <input type="text" id="activity_name" name="activity_name" value="{{ form.activity_name.value }}" class="form-control" required />
+    </div>
+    <div class="form-group">
+      <label for="activity_type">Activity Type:</label>
+      {{ form.activity_type }}
+    </div>
+    <div class="form-group">
+      <label for="subject">Subject:</label>
+      {{ form.subject }}
+    </div>
+    <div class="form-group">
+      <label for="term">Term:</label>
+      {{ form.term }}
+    </div>
+    <div class="form-group">
+      <label for="start_time">Start Time:</label>
+      <input type="datetime-local" id="start_time" name="start_time" value="{{ form.start_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
+    </div>
+    <div class="form-group">
+      <label for="end_time">End Time:</label>
+      <input type="datetime-local" id="end_time" name="end_time" value="{{ form.end_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
+    </div>
     <button type="submit" class="btn btn-primary">Save Changes</button>
     <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
   </form>
