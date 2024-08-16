@@ -11,6 +11,7 @@ class GradeBookComponents(models.Model):
     activity_type = models.ForeignKey(ActivityType, on_delete=models.CASCADE, related_name='gradebook_components', null=True, blank=True)
     category_name = models.CharField(max_length=100)
     percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    is_participation = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
