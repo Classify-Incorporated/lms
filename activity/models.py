@@ -83,3 +83,5 @@ class StudentQuestion(models.Model):
 
     def __str__(self):
         return f"{self.student.email} - {self.activity_question.activity.activity_name} - {self.activity_question.question_text}"
+    
+

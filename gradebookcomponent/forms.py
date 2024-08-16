@@ -7,13 +7,16 @@ from course.models import Term
 class GradeBookComponentsForm(forms.ModelForm):
     class Meta:
         model = GradeBookComponents
-        fields = ['subject', 'activity_type', 'category_name', 'percentage']
+        fields = ['subject', 'activity_type', 'category_name', 'percentage', 'is_participation']
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super(GradeBookComponentsForm, self).__init__(*args, **kwargs)
         if user:
             self.fields['subject'].queryset = Subject.objects.filter(assign_teacher=user)
+        # Hide activity_type field if it's a participation component
+        if self.instance and self.instance.is_participation:
+            self.fields['activity_type'].widget = forms.HiddenInput()
 
 
 class CopyGradeBookForm(forms.Form):

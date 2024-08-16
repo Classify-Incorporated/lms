@@ -38,6 +38,38 @@
   </form>
 
   {% if term_scores_data %}
+    <!-- Display Participation Scores Separately -->
+    <h3>Participation Scores</h3>
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Participation Score</th>
+            <th>Max Score</th>
+            <th>Percentage</th>
+            <th>Weighted Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for term_data in term_scores_data %}
+            {% for data in term_data.student_scores_data %}
+              {% if data.is_participation %}
+                <tr>
+                  <td>{{ data.student.get_full_name }}</td>
+                  <td>{{ data.total_score }}</td>
+                  <td>{{ data.max_score }}</td>
+                  <td>{{ data.percentage|floatformat:2 }}%</td>
+                  <td>{{ data.weighted_score|floatformat:2 }}%</td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Display Other Activity Types -->
     {% for term_data in term_scores_data %}
       <h3>{{ term_data.term.term_name }} - {{ term_data.activity_type.name }} - {{ term_data.subject.subject_name }}</h3>
       <div class="table-responsive">
@@ -54,14 +86,18 @@
           </thead>
           <tbody>
             {% for data in term_data.student_scores_data %}
-              <tr {% if data.missed %}class="text-danger"{% endif %}>
-                <td>{{ data.student.get_full_name }}</td>
-                <td {% if not data.activity %}style="background-color: #f0f8ff;"{% endif %}>{{ data.total_score }}</td>
-                <td>{{ data.max_score }}</td>
-                <td>{{ data.percentage|floatformat:2 }}%</td>
-                <td>{{ data.weighted_score|floatformat:2 }}%</td> <!-- Show the weighted score in total score row -->
-                <td>{% if not data.activity %}Overall Score{% else %}{% if data.missed %}Missed{% else %}Completed{% endif %}{% endif %}</td>
-              </tr>
+              {% if not data.is_participation %}
+                <tr {% if data.missed %}class="text-danger"{% endif %}>
+                  <td>{{ data.student.get_full_name }}</td>
+                  <td>{{ data.total_score }}</td>
+                  <td>{{ data.max_score }}</td>
+                  <td>{{ data.percentage|floatformat:2 }}%</td>
+                  <td>{{ data.weighted_score|floatformat:2 }}%</td>
+                  <td>
+                    {% if data.missed %}Missed{% else %}Completed{% endif %}
+                  </td>
+                </tr>
+              {% endif %}
             {% endfor %}
           </tbody>
         </table>

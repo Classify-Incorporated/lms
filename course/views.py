@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import SubjectEnrollment, Semester, Term
+from .models import SubjectEnrollment, Semester, Term, Retake, StudentParticipationScore
 from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
@@ -22,7 +22,6 @@ class enrollStudentView(View):
         subject_ids = request.POST.getlist('subject_ids')
         semester_id = request.POST.get('semester_id')
 
-
         student_profile = get_object_or_404(Profile, id=student_profile_id)
         student = student_profile.user
         subjects = Subject.objects.filter(id__in=subject_ids)
@@ -35,12 +34,10 @@ class enrollStudentView(View):
                 semester=semester
             )
 
-        
-        return JsonResponse({
-            'message': f'Student {student.email} enrolled successfully for {semester.semester_name}.',
-        })
+            if not created:
+                Retake.objects.create(subject_enrollment=subject_enrollment, reason="Retake due to failure or other reason")
 
-
+        return redirect('subjectDetail', pk=subject.pk)
 
 # Add Irregular Student
 def enrollStudent(request):
@@ -63,12 +60,27 @@ def enrollStudent(request):
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
-    
+
     is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
     is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
-    
+
     now = timezone.localtime(timezone.now())
-    
+
+    # Get the selected semester from the request parameters
+    selected_semester_id = request.GET.get('semester')
+    if selected_semester_id and selected_semester_id != 'None':
+        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
+    else:
+        # Default to the current semester
+        selected_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+
+    # Check if the selected semester is the current semester
+    current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+    in_current_semester = (selected_semester == current_semester)
+
+    # Retrieve all terms associated with the selected semester
+    terms = Term.objects.filter(semester=selected_semester)
+
     if is_student:
         completed_activities = StudentQuestion.objects.filter(
             student=user, 
@@ -89,28 +101,40 @@ def subjectDetail(request, pk):
         ).values_list('activity_question__activity_id', flat=True).distinct()
 
         excluded_activities = completed_activities.union(answered_essays, answered_documents)
-        
+
+        # Display all activities for the subject, regardless of term
         activities = Activity.objects.filter(subject=subject).exclude(id__in=excluded_activities)
         
+        # Display all finished activities
         finished_activities = Activity.objects.filter(
             subject=subject, 
-            end_time__lte=now, 
-            id__in=completed_activities.union(answered_essays, answered_documents)
+            end_time__lte=timezone.now()
         )
-        upcoming_activities = activities.filter(start_time__gt=now)
-        ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
+        
+        upcoming_activities = activities.filter(start_time__gt=timezone.now())
+        ongoing_activities = activities.filter(start_time__lte=timezone.now(), end_time__gte=timezone.now())
 
         modules = Module.objects.filter(subject=subject)
+
+        # Debugging Information
+        print(f"Student: {user.username}")
+        print(f"Excluded Activities: {list(excluded_activities)}")
+        print(f"Finished Activities (Student): {[activity.activity_name for activity in finished_activities]}")
+        
     else:
         modules = Module.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject)
-        finished_activities = Activity.objects.filter(
-            subject=subject, 
-            end_time__lte=now, 
+        
+        finished_activities = activities.filter(
+            end_time__lte=timezone.now(), 
             id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct()
         )
-        upcoming_activities = activities.filter(start_time__gt=now)
-        ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
+        upcoming_activities = activities.filter(start_time__gt=timezone.now())
+        ongoing_activities = activities.filter(start_time__lte=timezone.now(), end_time__gte=timezone.now())
+
+        # Debugging Information
+        print(f"Teacher: {user.username}")
+        print(f"Finished Activities (Teacher): {[activity.activity_name for activity in finished_activities]}")
 
     activities_with_grading_needed = []
     ungraded_items_count = 0
@@ -129,8 +153,7 @@ def subjectDetail(request, pk):
             if ungraded_items.exists():
                 activities_with_grading_needed.append((activity, ungraded_items.count()))
                 ungraded_items_count += ungraded_items.count()
-    
-    
+
     return render(request, 'course/viewSubjectModule.html', {
         'subject': subject,
         'modules': modules,
@@ -141,7 +164,12 @@ def subjectDetail(request, pk):
         'is_student': is_student,
         'is_teacher': is_teacher,
         'ungraded_items_count': ungraded_items_count,
+        'in_current_semester': in_current_semester,
+        'selected_semester': selected_semester,
+        'terms': terms,  # Include the terms in the context
     })
+
+
 
 
 # get all the finished activities
@@ -190,11 +218,23 @@ def subjectFinishedActivities(request, pk):
 # Display the student list for a subject
 def subjectStudentList(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
-    students = CustomUser.objects.filter(subjectenrollment__subject=subject).distinct()
+    
+    selected_semester_id = request.GET.get('semester')
+    if selected_semester_id:
+        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
+    else:
+        now = timezone.localtime(timezone.now())
+        selected_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+
+    students = CustomUser.objects.filter(
+        subjectenrollment__subject=subject,
+        subjectenrollment__semester=selected_semester
+    ).distinct()
 
     return render(request, 'course/viewStudentRoster.html', {
         'subject': subject,
-        'students':students
+        'students': students,
+        'selected_semester': selected_semester, 
     })
 
 
@@ -202,7 +242,6 @@ def subjectStudentList(request, pk):
 def subjectList(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
-    subjects = []
     
     # Fetch all semesters
     semesters = Semester.objects.all()
@@ -236,6 +275,7 @@ def subjectList(request):
         'subjects': subjects,
         'semesters': semesters,
         'selected_semester_id': selected_semester_id,
+        'selected_semester': selected_semester, 
         'current_semester': current_semester,
     })
 
@@ -272,7 +312,7 @@ def updateSemester(request, pk):
     else:
         form = semesterForm(instance=semester)
     return render(request, 'course/semester/updateSemester.html', {
-        'form': form,'semester': semester
+        'form': form, 'semester': semester
     })
 
 # Display term list
@@ -310,3 +350,33 @@ def updateTerm(request, pk):
     })
 
 
+def participationScoresView(request, subject_id, term_id):
+    subject = get_object_or_404(Subject, id=subject_id)
+    term = get_object_or_404(Term, id=term_id)
+    students = CustomUser.objects.filter(subjectenrollment__subject=subject).distinct()
+
+    max_score = request.GET.get('max_score', 100)
+
+    if request.method == 'POST':
+        for student in students:
+            score_value = request.POST.get(f'score_{student.id}', '0')
+            score, created = StudentParticipationScore.objects.get_or_create(
+                student=student, 
+                subject=subject, 
+                term=term
+            )
+            score.score = score_value
+            score.max_score = max_score
+            score.save()
+
+        return redirect('subjectDetail', pk=subject.id)
+
+    participation_scores = StudentParticipationScore.objects.filter(subject=subject, term=term)
+
+    return render(request, 'course/participation/createParticipation.html', {
+        'subject': subject,
+        'term': term,
+        'students': students,
+        'participation_scores': participation_scores,
+        'max_score': max_score,
+    })

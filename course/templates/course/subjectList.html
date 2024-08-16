@@ -1,54 +1,59 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-  <h2>Subjects</h2>
+<h2>
+  {% if selected_semester %}
+    {{ selected_semester.semester_name }} - {{ selected_semester.school_year }} Subjects
+  {% else %}
+    Subjects
+  {% endif %}
+</h2>
 
+  <!-- Filter Form -->
+  <form method="get" class="mb-4">
+      <div class="form-group col-md-3">
+          <label for="semester">Filter by Semester and School Year:</label>
+          <select id="semester" name="semester" class="form-control" onchange="this.form.submit()">
+            <option value="" disabled selected hidden>Select semester</option>
+              {% for semester in semesters %}
+                  <option value="{{ semester.id }}" {% if semester.id|stringformat:"s" == selected_semester_id|stringformat:"s" %}selected{% endif %}>
+                      {{ semester.semester_name }} - {{ semester.school_year }}
+                  </option>
+              {% endfor %}
+          </select>
+      </div>
+  </form>
 
-<!-- Filter Form -->
-<form method="get" class="mb-4">
-    <div class="form-group col-md-3">
-        <label for="semester">Filter by Semester and School Year:</label>
-        <select id="semester" name="semester" class="form-control" onchange="this.form.submit()">
-          <option value="" disabled selected hidden>Select semester</option>
-            {% for semester in semesters %}
-                <option value="{{ semester.id }}" {% if semester.id|stringformat:"s" == selected_semester_id|stringformat:"s" %}selected{% endif %}>
-                    {{ semester.semester_name }} - {{ semester.school_year }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
-</form>
-
-<div class="row">
-    {% if subjects %}
-      <div class="d-flex flex-wrap justify-content-start">
-        {% for subject in subjects %}
-          <div class="col-md-4 d-flex align-items-stretch mb-4">
-            <a href="{% url 'subjectDetail' subject.id %}" class="card-link">
-              <div class="card shadow-sm w-100 h-100 d-flex flex-row">
-                {% if subject.subject_photo %}
-                  <img src="{{ subject.subject_photo.url }}" class="img-fluid" style="width: 40%; object-fit: cover;" alt="{{ subject.subject_name }}" />
-                {% else %}
-                  <img src="{% static 'images/lms.jpg' %}" class="img-fluid" style="width: 40%; object-fit: cover;" alt="Default image" />
-                {% endif %}
-                <div class="card-body d-flex flex-column">
-                  <h5 class="card-title">{{ subject.subject_name }}</h5>
-                  <p class="card-text">Subject Short Name: {{ subject.subject_short_name }}</p>
-                  {% if subject.assign_teacher %}
-                    <p class="card-text">Assigned Teacher: {{ subject.assign_teacher.get_full_name }}</p>
+  <div class="row">
+      {% if subjects %}
+        <div class="d-flex flex-wrap justify-content-start">
+          {% for subject in subjects %}
+            <div class="col-md-4 d-flex align-items-stretch mb-4">
+              <a href="{% url 'subjectDetail' subject.id %}?semester={{ selected_semester_id }}" class="card-link">
+                <div class="card shadow-sm w-100 h-100 d-flex flex-row">
+                  {% if subject.subject_photo %}
+                    <img src="{{ subject.subject_photo.url }}" class="img-fluid" style="width: 40%; object-fit: cover;" alt="{{ subject.subject_name }}" />
                   {% else %}
-                    <p class="card-text">No teacher assigned.</p>
+                    <img src="{% static 'images/lms.jpg' %}" class="img-fluid" style="width: 40%; object-fit: cover;" alt="Default image" />
                   {% endif %}
+                  <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ subject.subject_name }}</h5>
+                    <p class="card-text">Subject Short Name: {{ subject.subject_short_name }}</p>
+                    {% if subject.assign_teacher %}
+                      <p class="card-text">Assigned Teacher: {{ subject.assign_teacher.get_full_name }}</p>
+                    {% else %}
+                      <p class="card-text">No teacher assigned.</p>
+                    {% endif %}
+                  </div>
                 </div>
-              </div>
-            </a>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="col-12">
-        <p>You have no subjects assigned or enrolled.</p>
-      </div>
-    {% endif %}
-  </div>
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="col-12">
+          <p>You have no subjects assigned or enrolled.</p>
+        </div>
+      {% endif %}
+    </div>
 {% endblock %}
