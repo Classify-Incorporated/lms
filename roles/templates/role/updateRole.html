@@ -1,12 +1,7 @@
-{% extends 'base.html' %}
 {% load static %}
-{% block title %}
-  Course
-{% endblock %}
 {% block content %}
-<h1 class="h3 ml-3 text-gray-800">Update Role</h1>
-<div class="custom-modal-body">
-    <form method="POST">
+
+    <form method="POST" action="{% url 'updateRole' role.id %}">
         {% csrf_token %}
         <div class="form-group">
             <label for="role">Role:</label>
@@ -64,12 +59,10 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-        
+        </div>       
         <button type="submit" class="btn btn-primary">Save</button>
-        <a href="{% url 'roleList' %}" class="btn btn-secondary">Cancel</a>
     </form>
-</div>
+
 
 <!-- Add this script at the bottom -->
 <script>

@@ -41,10 +41,10 @@
                 <td>{{ role.created_at }}</td>
                 <td>
                   <div class="dropdown">
-                    <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
-                      <a class="dropdown-item" href="{% url 'viewRole' role.id %}"><i class="fas fa-eye"></i> View</a>
-                      <a class="dropdown-item" href="{% url 'updateRole' role.id %}"><i class="fas fa-edit"></i> Edit</a>
+                    <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ role.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ role.id }}">
+                      <a class="dropdown-item" href="javascript:void(0);" onclick="openViewRoleModal({{ role.id }})"><i class="fas fa-eye"></i> View</a>
+                      <a class="dropdown-item" href="javascript:void(0);" onclick="openEditRoleModal({{ role.id }})"><i class="fas fa-edit"></i> Edit</a>
                       <a class="dropdown-item" href="{% url 'deleteRole' role.id %}"><i class="fas fa-trash"></i> Delete</a>
                     </div>
                   </div>
@@ -57,18 +57,78 @@
     </div>
   </div>
 
+  <!-- Include the modal for adding roles -->
   {% include 'role/addRole.html' %}
 
-  <!-- Custom Modal Script -->
+  <!-- Custom Modal for Editing Role -->
+  <div id="editRoleModal" class="custom-modal">
+    <div class="custom-modal-header">
+      <button class="close-btn" id="closeEditRoleModalBtn"></button>
+      <h5>Edit Role</h5>
+    </div>
+    <div class="custom-modal-body" id="editRoleModalBody">
+      <!-- The content will be loaded dynamically here -->
+    </div>
+  </div>
+  <div id="editRoleModalBackdrop" class="custom-modal-backdrop"></div>
+
+  <!-- Custom Modal for Viewing Role -->
+  <div id="viewRoleModal" class="custom-modal">
+    <div class="custom-modal-header">
+      <button class="close-btn" id="closeViewRoleModalBtn"></button>
+      <h5>View Role</h5>
+    </div>
+    <div class="custom-modal-body" id="viewRoleModalBody">
+      <!-- The content will be loaded dynamically here -->
+    </div>
+  </div>
+  <div id="viewRoleModalBackdrop" class="custom-modal-backdrop"></div>
+
   <script>
+    // Script to open the add role modal
     document.getElementById('openRoleModal').addEventListener('click', function () {
       document.getElementById('customRoleModal').classList.add('show')
       document.getElementById('customRoleModalBackdrop').classList.add('show')
     })
     
+    // Script to close the add role modal
     document.getElementById('closeRoleModal').addEventListener('click', function () {
       document.getElementById('customRoleModal').classList.remove('show')
       document.getElementById('customRoleModalBackdrop').classList.remove('show')
+    })
+    
+    // Function to open the edit modal and load the content dynamically
+    function openEditRoleModal(roleId) {
+      fetch(`/updateRole/${roleId}/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('editRoleModalBody').innerHTML = html
+          document.getElementById('editRoleModal').classList.add('show')
+          document.getElementById('editRoleModalBackdrop').classList.add('show')
+        })
+    }
+    
+    // Script to close the edit role modal
+    document.getElementById('closeEditRoleModalBtn').addEventListener('click', function () {
+      document.getElementById('editRoleModal').classList.remove('show')
+      document.getElementById('editRoleModalBackdrop').classList.remove('show')
+    })
+    
+    // Function to open the view modal and load the content dynamically
+    function openViewRoleModal(roleId) {
+      fetch(`/viewRole/${roleId}/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('viewRoleModalBody').innerHTML = html
+          document.getElementById('viewRoleModal').classList.add('show')
+          document.getElementById('viewRoleModalBackdrop').classList.add('show')
+        })
+    }
+    
+    // Script to close the view role modal
+    document.getElementById('closeViewRoleModalBtn').addEventListener('click', function () {
+      document.getElementById('viewRoleModal').classList.remove('show')
+      document.getElementById('viewRoleModalBackdrop').classList.remove('show')
     })
   </script>
 {% endblock %}

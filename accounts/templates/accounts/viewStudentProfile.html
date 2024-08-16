@@ -41,6 +41,7 @@
       transition: right 0.3s ease;
       z-index: 1000;
       padding: 20px;
+      overflow-y: auto; /* Enable vertical scrolling */
     }
     .slide-in-sidebar.open {
       right: 0; /* Show it when open */
@@ -51,6 +52,12 @@
       right: 5px;
       font-size: 20px;
       cursor: pointer;
+    }
+    .slide-in-sidebar h3 {
+      margin-top: 0;
+    }
+    .slide-in-sidebar form {
+      max-height: 100%; /* Ensure the form doesn't exceed the sidebar height */
     }
   </style>
   <div class="row">
@@ -135,31 +142,27 @@
   <div class="slide-in-sidebar" id="slideInSidebar">
     <span class="close-btn" id="closeBtn"></span>
     <h3>Edit Profile</h3>
-    <form>
-      <div class="form-group">
-        <label for="firstName">First Name</label>
-        <input type="text" class="form-control" id="firstName" value="{{ profile.first_name }}" />
-      </div>
-      <div class="form-group">
-        <label for="lastName">Last Name</label>
-        <input type="text" class="form-control" id="lastName" value="{{ profile.last_name }}" />
-      </div>
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" class="form-control" id="email" value="{{ profile.user.email }}" />
-      </div>
-      <!-- Add more fields as needed -->
-      <button type="submit" class="btn btn-primary">Save</button>
-    </form>
+    <div id="editProfileForm">
+      <!-- The form will be loaded dynamically here -->
+    </div>
   </div>
 
   <script>
     document.getElementById('editBtn').addEventListener('click', function () {
-      document.getElementById('slideInSidebar').classList.add('open')
-    })
-    
+      openEditModal({{ profile.id }});
+    });
+
+    function openEditModal(profileId) {
+      fetch(`/updateProfile/${profileId}/`)  // Fetch the update form
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('editProfileForm').innerHTML = html; // Load the form into the modal
+          document.getElementById('slideInSidebar').classList.add('open'); // Open the modal
+        });
+    }
+
     document.getElementById('closeBtn').addEventListener('click', function () {
-      document.getElementById('slideInSidebar').classList.remove('open')
-    })
+      document.getElementById('slideInSidebar').classList.remove('open');
+    });
   </script>
 {% endblock %}

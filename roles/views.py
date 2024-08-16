@@ -71,15 +71,6 @@ def createRole(request):
 def updateRole(request, pk):
     role_obj = get_object_or_404(Role, pk=pk)
     
-    permissions = Permission.objects.filter(content_type__app_label__in=['accounts','subject','course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade','roles'])
-    
-    structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
-    for perm in permissions:
-        action = perm.codename.split('_')[0]
-        model = perm.content_type.model
-        if action in ['add', 'view', 'change', 'delete']:
-            structured_permissions[model][action] = perm
-    
     if request.method == 'POST':
         form = roleForm(request.POST, instance=role_obj)
         if form.is_valid():
@@ -96,11 +87,21 @@ def updateRole(request, pk):
     else:
         form = roleForm(instance=role_obj)
     
+    permissions = Permission.objects.filter(content_type__app_label__in=['accounts','subject','course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade','roles'])
+
+    structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
+    for perm in permissions:
+        action = perm.codename.split('_')[0]
+        model = perm.content_type.model
+        if action in ['add', 'view', 'change', 'delete']:
+            structured_permissions[model][action] = perm
+    
     return render(request, 'role/updateRole.html', {
         'form': form,
         'structured_permissions': dict(structured_permissions),
         'role': role_obj,
     })
+
 
 
 def deleteRole(request, pk):

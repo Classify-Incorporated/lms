@@ -4,48 +4,48 @@
   Student Roster for {{ subject.subject_name }}
 {% endblock %}
 {% block content %}
-<div class="container mt-4">
-  <h1 class="h3 mb-4 text-center text-gray-800">Student Roster for {{ subject.subject_name }}</h1>
-  <div class="row justify-content-center">
-    <div class="col-lg-12">
-      <div class="card shadow mb-4">
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
-              <thead>
-                <tr>
-                  <th>Student Name</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for student in students %}
+  <div class="container mt-4">
+    <h1 class="h3 mb-4 text-center text-gray-800">Student Roster for {{ subject.subject_name }}</h1>
+    <div class="row justify-content-center">
+      <div class="col-lg-12">
+        <div class="card shadow mb-4">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+                <thead>
                   <tr>
-                    <td>
-                      {% if student.profile.student_photo %}
-                        <img src="{{ student.profile.student_photo.url }}" class="rounded-image" alt="Student" />
-                      {% else %}
-                        <img src="{% static 'images/default-profile.jpg' %}" class="rounded-image" alt="Student" />
-                      {% endif %}
-                      {{ student.profile.first_name }} {{ student.profile.last_name }}
-                    </td>
+                    <th>Student Name</th>
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {% for student in students %}
+                    <tr>
+                      <td>
+                        {% if student.profile.student_photo %}
+                          <img src="{{ student.profile.student_photo.url }}" class="rounded-image" alt="Student" />
+                        {% else %}
+                          <img src="{% static 'images/default-profile.jpg' %}" class="rounded-image" alt="Student" />
+                        {% endif %}
+                        {{ student.profile.first_name }} {{ student.profile.last_name }}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
     </div>
+    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
   </div>
-  <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
-</div>
 
-<style>
-  .rounded-image {
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-  }
-</style>
+  <style>
+    .rounded-image {
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+    }
+  </style>
 {% endblock %}

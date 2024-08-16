@@ -1,4 +1,4 @@
-<!-- updatestudent.html -->
+<!-- updateStudentProfile.html -->
 <form method="post" action="{% url 'updateProfile' profile.id %}">
   {% csrf_token %}
   {{ form.as_p }}
