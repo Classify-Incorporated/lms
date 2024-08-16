@@ -8,13 +8,22 @@ class SubjectEnrollment(models.Model):
     enrollment_date = models.DateField(auto_now_add=True)
     semester = models.ForeignKey('Semester', on_delete=models.CASCADE, null=True, blank=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['student', 'subject', 'semester'], name='unique_student_subject_semester')
+        ]
+
     def __str__(self):
         return f"{self.student} enrolled in {self.subject}"
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['student', 'subject'], name='unique_student_subject')
-        ]
+class Retake(models.Model):
+    subject_enrollment = models.ForeignKey(SubjectEnrollment, on_delete=models.CASCADE, related_name='retakes')
+    retake_date = models.DateField(auto_now_add=True)
+    reason = models.TextField()
+
+    def __str__(self):
+        return f"Retake of {self.subject_enrollment.subject} by {self.subject_enrollment.student} on {self.retake_date}"
+
 
 class Semester(models.Model):
     SEMESTER_CHOICES  = [
@@ -37,3 +46,16 @@ class Term(models.Model):
 
     def __str__(self):
         return f"{self.term_name} - {self.semester}"
+
+class StudentParticipationScore(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    term = models.ForeignKey(Term, on_delete=models.CASCADE)
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    max_score = models.DecimalField(max_digits=5, decimal_places=2, default=100)
+
+    class Meta:
+        unique_together = ('student', 'subject', 'term')
+
+    def __str__(self):
+        return f"{self.student.get_full_name()} - {self.subject.subject_name} - {self.term.term_name} - {self.score}/{self.max_score}"

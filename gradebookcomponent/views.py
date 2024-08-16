@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import GradeBookComponentsForm, CopyGradeBookForm, TermGradeBookComponentsForm
 from .models import GradeBookComponents, TermGradeBookComponents
-from activity.models import StudentQuestion, Activity, ActivityQuestion, ActivityType, QuizType
+from activity.models import StudentQuestion, Activity, ActivityQuestion, ActivityType
 from accounts.models import CustomUser
 from django.db.models import Sum, Max
 from django.utils import timezone
-from course.models import Semester, Term
+from course.models import Semester, Term, StudentParticipationScore
 from subject.models import Subject
 from decimal import Decimal
 from django.http import JsonResponse
@@ -110,8 +110,6 @@ def createTermGradeBookComponent(request):
 
 
 
-
-
 def teacherActivityView(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
     student_scores = StudentQuestion.objects.filter(activity_question__activity=activity).values('student').annotate(total_score=Sum('score'))
@@ -195,6 +193,7 @@ def get_current_semester():
     except Semester.DoesNotExist:
         return None
     
+
 def studentTotalScore(request):
     current_semester = get_current_semester()
 
@@ -225,20 +224,46 @@ def studentTotalScore(request):
         if selected_term_id != 'all' and str(term.id) != selected_term_id:
             continue
         
-        for activity_type in activity_types:
-            for subject in subjects:
-                if selected_subject_id != 'all' and str(subject.id) != selected_subject_id:
-                    continue
+        for subject in subjects:
+            if selected_subject_id != 'all' and str(subject.id) != selected_subject_id:
+                continue
 
-                student_scores_data = []
-                term_total_score = Decimal(0)  # Initialize term total score for all students
-                term_max_score = Decimal(0)  # Initialize term max score for the term
-                total_weighted_score = Decimal(0)  # Initialize total weighted score for the term
-                term_has_data = False
+            student_scores_data = []
+            term_has_data = False
 
+            # Handle participation score separately
+            participation_component = GradeBookComponents.objects.filter(
+                teacher=user, subject=subject, is_participation=True
+            ).first()
+
+            if participation_component:
+                for student in students:
+                    if not student.subjectenrollment_set.filter(subject=subject).exists():
+                        continue
+
+                    participation_score = StudentParticipationScore.objects.filter(
+                        student=student, subject=subject, term=term
+                    ).first()
+
+                    if participation_score:
+                        weighted_participation_score = (participation_score.score / participation_score.max_score) * participation_component.percentage
+                        term_has_data = True
+                        print(f"Participation score found for student {student.get_full_name()} with score {participation_score.score}/{participation_score.max_score} in subject {subject.subject_name} for term {term.term_name}")
+
+                        student_scores_data.append({
+                            'student': student,
+                            'total_score': participation_score.score,
+                            'max_score': participation_score.max_score,
+                            'percentage': (participation_score.score / participation_score.max_score) * 100,
+                            'weighted_score': weighted_participation_score,
+                            'activity': None,
+                            'is_participation': True
+                        })
+
+            # Handle other activity types
+            for activity_type in activity_types:
                 activities = Activity.objects.filter(term=term, activity_type=activity_type, subject=subject)
 
-                # Get the activity type percentage from GradeBookComponents
                 try:
                     gradebook_component = GradeBookComponents.objects.get(
                         teacher=user, 
@@ -253,8 +278,8 @@ def studentTotalScore(request):
                     if not student.subjectenrollment_set.filter(subject=subject).exists():
                         continue
 
-                    student_total_score = Decimal(0)  # Initialize student total score for this term
-                    max_score_sum = Decimal(0)  # Initialize total max score for all activities
+                    student_total_score = Decimal(0)
+                    max_score_sum = Decimal(0)
 
                     for activity in activities:
                         student_questions = StudentQuestion.objects.filter(
@@ -262,29 +287,18 @@ def studentTotalScore(request):
                             activity_question__activity=activity,
                             status=True 
                         )
-                        
+
                         total_score = student_questions.aggregate(total_score=Sum('score'))['total_score'] or 0
                         max_score = ActivityQuestion.objects.filter(activity=activity).aggregate(max_score=Sum('score'))['max_score'] or 0
-                        
-                        # Convert total_score to Decimal
+
                         total_score = Decimal(total_score)
-                        max_score_sum += Decimal(max_score)  # Sum up max scores for all activities
+                        max_score_sum += Decimal(max_score)
 
-                        student_total_score += total_score  # Accumulate student's total score for this term
+                        student_total_score += total_score
 
-                        if activity.end_time < timezone.now() and not student_questions.exists():
+                        if total_score > 0:
                             term_has_data = True
-                            student_scores_data.append({
-                                'student': student,
-                                'total_score': 0,
-                                'max_score': max_score or Decimal(0),
-                                'percentage': 0,
-                                'weighted_score': 0,
-                                'activity': activity,
-                                'missed': True
-                            })
-                        elif total_score > 0:
-                            term_has_data = True
+                            
                             student_scores_data.append({
                                 'student': student,
                                 'total_score': total_score,
@@ -292,33 +306,23 @@ def studentTotalScore(request):
                                 'percentage': (total_score / Decimal(max_score) * 100) if max_score > 0 else Decimal(0),
                                 'weighted_score': (total_score / Decimal(max_score) * activity_percentage) if max_score > 0 else Decimal(0),
                                 'activity': activity,
-                                'missed': False
+                                'missed': False,
+                                'is_participation': False
                             })
 
-                    # After looping through all activities for this student, add their total score
-                    if term_has_data:
-                        total_percentage = (student_total_score / max_score_sum * 100) if max_score_sum > 0 else Decimal(0)
-                        total_weighted_score = total_percentage * activity_percentage / 100
+            if term_has_data:
+                term_scores_data.append({
+                    'term': term,
+                    'subject': subject,
+                    'student_scores_data': student_scores_data,
+                })
 
-                        student_scores_data.append({
-                            'student': student,
-                            'total_score': student_total_score,  # Total score for this student in this term
-                            'max_score': max_score_sum,  # The total max score possible in this term
-                            'percentage': total_percentage,
-                            'weighted_score': total_weighted_score,  # The weighted score for this student in this term
-                            'activity': None,
-                            'missed': False
-                        })
-
-                if term_has_data:
-                    term_scores_data.append({
-                        'term': term,
-                        'activity_type': activity_type,
-                        'subject': subject,
-                        'student_scores_data': student_scores_data,
-                        'term_total_score': term_total_score,  # The sum of all student scores for this term
-                        'term_max_score': term_max_score,  # The sum of all possible max scores for this term
-                    })
+    # Print participation data for each subject
+    for term_data in term_scores_data:
+        print(f"Participation scores for subject {term_data['subject'].subject_name}, term {term_data['term'].term_name}:")
+        for data in term_data['student_scores_data']:
+            if data['is_participation']:
+                print(f"  Student: {data['student'].get_full_name()}, Score: {data['total_score']}/{data['max_score']}, Weighted Score: {data['weighted_score']}")
 
     return render(request, 'gradebookcomponent/activityGrade/studentGrade.html', {
         'current_semester': current_semester,
@@ -328,6 +332,7 @@ def studentTotalScore(request):
         'selected_term_id': selected_term_id,
         'selected_subject_id': selected_subject_id,
     })
+
 
 
 def studentTotalScoreForActivityType(request):
@@ -385,6 +390,29 @@ def studentTotalScoreApi(request):
         except TermGradeBookComponents.DoesNotExist:
             term_percentage = Decimal(0)
 
+        # Handle participation scores separately
+        for subject in subjects:
+            participation_component = GradeBookComponents.objects.filter(
+                teacher=user, subject=subject, is_participation=True
+            ).first()
+
+            if participation_component:
+                for student in students:
+                    if not student.subjectenrollment_set.filter(subject=subject).exists():
+                        continue
+
+                    participation_score = StudentParticipationScore.objects.filter(
+                        student=student, subject=subject, term=term
+                    ).first()
+
+                    if participation_score:
+                        weighted_participation_score = (participation_score.score / participation_score.max_score) * participation_component.percentage
+
+                        aggregated_data[student.get_full_name()]['Participation']['total_score'] += participation_score.score
+                        aggregated_data[student.get_full_name()]['Participation']['weighted_score'] += weighted_participation_score
+                        total_weighted_scores[student.get_full_name()] += weighted_participation_score
+
+        # Handle other activity types
         for activity_type in activity_types:
             for subject in subjects:
                 gradebook_components = GradeBookComponents.objects.filter(
@@ -453,9 +481,6 @@ def studentTotalScoreApi(request):
     total_term_weighted_scores = {student: float(score) for student, score in student_total_term_weighted_scores.items()}
 
     return JsonResponse({'term_data': term_data, 'total_term_weighted_scores': total_term_weighted_scores}, safe=False)
-
-
-
 
 def get_terms(request):
     current_semester = get_current_semester()

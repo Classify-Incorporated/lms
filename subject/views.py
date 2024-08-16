@@ -15,11 +15,11 @@ def createSubject(request):
         form = subjectForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('success')
+            return redirect('subject')
     else:
         form = subjectForm()
     
-    return render(request, 'create_subject.html', {'form': form})
+    return render(request, 'subject/createSubject.html', {'form': form})
 
 #Modify Subject
 def updateSubject(request, pk):

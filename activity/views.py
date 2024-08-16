@@ -3,7 +3,7 @@ from django.views import View
 from .models import Activity, ActivityType, StudentActivity, ActivityQuestion, QuizType, QuestionChoice, StudentQuestion, get_upload_path  
 from subject.models import Subject
 from accounts.models import CustomUser
-from course.models import Term, SubjectEnrollment
+from course.models import Term, Semester
 from django.db.models import Sum, Max
 from django.utils import timezone
 from django.core.files.storage import default_storage
@@ -15,9 +15,14 @@ import re
 class AddActivityView(View):
     def get(self, request, subject_id):
         subject = get_object_or_404(Subject, id=subject_id)
-        subject_enrollments = SubjectEnrollment.objects.filter(subject=subject)
-        terms = Term.objects.filter(semester__in=[se.semester for se in subject_enrollments]).distinct()
-        
+
+        # Get the current semester
+        now = timezone.localtime(timezone.now())
+        current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+
+        # Filter terms by the current semester
+        terms = Term.objects.filter(semester=current_semester)
+
         return render(request, 'activity/activities/createActivity.html', {
             'subject': subject,
             'activity_types': ActivityType.objects.all(),
@@ -32,7 +37,6 @@ class AddActivityView(View):
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
 
-        
         activity_type = get_object_or_404(ActivityType, id=activity_type_id)
         term = get_object_or_404(Term, id=term_id)
         
