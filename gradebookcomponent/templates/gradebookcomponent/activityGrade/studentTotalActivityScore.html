@@ -37,11 +37,14 @@ Student Total Scores
 </div>
 
 <script>
+    const isTeacher = {{ is_teacher|yesno:"true,false" }};  // Assuming this is passed from the view
+
     function fetchScores() {
         const subjectId = $('#subject').val();
+        const apiUrl = isTeacher ? '/studentTotalScoreApi/' : '/studentSpecificGradeApi/';
 
         $.ajax({
-            url: '/studentTotalScoreApi/',
+            url: apiUrl,
             data: {
                 subject: subjectId || 'all'
             },
@@ -102,7 +105,7 @@ Student Total Scores
         $.ajax({
             url: '/getSubjects/',
             success: function(data) {
-                console.log("Subjects Data: ", data); // Debugging line
+                console.log("Subjects Data: ", data);
     
                 if (data && data.subjects) {
                     const subjectDropdown = $('#subject');
@@ -121,7 +124,6 @@ Student Total Scores
             }
         });
     }
-    
 
     function calculateGrade(termWeightedScore) {
         if (termWeightedScore >= 97.5) return '1.00 (Excellent)';
