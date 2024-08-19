@@ -4,9 +4,13 @@ from django.http import JsonResponse
 from subject.models import Subject
 from django.utils import timezone
 from activity.models import StudentQuestion
+from django.contrib.auth.decorators import login_required
+
+@login_required
 def calendars(request):
     return render(request, 'calendar/calendar.html')
 
+@login_required
 def activity_api(request):
     user = request.user
     events = []

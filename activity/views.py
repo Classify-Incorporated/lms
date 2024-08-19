@@ -8,10 +8,12 @@ from django.db.models import Sum, Max
 from django.utils import timezone
 from django.core.files.storage import default_storage
 from .forms import ActivityForm
-import json 
 import re
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 # Add type of activity
+@method_decorator(login_required, name='dispatch')
 class AddActivityView(View):
     def get(self, request, subject_id):
         subject = get_object_or_404(Subject, id=subject_id)
@@ -55,7 +57,8 @@ class AddActivityView(View):
 
         return redirect('add_quiz_type', activity_id=activity.id)
 
-
+# Update activity
+@login_required
 def UpdateActivity(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)  
     if request.method == 'POST':  
@@ -69,6 +72,7 @@ def UpdateActivity(request, activity_id):
     
 
 # Add quiz type
+@method_decorator(login_required, name='dispatch')
 class AddQuizTypeView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -85,6 +89,7 @@ class AddQuizTypeView(View):
         return redirect('add_question', activity_id=activity_id, quiz_type_id=quiz_type_id)
 
 # Add question to quiz
+@method_decorator(login_required, name='dispatch')
 class AddQuestionView(View):
     def get(self, request, activity_id, quiz_type_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -141,6 +146,7 @@ class AddQuestionView(View):
         return redirect('add_quiz_type', activity_id=activity.id)
     
 # Delete temporary question
+@method_decorator(login_required, name='dispatch')
 class DeleteTempQuestionView(View):
     def post(self, request, activity_id, index):
         questions = request.session.get('questions', {})
@@ -155,6 +161,7 @@ class DeleteTempQuestionView(View):
         return redirect('add_quiz_type', activity_id=activity_id)
     
 # Save all created questions
+@method_decorator(login_required, name='dispatch')
 class SaveAllQuestionsView(View):
     def post(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -189,6 +196,7 @@ class SaveAllQuestionsView(View):
         return redirect('SubjectList')
     
 # Display questions the student will answer
+@method_decorator(login_required, name='dispatch')
 class DisplayQuestionsView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -228,6 +236,7 @@ class DisplayQuestionsView(View):
         return render(request, 'activity/question/displayQuestion.html', context)
 
 # Submit answers
+@method_decorator(login_required, name='dispatch')
 class SubmitAnswersView(View):
     def post(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -301,6 +310,7 @@ class SubmitAnswersView(View):
 
 
 # Display activity after activity is completed
+@login_required
 def activityCompletedView(request, score, activity_id, show_score):
     activity = get_object_or_404(Activity, id=activity_id)
     max_score = activity.activityquestion_set.aggregate(total_score=Sum('score'))['total_score'] or 0
@@ -319,6 +329,7 @@ def activityCompletedView(request, score, activity_id, show_score):
     })
 
 # Teacher grade essay
+@method_decorator(login_required, name='dispatch')
 class GradeEssayView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -364,6 +375,7 @@ class GradeEssayView(View):
         return redirect('grade_essay', activity_id=activity_id)
 
 # Grade student individual essay
+@method_decorator(login_required, name='dispatch')
 class GradeIndividualEssayView(View):
     def get(self, request, activity_id, student_question_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -398,6 +410,7 @@ class GradeIndividualEssayView(View):
 
 
 # List all quizzes and exams for a teacher's students
+@login_required
 def studentQuizzesExams(request):
     teacher = request.user
 
@@ -427,6 +440,7 @@ def studentQuizzesExams(request):
     return render(request, 'activity/activities/allActivity.html', {'activity_details': activity_details})
 
 # Display activity details
+@method_decorator(login_required, name='dispatch')
 class ActivityDetailView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -435,6 +449,7 @@ class ActivityDetailView(View):
         })
 
 # Delete activity
+@login_required
 def deleteActivityView(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
     activity.delete()

@@ -4,18 +4,18 @@ from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
 from module.models import Module
-from activity.models import Activity ,StudentQuestion, ActivityQuestion, QuizType
+from activity.models import Activity ,StudentQuestion, ActivityQuestion
 from django.views import View
-from django.http import JsonResponse
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
-from django.template.loader import render_to_string
 from django.utils import timezone
 from .forms import semesterForm, termForm
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 
 # Handle the enrollment of irregular students
+
 class enrollStudentView(View):
     def post(self, request, *args, **kwargs):
         student_profile_id = request.POST.get('student_profile')
@@ -40,6 +40,7 @@ class enrollStudentView(View):
         return redirect('subjectDetail', pk=subject.pk)
 
 # Add Irregular Student
+@login_required
 def enrollStudent(request):
     student_role = Role.objects.get(name__iexact='student')
     profiles = Profile.objects.filter(role=student_role)
@@ -57,6 +58,7 @@ def enrollStudent(request):
 
 
 # Display the module based on the subject
+@login_required
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
@@ -150,10 +152,10 @@ def subjectDetail(request, pk):
             )
             ungraded_items = StudentQuestion.objects.filter(
                 activity_question__in=questions_requiring_grading,
-                student_answer__isnull=False,
-                uploaded_file__isnull=False,
                 status=True,
                 score=0
+            ).filter(
+                Q(student_answer__isnull=False) | Q(uploaded_file__isnull=False)
             )
             if ungraded_items.exists():
                 activities_with_grading_needed.append((activity, ungraded_items.count()))
@@ -174,11 +176,8 @@ def subjectDetail(request, pk):
         'terms': terms,
     })
 
-
-
-
-
 # get all the finished activities
+@login_required
 def subjectFinishedActivities(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
@@ -189,22 +188,15 @@ def subjectFinishedActivities(request, pk):
     now = timezone.localtime(timezone.now())
     
     if is_student:
-        completed_activities = StudentQuestion.objects.filter(
-            student=user, 
-            score__gt=0
-        ).values_list('activity_question__activity_id', flat=True).distinct()
-
-        answered_essays = StudentQuestion.objects.filter(
-            student=user, 
-            activity_question__quiz_type__name__in=['Essay', 'Document']
-        ).filter(
-            Q(student_answer__isnull=False) | Q(uploaded_file__isnull=False)
+        # Get activities where the student has participated (including zero scores)
+        student_activities = StudentQuestion.objects.filter(
+            student=user
         ).values_list('activity_question__activity_id', flat=True).distinct()
 
         finished_activities = Activity.objects.filter(
             subject=subject,
             end_time__lt=now,  # Ensure the activity has ended
-            id__in=completed_activities.union(answered_essays)
+            id__in=student_activities
         )
     else:
         finished_activities = Activity.objects.filter(
@@ -222,6 +214,7 @@ def subjectFinishedActivities(request, pk):
 
 
 # Display the student list for a subject
+@login_required
 def subjectStudentList(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     
@@ -245,6 +238,7 @@ def subjectStudentList(request, pk):
 
 
 # display subject based on semester
+@login_required
 def subjectList(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
@@ -287,6 +281,7 @@ def subjectList(request):
 
 
 # Display semester list
+@login_required
 def semesterList(request):
     semesters = Semester.objects.all()
     form = semesterForm()
@@ -295,6 +290,7 @@ def semesterList(request):
     })
 
 # Create Semester
+@login_required
 def createSemester(request):
     if request.method == 'POST':
         form = semesterForm(request.POST)
@@ -308,6 +304,7 @@ def createSemester(request):
     })
 
 # Update Semester
+@login_required
 def updateSemester(request, pk):
     semester = get_object_or_404(Semester, pk=pk)
     if request.method == 'POST':
@@ -322,15 +319,15 @@ def updateSemester(request, pk):
     })
 
 # Display term list
+@login_required
 def termList(request):
     terms = Term.objects.all()
-    form = termForm()
     return render(request, 'course/term/termList.html', {
-        'form': form,
         'terms': terms,
     })
 
 # Create Semester
+@login_required
 def createTerm(request):
     if request.method == 'POST':
         form = termForm(request.POST)
@@ -344,6 +341,7 @@ def createTerm(request):
     })
 
 # Update Semester
+@login_required
 def updateTerm(request, pk):
     term = get_object_or_404(Term, pk=pk)
     if request.method == 'POST':
@@ -357,7 +355,8 @@ def updateTerm(request, pk):
         'form': form,'term': term
     })
 
-
+# Participation Scores
+@login_required
 def participationScoresView(request, subject_id, term_id):
     subject = get_object_or_404(Subject, id=subject_id)
     term = get_object_or_404(Term, id=term_id)

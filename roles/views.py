@@ -4,8 +4,12 @@ from .models import Role
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import Permission
 from collections import defaultdict
+from .decorators import admin_required 
+from django.contrib.auth.decorators import login_required
 
 #Role List
+@login_required
+# @admin_required
 def roleList(request):
     form = roleForm()
     roles = Role.objects.all()
@@ -20,6 +24,9 @@ def roleList(request):
 
     return render(request, 'role/roleList.html', {'roles': roles, 'structured_permissions': dict(structured_permissions), 'form': form})
 
+#View Role Details
+@login_required
+# @admin_required
 def viewRole(request, role_id):
     role_obj = get_object_or_404(Role, id=role_id)
     
@@ -37,7 +44,9 @@ def viewRole(request, role_id):
         'structured_permissions': dict(structured_permissions),
     })
 
-# Create your views here.
+# Create role
+@login_required
+# @admin_required
 def createRole(request):
     if request.method == 'POST':
         form = roleForm(request.POST)
@@ -67,7 +76,9 @@ def createRole(request):
         'structured_permissions': dict(structured_permissions),
     })
 
-
+# Update Role
+@login_required
+# @admin_required
 def updateRole(request, pk):
     role_obj = get_object_or_404(Role, pk=pk)
     
@@ -102,8 +113,9 @@ def updateRole(request, pk):
         'role': role_obj,
     })
 
-
-
+#Delete Role
+@login_required
+@admin_required
 def deleteRole(request, pk):
     role = get_object_or_404(Role, pk=pk)
     role.delete()
