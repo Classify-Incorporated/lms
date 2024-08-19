@@ -5,29 +5,29 @@ Student Total Scores
 {% endblock %}
 
 {% block content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <div class="container">
-    <h1>{{ activity.activity_name }}</h1>
+    <h1>Student Total Scores</h1>
     
     <div class="form-group">
-        <label for="term">Select Term:</label>
-        <select id="term" class="form-control">
+        <label for="subject">Select Subject:</label>
+        <select id="subject" class="form-control">
+            <!-- Subjects will be dynamically populated here -->
         </select>
     </div>
+
     <div class="table-responsive">
         <table id="scores-table" class="table table-bordered table-striped">
             <thead>
                 <tr>
-                    <th>Term</th>
+                    <th>Subject</th>
                     <th>Student Name</th>
-                    <th>Quiz Total Score</th>
-                    <th>Quiz Weighted Score</th>
-                    <th>Exam Total Score</th>
-                    <th>Exam Weighted Score</th>
-                    <th>Assignment Total Score</th>
-                    <th>Assignment Weighted Score</th>
-                    <th>Total Weighted Score</th>
-                    <th>Term Weighted Score</th>
+                    <th>Prelim</th>
+                    <th>Mid Term</th>
+                    <th>Semi-Final</th>
+                    <th>Final</th>
+                    <th>Total Term Weighted Score</th>
                 </tr>
             </thead>
             <tbody>
@@ -37,23 +37,91 @@ Student Total Scores
 </div>
 
 <script>
-    function fetchTerms() {
-        $.ajax({
-            url: '/getTerms/',  // URL to fetch terms
-            success: function(data) {
-                const termSelect = $('#term');
-                termSelect.empty();
+    function fetchScores() {
+        const subjectId = $('#subject').val();
 
-                termSelect.append('<option value="all">All Terms</option>');
-                data.terms.forEach(function(term) {
-                    termSelect.append(`<option value="${term.id}">${term.term_name}</option>`);
-                });
+        $.ajax({
+            url: '/studentTotalScoreApi/',
+            data: {
+                subject: subjectId || 'all'
+            },
+            success: function(data) {
+                console.log('API Response:', data);
+                const scoresTableBody = $('#scores-table tbody');
+                scoresTableBody.empty();
+
+                if (data && data.term_data) {
+                    data.term_data.forEach(function(studentData) {
+                        const studentName = studentData.student;
+
+                        studentData.subjects.forEach(function(subjectData) {
+                            const subjectName = subjectData.subject_name;
+                            const totalWeightedGrade = subjectData.total_weighted_grade;
+
+                            const studentRow = $('<tr>');
+                            studentRow.append(`<td>${subjectName}</td>`);
+                            studentRow.append(`<td>${studentName}</td>`);
+
+                            // Initialize term score placeholders
+                            let termScores = {
+                                'Prelim': 'N/A',
+                                'Mid Term': 'N/A',
+                                'Semi-Final': 'N/A',
+                                'Final': 'N/A'
+                            };
+
+                            // Fill in the term scores
+                            subjectData.terms.forEach(function(term) {
+                                termScores[term.term_name] = `${parseFloat(term.percentage).toFixed(2)}`;
+                            });
+
+                            // Add term scores to the row
+                            studentRow.append(`<td>${termScores['Prelim']}</td>`);
+                            studentRow.append(`<td>${termScores['Mid Term']}</td>`);
+                            studentRow.append(`<td>${termScores['Semi-Final']}</td>`);
+                            studentRow.append(`<td>${termScores['Final']}</td>`);
+
+                            // Add total weighted grade
+                            const grade = calculateGrade(totalWeightedGrade);
+                            studentRow.append(`<td>${totalWeightedGrade.toFixed(2)}% (${grade})</td>`);
+
+                            scoresTableBody.append(studentRow);
+                        });
+                    });
+                } else {
+                    console.warn('No data found or data structure is incorrect.');
+                }
             },
             error: function(xhr, status, error) {
-                console.error("An error occurred while fetching the terms: ", error);
+                console.error("An error occurred while fetching the scores: ", error);
             }
         });
     }
+
+    function fetchSubjects() {
+        $.ajax({
+            url: '/getSubjects/',
+            success: function(data) {
+                console.log("Subjects Data: ", data); // Debugging line
+    
+                if (data && data.subjects) {
+                    const subjectDropdown = $('#subject');
+                    subjectDropdown.empty();
+                    subjectDropdown.append('<option value="all">All Subjects</option>');
+                    
+                    data.subjects.forEach(function(subject) {
+                        subjectDropdown.append(`<option value="${subject.id}">${subject.subject_name}</option>`);
+                    });
+                } else {
+                    console.warn('No subjects found or data structure is incorrect.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("An error occurred while fetching subjects: ", error);
+            }
+        });
+    }
+    
 
     function calculateGrade(termWeightedScore) {
         if (termWeightedScore >= 97.5) return '1.00 (Excellent)';
@@ -68,74 +136,16 @@ Student Total Scores
         return '5.00 (Failed)';
     }
 
-    function fetchScores() {
-        const termId = $('#term').val();
-        const subjectId = $('#subject').val();
-        
-        $.ajax({
-            url: '/studentTotalScoreApi/',  // URL to your Django API
-            data: {
-                term: termId || 'all',
-                subject: subjectId || 'all',
-            },
-            success: function(data) {
-                const scoresTableBody = $('#scores-table tbody');
-                scoresTableBody.empty();
-
-                // Iterate over each term and display the data accordingly
-                $.each(data.term_data, function(term, students) {
-                    students.forEach(function(item) {
-                        const quizTotalScore = item.activities.Quiz ? item.activities.Quiz.total_score : 0;
-                        const quizWeightedScore = item.activities.Quiz ? item.activities.Quiz.weighted_score : 0;
-                        const examTotalScore = item.activities.Exam ? item.activities.Exam.total_score : 0;
-                        const examWeightedScore = item.activities.Exam ? item.activities.Exam.weighted_score : 0;
-                        const assignmentTotalScore = item.activities.Assignment ? item.activities.Assignment.total_score : 0;
-                        const assignmentWeightedScore = item.activities.Assignment ? item.activities.Assignment.weighted_score : 0;
-                        const termWeightedScore = item.term_weighted_score || 0;
-
-                        // Calculate grade based on the term weighted score
-                        const grade = calculateGrade(termWeightedScore);
-
-                        const row = `<tr>
-                            <td>${term}</td>
-                            <td>${item.student}</td>
-                            <td>${quizTotalScore}</td>
-                            <td>${quizWeightedScore.toFixed(2)}%</td>
-                            <td>${examTotalScore}</td>
-                            <td>${examWeightedScore.toFixed(2)}%</td>
-                            <td>${assignmentTotalScore}</td>
-                            <td>${assignmentWeightedScore.toFixed(2)}%</td>
-                            <td>${item.total_weighted_score.toFixed(2)}%</td>
-                            <td>${termWeightedScore.toFixed(2)}%</td>
-                        </tr>`;
-                        scoresTableBody.append(row);
-                    });
-                });
-
-                // Display the total term weighted scores for each student below the table
-                const totalTermWeightedScores = data.total_term_weighted_scores;
-                let totalsRow = `<tr><td colspan="11"><strong>Total Term Weighted Scores:</strong></td></tr>`;
-                $.each(totalTermWeightedScores, function(student, score) {
-                    const grade = calculateGrade(score);  // Calculate grade for the total term weighted score
-                    totalsRow += `<tr><td colspan="9"><strong>${student}:</strong></td><td>${score.toFixed(2)}%</td><td>${grade}</td></tr>`;
-                });
-                scoresTableBody.append(totalsRow);
-            },
-            error: function(xhr, status, error) {
-                console.error("An error occurred while fetching the scores: ", error);
-            }
-        });
-    }
-
     $(document).ready(function() {
-        // Populate terms dropdown
-        fetchTerms();
+        // Populate subjects dropdown
+        fetchSubjects();
 
         // Fetch scores when the page loads
         fetchScores();
 
-        // Re-fetch data when term changes
-        $('#term').change(fetchScores);
+        // Re-fetch data when subject changes
+        $('#subject').change(fetchScores);
     });
 </script>
+
 {% endblock %}
