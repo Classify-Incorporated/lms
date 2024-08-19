@@ -77,8 +77,18 @@
                           
                           
                           
+                          
+                          
+                          
+                          
+                          
                                                                 
                           badge-success
+
+
+
+
+
 
 
 
@@ -100,7 +110,17 @@
                           
                           
                           
+                          
+                          
+                          
+                          
+                          
                           badge-warning
+
+
+
+
+
 
 
 
@@ -203,13 +223,13 @@
   <!-- Custom Modal Script -->
   <script>
     // Function to update unread messages count
-    function updateUnreadCount() {
+    {% comment %} function updateUnreadCount() {
       const unreadCount = document.querySelectorAll('.message-row.unread').length
       document.getElementById('unreadCountBadge').textContent = unreadCount
     }
     
     // You can call this function on page load to ensure the count is accurate
-    updateUnreadCount()
+    updateUnreadCount() {% endcomment %}
     
     // Open Send Message Modal
     document.getElementById('openSendMessageModalBtn').addEventListener('click', function () {
