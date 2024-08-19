@@ -48,10 +48,10 @@ def updateProfile(request, pk):
         form = profileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('student')
+            return redirect('viewProfile', pk=profile.pk)  # Redirect to viewProfile with profile ID
     else:
         form = profileForm(instance=profile)
-    return render(request, 'accounts/updateStudentProfile.html', {'form': form,'profile': profile})
+    return render(request, 'accounts/updateStudentProfile.html', {'form': form, 'profile': profile})
 
 
 #Activate Profile
