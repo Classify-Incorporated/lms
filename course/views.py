@@ -82,17 +82,21 @@ def subjectDetail(request, pk):
     terms = Term.objects.filter(semester=selected_semester)
 
     if is_student:
+        # Get activities where the student has completed them with score > 0 and status is True
         completed_activities = StudentQuestion.objects.filter(
-            student=user, 
-            score__gt=0
+            student=user,
+            score__gt=0,
+            status=True
         ).values_list('activity_question__activity_id', flat=True).distinct()
-        
+
+        # Get activities where the student has answered essays
         answered_essays = StudentQuestion.objects.filter(
             student=user,
             activity_question__quiz_type__name='Essay',
             student_answer__isnull=False
         ).values_list('activity_question__activity_id', flat=True).distinct()
-        
+
+        # Get activities where the student has uploaded documents
         answered_documents = StudentQuestion.objects.filter(
             student=user,
             activity_question__quiz_type__name='Document',
@@ -100,41 +104,41 @@ def subjectDetail(request, pk):
             status=True
         ).values_list('activity_question__activity_id', flat=True).distinct()
 
-        excluded_activities = completed_activities.union(answered_essays, answered_documents)
+        # Exclude activities where submission_time is not null (activity has been submitted)
+        submitted_activities = StudentQuestion.objects.filter(
+            student=user,
+            submission_time__isnull=False
+        ).values_list('activity_question__activity_id', flat=True).distinct()
 
-        # Display all activities for the subject, regardless of term
+        # Combine all excluded activities
+        excluded_activities = completed_activities.union(answered_essays, answered_documents, submitted_activities)
+
+        # Display all activities for the subject, regardless of term, excluding completed ones
         activities = Activity.objects.filter(subject=subject).exclude(id__in=excluded_activities)
-        
+
         # Display all finished activities
         finished_activities = Activity.objects.filter(
-            subject=subject, 
+            subject=subject,
             end_time__lte=timezone.now()
         )
-        
+
+        # Filter activities based on their timing
         upcoming_activities = activities.filter(start_time__gt=timezone.now())
         ongoing_activities = activities.filter(start_time__lte=timezone.now(), end_time__gte=timezone.now())
 
         modules = Module.objects.filter(subject=subject)
 
-        # Debugging Information
-        print(f"Student: {user.username}")
-        print(f"Excluded Activities: {list(excluded_activities)}")
-        print(f"Finished Activities (Student): {[activity.activity_name for activity in finished_activities]}")
-        
     else:
+        # For teachers, list all activities
         modules = Module.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject)
-        
+
         finished_activities = activities.filter(
-            end_time__lte=timezone.now(), 
+            end_time__lte=timezone.now(),
             id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct()
         )
         upcoming_activities = activities.filter(start_time__gt=timezone.now())
         ongoing_activities = activities.filter(start_time__lte=timezone.now(), end_time__gte=timezone.now())
-
-        # Debugging Information
-        print(f"Teacher: {user.username}")
-        print(f"Finished Activities (Teacher): {[activity.activity_name for activity in finished_activities]}")
 
     activities_with_grading_needed = []
     ungraded_items_count = 0
@@ -145,10 +149,11 @@ def subjectDetail(request, pk):
                 quiz_type__name__in=['Essay', 'Document']
             )
             ungraded_items = StudentQuestion.objects.filter(
-                Q(activity_question__in=questions_requiring_grading),
-                Q(student_answer__isnull=False) | Q(uploaded_file__isnull=False),
-                status=True, 
-                score=0  
+                activity_question__in=questions_requiring_grading,
+                student_answer__isnull=False,
+                uploaded_file__isnull=False,
+                status=True,
+                score=0
             )
             if ungraded_items.exists():
                 activities_with_grading_needed.append((activity, ungraded_items.count()))
@@ -166,8 +171,9 @@ def subjectDetail(request, pk):
         'ungraded_items_count': ungraded_items_count,
         'in_current_semester': in_current_semester,
         'selected_semester': selected_semester,
-        'terms': terms,  # Include the terms in the context
+        'terms': terms,
     })
+
 
 
 
