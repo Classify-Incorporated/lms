@@ -324,7 +324,9 @@ def updateSemester(request, pk):
 # Display term list
 def termList(request):
     terms = Term.objects.all()
+    form = termForm()
     return render(request, 'course/term/termList.html', {
+        'form': form,
         'terms': terms,
     })
 

@@ -76,25 +76,9 @@
             <span>Subject</span>
           </a>
         {% endif %}
-
-        {% if user|has_perm:'course.view_term' %}
-          <a class="collapse-item" href="{% url 'termList' %}">
-            <i class="bx bx-calendar-event"></i>
-            Term
-          </a>
-        {% endif %}
       </div>
     </div>
   </li>
-
-  {% if user|has_perm:'roles.view_role' %}
-    <li class="nav-item {% if request.resolver_match.url_name == 'roleList' %}active{% endif %}">
-      <a class="nav-link" href="{% url 'roleList' %}">
-        <i class="bx bx-user-check"></i>
-        <span>Role</span>
-      </a>
-    </li>
-  {% endif %}
 
   {% if user|has_perm:'course.view_subjectenrollment' %}
     <li class="nav-item {% if request.resolver_match.url_name == 'enrollStudent' %}active{% endif %}">
@@ -105,18 +89,35 @@
     </li>
   {% endif %}
 
-  {% if user|has_perm:'course.view_semester' %}
-    <li class="nav-item {% if request.resolver_match.url_name == 'semesterList' %}active{% endif %}">
-      <a class="nav-link" href="{% url 'semesterList' %}">
-        <i class="bx bx-calendar"></i>
-        <span>Semester</span>
-      </a>
-    </li>
-  {% endif %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'tools' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'tools' %}">
+  <li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
       <i class="bx bx-cog"></i>
       <span>Settings</span>
     </a>
+
+    <div id="collapseOne" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+      <div class="bg-white py-2 collapse-inner rounded">
+        {% if user|has_perm:'roles.view_role' %}
+          <a class="collapse-item" href="{% url 'roleList' %}">
+            <i class="bx bx-user-check"></i>
+            <span>Role</span>
+          </a>
+        {% endif %}
+
+        {% if user|has_perm:'course.view_semester' %}
+          <a class="collapse-item" href="{% url 'semesterList' %}">
+            <i class="bx bx-calendar"></i>
+            <span>Semester</span>
+          </a>
+        {% endif %}
+
+        {% if user|has_perm:'course.view_term' %}
+          <a class="collapse-item" href="{% url 'termList' %}">
+            <i class="bx bx-calendar-event"></i>
+            Term
+          </a>
+        {% endif %}
+      </div>
+    </div>
   </li>
 </ul>
