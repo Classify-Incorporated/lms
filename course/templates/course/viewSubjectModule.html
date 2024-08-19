@@ -18,6 +18,7 @@
           <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
           <button class="btn btn-secondary ml-2" data-toggle="modal" data-target="#selectTermModal">Student Participation</button>
         </div>
+      </div>
     {% endif %}
 
     <!-- Modal for Selecting Term -->
@@ -77,18 +78,18 @@
         </div>
 
         <!-- Activities to be Graded -->
-        <div class="card mb-3">
-          <div class="card-header">Activities to be Graded</div>
-          <ul class="list-group list-group-flush">
-            {% if is_teacher %}
+        {% if is_teacher %}
+          <div class="card mb-3">
+            <div class="card-header">Activities to be Graded</div>
+            <ul class="list-group list-group-flush">
               {% for activity, count in activities_with_grading_needed %}
                 <li class="list-group-item">
                   <a href="{% url 'grade_essays' activity.id %}">{{ activity.activity_name }} - {{ count }} items to grade</a>
                 </li>
               {% endfor %}
-            {% endif %}
-          </ul>
-        </div>
+            </ul>
+          </div>
+        {% endif %}
 
         <div class="card mb-3">
           <div class="card-header">Finished Activities</div>
@@ -111,50 +112,22 @@
             {% endif %}
           </ul>
         </div>
-
-        {% if is_teacher %}
-          <div class="card mb-3">
-            <div class="card-header">Student Roster</div>
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item">
-                <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester.id }}">View List</a>
-              </li>
-            </ul>
-          </div>
-        {% endif %}
-      </div>
-
-      <!-- Main Content Area -->
-      <div class="col-md-9">
-        <div class="card mb-3">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Modules</span>
-            {% if in_current_semester %}
-              <a href="{% url 'createModule' subject.id %}" class="btn btn-primary">Add</a>
-            {% endif %}
-          </div>
-          <ul class="list-group list-group-flush">
-            {% for module in modules %}
-              <li class="list-group-item">
-                <a href="{{ module.file.url }}" target="_blank">{{ module.file_name }}</a>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
       </div>
     </div>
-    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+    <!-- Back Button -->
+    <a href="{% url 'SubjectList' %}" class="btn btn-secondary mb-3">Back</a>
   </div>
 
-  <script>
-    document.getElementById('goToParticipationScores').addEventListener('click', function () {
-      var termId = document.getElementById('termSelect').value
-      var maxScore = document.getElementById('maxScoreInput').value
-      if (termId) {
-        var url = "{% url 'participationScore' subject.id 0 %}".replace('/0/', '/' + termId + '/')
-        url += '?max_score=' + maxScore
-        window.location.href = url
-      }
-    })
-  </script>
+  {% block scripts %}
+    <script>
+      // JavaScript code for modal behavior or other interactions
+      document.getElementById('goToParticipationScores').addEventListener('click', function () {
+        var term = document.getElementById('termSelect').value
+        var maxScore = document.getElementById('maxScoreInput').value
+        // Implement behavior for the 'Go' button
+        console.log('Term:', term)
+        console.log('Max Score:', maxScore)
+      })
+    </script>
+  {% endblock %}
 {% endblock %}
