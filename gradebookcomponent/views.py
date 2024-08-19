@@ -342,7 +342,8 @@ def studentTotalScore(request):
 
 
 def studentTotalScoreForActivityType(request):
-    return render(request, 'gradebookcomponent/activityGrade/studentTotalActivityScore.html')
+    is_teacher = request.user.profile.role.name.lower() == 'teacher'
+    return render(request, 'gradebookcomponent/activityGrade/studentTotalActivityScore.html',{'is_teacher': is_teacher})
 
 
 def studentTotalScoreApi(request):
@@ -501,20 +502,127 @@ def getSubjects(request):
 
     return JsonResponse({'subjects': subjects_list})
 
-def student_question_list(request):
-    student_questions = StudentQuestion.objects.all()  
-    
-    data = []
-    for question in student_questions:
-        data.append({
-            'student': question.student.email,
-            'activity_name': question.activity_question.activity.activity_name,
-            'question_text': question.activity_question.question_text,
-            'score': question.score,
-            'student_answer': question.student_answer,
-            'uploaded_file': question.uploaded_file.url if question.uploaded_file else None,
-            'status': question.status,
-            'submission_time': question.submission_time,
+
+def studentSpecificGradeApi(request):
+    current_semester = get_current_semester()
+
+    if not current_semester:
+        return JsonResponse({'error': 'No current semester found.'}, status=400)
+
+    user = request.user
+    is_student = user.profile.role.name.lower() == 'student'
+
+    if not is_student:
+        return JsonResponse({'error': 'Only students can access this data.'}, status=403)
+
+    students = CustomUser.objects.filter(id=user.id)
+    subjects = Subject.objects.filter(subjectenrollment__student=user)
+    activity_types = ActivityType.objects.all()
+    terms = Term.objects.filter(semester=current_semester)
+
+    selected_subject_id = request.GET.get('subject', 'all')
+
+    if selected_subject_id != 'all':
+        subjects = subjects.filter(id=selected_subject_id)
+
+    student_data = defaultdict(lambda: defaultdict(list))
+    student_total_weighted_grade = defaultdict(lambda: defaultdict(Decimal))
+
+    for term in terms:
+        for subject in subjects:
+            student_scores = defaultdict(lambda: {'term_scores': [], 'total_weighted_score': Decimal(0)})
+
+            try:
+                term_gradebook_component = TermGradeBookComponents.objects.get(
+                    term=term,
+                    subjects=subject
+                )
+                term_percentage = term_gradebook_component.percentage
+            except TermGradeBookComponents.DoesNotExist:
+                term_percentage = Decimal(0)
+
+            participation_component = GradeBookComponents.objects.filter(
+                teacher=subject.assign_teacher, subject=subject, is_participation=True
+            ).first()
+
+            if participation_component:
+                participation_score = StudentParticipationScore.objects.filter(
+                    student=user, subject=subject, term=term
+                ).first()
+
+                if participation_score:
+                    weighted_participation_score = (Decimal(participation_score.score) / Decimal(participation_score.max_score)) * Decimal(participation_component.percentage)
+                    student_scores[user]['term_scores'].append({
+                        'term_name': term.term_name,
+                        'activity_type': 'Participation',
+                        'term_final_score': weighted_participation_score
+                    })
+                    student_scores[user]['total_weighted_score'] += weighted_participation_score
+
+            for activity_type in activity_types:
+                activities = Activity.objects.filter(term=term, activity_type=activity_type, subject=subject)
+
+                try:
+                    gradebook_component = GradeBookComponents.objects.get(
+                        teacher=subject.assign_teacher,
+                        subject=subject,
+                        activity_type=activity_type
+                    )
+                    activity_percentage = gradebook_component.percentage
+                except GradeBookComponents.DoesNotExist:
+                    activity_percentage = Decimal(0)
+
+                student_total_score = Decimal(0)
+                max_score_sum = Decimal(0)
+
+                for activity in activities:
+                    student_questions = StudentQuestion.objects.filter(
+                        student=user,
+                        activity_question__activity=activity,
+                        status=True
+                    )
+
+                    for student_question in student_questions:
+                        score = student_question.score
+                        max_score = student_question.activity_question.score
+
+                        student_total_score += Decimal(score)
+                        max_score_sum += Decimal(max_score)
+
+                if max_score_sum > 0:
+                    weighted_score = (student_total_score / max_score_sum) * activity_percentage
+                    student_scores[user]['term_scores'].append({
+                        'term_name': term.term_name,
+                        'activity_type': activity_type.name,
+                        'term_final_score': weighted_score
+                    })
+                    student_scores[user]['total_weighted_score'] += weighted_score
+
+            weighted_term_score = student_scores[user]['total_weighted_score'] * (term_percentage / 100)
+            student_total_weighted_grade[user.get_full_name()][subject.subject_name] += weighted_term_score
+
+            max_possible_score = term_percentage
+            weighted_term_percentage = (weighted_term_score / max_possible_score) * 100 if max_possible_score > 0 else 0
+
+            student_data[user.get_full_name()][subject.subject_name].append({
+                'term_name': term.term_name,
+                'total_weighted_score': f"{weighted_term_score:.6f}",
+                'percentage': f"{weighted_term_percentage:.1f}%"
+            })
+
+    final_term_data = []
+    for student, subjects in student_data.items():
+        student_subjects = []
+        for subject_name, terms in subjects.items():
+            student_subjects.append({
+                'subject_name': subject_name,
+                'terms': terms,
+                'total_weighted_grade': float(student_total_weighted_grade[student][subject_name])
+            })
+        final_term_data.append({
+            'student': student,
+            'subjects': student_subjects
         })
-    
-    return JsonResponse(data, safe=False)
+
+    return JsonResponse({'term_data': final_term_data})
+

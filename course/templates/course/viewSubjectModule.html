@@ -150,17 +150,17 @@
     <script>
       // JavaScript code for modal behavior or other interactions
       document.getElementById('goToParticipationScores').addEventListener('click', function () {
-        var term = document.getElementById('termSelect').value
-        var maxScore = document.getElementById('maxScoreInput').value
-      
+        var term = document.getElementById('termSelect').value;
+        var maxScore = document.getElementById('maxScoreInput').value;
+    
         if (term) {
-          // Redirect to the participationScoresView with the term and max_score as query parameters
-          var url = "{% url 'participationScore' subject.id 0 %}".replace('/0/', '/' + term + '/')
-          window.location.href = url + '?max_score=' + maxScore
+            // Redirect to the participationScoresView with the term and max_score as query parameters
+            var url = "{% url 'participationScore' subject.id 0 %}".replace('/0/', '/' + term + '/');
+            window.location.href = url + "?max_score=" + maxScore;
         } else {
-          alert('Please select a term before proceeding.')
+            alert("Please select a term before proceeding.");
         }
-      })
+    });
     </script>
   {% endblock %}
 {% endblock %}

@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
 viewGradeBookComponents, createGradeBookComponents, copyGradeBookComponents, updateGradeBookComponents, deleteGradeBookComponents,
 teacherActivityView, studentActivityView, studentTotalScore, studentTotalScoreForActivityType, createTermGradeBookComponent, termBookList,
-studentTotalScoreApi, getSubjects, student_question_list
+studentTotalScoreApi, getSubjects, studentSpecificGradeApi
 
 )
 
@@ -17,6 +17,7 @@ urlpatterns = [
     path('studentActivityView/<int:activity_id>/', studentActivityView, name='studentActivityView'),
 
     path('studentTotalScore/', studentTotalScore, name='studentTotalScore'),
+
     path('studentTotalScoreForActivity/', studentTotalScoreForActivityType, name='studentTotalScoreForActivity'),
 
     path('termBookList/', termBookList, name='termBookList'),
@@ -25,6 +26,7 @@ urlpatterns = [
     path('studentTotalScoreApi/', studentTotalScoreApi, name='studentTotalScoreApi'),
     path('getSubjects/', getSubjects, name='getSubjects'),
 
-    path('api/student-questions/', student_question_list, name='student-question-list'),
+    path('studentSpecificGradeApi/', studentSpecificGradeApi, name='studentSpecificGradeApi'), 
+    
 
 ]

@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import moduleForm
-from .models import Module
+from .forms import moduleForm, SCORMPackageForm
+from .models import Module, SCORMPackage
 from subject.models import Subject
 from roles.decorators import teacher_required, student_required
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 # Create your views here.
 
 #Module List
@@ -61,3 +62,18 @@ def deleteModule(request, pk):
     module.delete()
     return redirect('success')
 
+
+def upload_scorm_package(request, subject_id):
+    subject = get_object_or_404(Subject, pk=subject_id)  # Fetch the subject
+
+    if request.method == 'POST':
+        form = SCORMPackageForm(request.POST, request.FILES)
+        if form.is_valid():
+            scorm_package = form.save(commit=False)  # Don't save to the database yet
+            scorm_package.subject = subject  # Associate the SCORM package with the subject
+            scorm_package.save()  # Now save to the database
+            return redirect('subjectDetail', pk=subject.pk)
+    else:
+        form = SCORMPackageForm()
+
+    return render(request, 'module/scorm/uploadPptx.html', {'form': form, 'subject': subject})
