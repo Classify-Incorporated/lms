@@ -360,6 +360,7 @@ def studentTotalScoreApi(request):
     else:
         students = CustomUser.objects.filter(profile__role__name__iexact='student')
         subjects = Subject.objects.filter(assign_teacher=user)
+        
 
     activity_types = ActivityType.objects.all()
     terms = Term.objects.filter(semester=current_semester)
@@ -499,7 +500,6 @@ def getSubjects(request):
     subjects_list = list(unique_subjects)
 
     return JsonResponse({'subjects': subjects_list})
-
 
 def student_question_list(request):
     student_questions = StudentQuestion.objects.all()  

@@ -113,16 +113,14 @@
           </ul>
         </div>
 
-
-          <div class="card mb-3">
-            <div class="card-header">Student Roster</div>
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item">
-                <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester.id }}">View List</a>
-              </li>
-            </ul>
-          </div>
-
+        <div class="card mb-3">
+          <div class="card-header">Student Roster</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester.id }}">View List</a>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <!-- Main Content Area -->
@@ -154,9 +152,14 @@
       document.getElementById('goToParticipationScores').addEventListener('click', function () {
         var term = document.getElementById('termSelect').value
         var maxScore = document.getElementById('maxScoreInput').value
-        // Implement behavior for the 'Go' button
-        console.log('Term:', term)
-        console.log('Max Score:', maxScore)
+      
+        if (term) {
+          // Redirect to the participationScoresView with the term and max_score as query parameters
+          var url = "{% url 'participationScore' subject.id 0 %}".replace('/0/', '/' + term + '/')
+          window.location.href = url + '?max_score=' + maxScore
+        } else {
+          alert('Please select a term before proceeding.')
+        }
       })
     </script>
   {% endblock %}
