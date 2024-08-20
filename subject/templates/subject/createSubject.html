@@ -1,9 +1,19 @@
-{% extends 'base.html' %}
+{% load static %}
 {% block content %}
-<h2>Create Subject</h2>
-<form method="post" action="{% url 'createSubject'%}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit</button>
-</form>
+  <div id="customModal" class="custom-modal">
+    <div class="custom-modal-header">
+      <button class="close-btn" id="closeModalBtn"></button>
+      <h5>Create Subject</h5>
+    </div>
+    <div class="custom-modal-body">
+      <form method="post" enctype="multipart/form-data" action="{% url 'createSubject'%}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+    </div>
+  </div>
+
+  <!-- Custom Modal Backdrop -->
+  <div id="customModalBackdrop" class="custom-modal-backdrop"></div>
 {% endblock %}

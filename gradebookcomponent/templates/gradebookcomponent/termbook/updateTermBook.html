@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Create Term GradeBook Component</h2>
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            {{ form.term.label_tag }}
+            {{ form.term }}
+        </div>
+
+        <div class="form-group">
+            {{ form.subjects.label_tag }}
+            {{ form.subjects }}  <!-- This will display checkboxes for multiple subjects -->
+        </div>
+
+        <div class="form-group">
+            {{ form.percentage.label_tag }}
+            {{ form.percentage }}
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}

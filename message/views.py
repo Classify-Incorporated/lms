@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from allauth.socialaccount.models import SocialToken
+from django.contrib import messages
 
 @login_required
 def send_message(request):
@@ -29,8 +30,10 @@ def send_message(request):
         message = Message.objects.create(subject=subject_text, body=body, sender=sender)
         message.recipients.set(recipients)
         message.save()
-
+        messages.success(request, 'Message sent successfully!')
         return redirect('inbox')
+    else:
+        messages.error(request, 'There was an error when sending the Message. Please try again.')
 
     subjects = Subject.objects.all()
     instructors = CustomUser.objects.filter(groups__name='Instructor')
