@@ -551,7 +551,6 @@ def getSubjects(request):
     return JsonResponse({'subjects': subjects_list})
 
 
-
 def studentSpecificGradeApi(request):
     current_semester = get_current_semester()
 
