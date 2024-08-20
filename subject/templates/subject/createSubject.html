@@ -6,11 +6,18 @@
       <h5>Create Subject</h5>
     </div>
     <div class="custom-modal-body">
-      <form method="post" enctype="multipart/form-data" action="{% url 'createSubject'%}">
+      <form method="post" enctype="multipart/form-data" action="{% url 'createSubject' %}">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Submit</button>
-    </form>
+        <div class="form-group">{{ form.subject_name.label_tag }}
+          {{ form.subject_name }}</div>
+        <div class="form-group">{{ form.subject_short_name.label_tag }}
+          {{ form.subject_short_name }}</div>
+        <div class="form-group">{{ form.subject_photo.label_tag }}
+          {{ form.subject_photo }}</div>
+        <div class="form-group">{{ form.assign_teacher.label_tag }}
+          {{ form.assign_teacher }}</div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
     </div>
   </div>
 

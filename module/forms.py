@@ -6,6 +6,10 @@ class moduleForm(forms.ModelForm):
     class Meta:
         model = Module
         exclude = ['subject']
+        widgets = {
+            'file_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'file': forms.FileInput(attrs={'class': 'form-control'}),
+        }
 
     def clean_file(self):
         file = self.cleaned_data.get('file', False)
@@ -19,3 +23,7 @@ class SCORMPackageForm(forms.ModelForm):
     class Meta:
         model = SCORMPackage
         fields = ['package_name', 'pptx_link']
+        widgets = {
+            'package_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'pptx_link': forms.FileInput(attrs={'class': 'form-control'}),
+        }

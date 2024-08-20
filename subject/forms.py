@@ -12,3 +12,9 @@ class subjectForm(forms.ModelForm):
     class Meta:
         model = Subject
         fields = '__all__'
+        widgets = {
+            'subject_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'subject_short_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'subject_photo': forms.FileInput(attrs={'class': 'form-control'}),
+            'assign_teacher': forms.Select(attrs={'class': 'form-control'}),
+        }

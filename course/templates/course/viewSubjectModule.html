@@ -13,6 +13,7 @@
     </div>
 
     {% if is_teacher %}
+
     {% now "Y-m-d" as today_date %}
     {% if selected_semester.start_date|date:"Y-m-d" <= today_date and selected_semester.end_date|date:"Y-m-d" >= today_date %}
         <div class="row">
@@ -22,10 +23,10 @@
             <a href="{% url 'selectParticipation' subject.id %}" class="btn btn-secondary">Add Participation</a>
           </div>
         </div>
+      </div>
     {% endif %}
     {% endif %}
     <div class="row">
-  
       <!-- Sidebar for Activities -->
       <div class="col-md-3">
         <div class="card mb-3">
@@ -52,6 +53,7 @@
         <div class="card mb-3">
           <div class="card-header">Activities to be Graded</div>
           <ul class="list-group list-group-flush">
+
               {% if is_teacher %}
                   {% for activity, count in activities_with_grading_needed %}
                       <li class="list-group-item">
@@ -63,13 +65,13 @@
               {% endif %}
           </ul>
         </div>
-      
 
         <div class="card mb-3">
           <div class="card-header">Finished Activities</div>
           <ul class="list-group list-group-flush">
-            {% for activity in finished_activities|slice:":2" %}
+            {% for activity in finished_activities|slice:':2' %}
               <li class="list-group-item">
+
                 <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}?semester={{ selected_semester_id }}{% else %}{% url 'teacherActivityView' activity.id %}?semester={{ selected_semester_id }}{% endif %}">{{ activity.activity_name }}</a>
               </li>
             {% endfor %}
@@ -80,7 +82,6 @@
             {% endif %}
           </ul>
         </div>
-
 
         <div class="card mb-3">
           <div class="card-header">Student Roster</div>
@@ -123,10 +124,11 @@
           </ul>
         </div>
       </div>
-      
     </div>
+    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
   </div>
+
   <div class="text-right mr-3">
     <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
   </div>
-{% endblock %}
+{% endblock %
