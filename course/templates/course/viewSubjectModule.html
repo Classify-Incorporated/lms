@@ -75,6 +75,16 @@
             {% endif %}
           </ul>
         </div>
+
+
+        <div class="card mb-3">
+          <div class="card-header">Student Roster</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester.id }}">View List</a>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <!-- Main Content Area -->

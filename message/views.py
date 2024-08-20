@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Message, MessageReadStatus
+from .models import Message, MessageReadStatus, MessageUnreadStatus
 from subject.models import Subject
 from accounts.models import CustomUser
 from django.utils import timezone
@@ -31,6 +31,14 @@ def send_message(request):
         message.recipients.set(recipients)
         message.save()
         messages.success(request, 'Message sent successfully!')
+        # Add entries to MessageUnreadStatus for each recipient
+        for recipient in recipients:
+            MessageUnreadStatus.objects.create(
+                user=recipient,
+                message=message,
+                created_at=timezone.now()  # Set the timestamp for when the message was created
+            )
+
         return redirect('inbox')
     else:
         messages.error(request, 'There was an error when sending the Message. Please try again.')
@@ -46,13 +54,51 @@ def send_message(request):
         'unread_messages_count': unread_messages_count,
     })
 
+
+
+# @login_required
+# def send_message(request):
+#     if request.method == 'POST':
+#         subject_text = request.POST.get('subject')  # Renamed to avoid conflict with Subject model
+#         body = request.POST.get('body')
+#         sender = request.user
+#         recipient_type = request.POST.get('recipient_type')
+
+#         recipients = []
+#         if recipient_type.startswith('subject_'):
+#             subject_id = recipient_type.split('_')[1]
+#             subject = get_object_or_404(Subject, id=subject_id)
+#             subject_enrollments = subject.subjectenrollment_set.all().distinct()
+#             recipients = [enrollment.student for enrollment in subject_enrollments]
+#         elif recipient_type.startswith('teacher_'):
+#             teacher_id = recipient_type.split('_')[1]
+#             teacher = get_object_or_404(CustomUser, id=teacher_id)
+#             recipients = [teacher]
+
+#         message = Message.objects.create(subject=subject_text, body=body, sender=sender)
+#         message.recipients.set(recipients)
+#         message.save()
+
+#         return redirect('inbox')
+
+#     subjects = Subject.objects.all()
+#     instructors = CustomUser.objects.filter(groups__name='Instructor')
+
+#     unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
+
+#     return render(request, 'message/inbox.html', {
+#         'subjects': subjects,
+#         'instructors': instructors,
+#         'unread_messages_count': unread_messages_count,
+#     })
+
 @login_required
 def inbox(request):
     if not request.user.is_authenticated:
         return redirect('account_login')  # Ensure user is redirected to login if not authenticated
 
     messages = Message.objects.filter(recipients=request.user)
-    unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
+    # unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
 
     message_status_list = []
     for message in messages:
@@ -67,18 +113,34 @@ def inbox(request):
 
     return render(request, 'message/inbox.html', {
         'message_status_list': message_status_list,
-        'unread_messages_count': unread_messages_count,  # Pass the unread count
+        # 'unread_messages_count': unread_messages_count,  # Pass the unread count
         'subjects': subjects,
         'instructors': instructors,
     })
 
+# def view_message(request, message_id):
+#     message = get_object_or_404(Message, id=message_id)
+#     read_status, created = MessageReadStatus.objects.get_or_create(user=request.user, message=message)
+
+
+#     if not read_status.read_at:
+#         read_status.read_at = timezone.now()
+#         read_status.save()
+
+#     return render(request, 'message/viewMessage.html', {'message': message})
+
 def view_message(request, message_id):
     message = get_object_or_404(Message, id=message_id)
+    # Get or create the read status entry
     read_status, created = MessageReadStatus.objects.get_or_create(user=request.user, message=message)
-
+    
+    # Update read status if it's not already marked as read
     if not read_status.read_at:
         read_status.read_at = timezone.now()
         read_status.save()
+
+    # Remove the message from the MessageUnreadStatus table
+    MessageUnreadStatus.objects.filter(user=request.user, message=message).delete()
 
     return render(request, 'message/viewMessage.html', {'message': message})
 

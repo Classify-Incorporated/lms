@@ -20,3 +20,9 @@ class MessageReadStatus(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.message.subject} - {'Read' if self.read_at else 'Unread'}"
+    
+class MessageUnreadStatus(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(null=True, blank=True)
+
