@@ -156,8 +156,15 @@ def subjectFinishedActivities(request, pk):
     
     now = timezone.localtime(timezone.now())
     
+    # Get the semester associated with the subject via the SubjectEnrollment model
+    subject_enrollment = SubjectEnrollment.objects.filter(subject=subject).first()
+    if subject_enrollment:
+        semester = subject_enrollment.semester
+        semester_ended = semester.end_date < now.date()  # Compare only the date part
+    else:
+        semester_ended = False
+    
     if is_student:
-        # Get activities where the student has participated (including zero scores)
         student_activities = StudentQuestion.objects.filter(
             student=user
         ).values_list('activity_question__activity_id', flat=True).distinct()
@@ -178,8 +185,10 @@ def subjectFinishedActivities(request, pk):
         'subject': subject,
         'finished_activities': finished_activities,
         'is_student': is_student,
-        'is_teacher': is_teacher
+        'is_teacher': is_teacher,
+        'semester_ended': semester_ended,  # Pass the variable to the template
     })
+
 
 
 # Display the student list for a subject
@@ -211,24 +220,19 @@ def subjectStudentList(request, pk):
 def subjectList(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
-    
-    # Fetch all semesters
+
     semesters = Semester.objects.all()
 
-    # Determine the current semester based on the date
     current_date = timezone.now().date()
     current_semester = Semester.objects.filter(start_date__lte=current_date, end_date__gte=current_date).first()
 
-    # Get selected semester from the dropdown
     selected_semester_id = request.GET.get('semester', None)
 
-    # If a semester is selected, filter subjects based on the selected semester
     if selected_semester_id:
         selected_semester = get_object_or_404(Semester, id=selected_semester_id)
     else:
         selected_semester = current_semester
 
-    # Filter subjects based on the user's role and selected semester
     if profile.role.name.lower() == 'student':
         subjects = Subject.objects.filter(
             subjectenrollment__student=user,
@@ -239,6 +243,9 @@ def subjectList(request):
             assign_teacher=user,
             subjectenrollment__semester=selected_semester
         ).distinct()
+
+    if not selected_semester:
+        subjects = Subject.objects.none()
 
     return render(request, 'course/subjectList.html', {
         'subjects': subjects,

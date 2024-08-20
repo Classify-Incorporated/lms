@@ -31,6 +31,13 @@
     <!-- Include FullCalendar CSS and JS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet" />
 
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
     <!-- Add this script to apply dark mode class early -->
     <script>
       ;(function () {
@@ -118,6 +125,23 @@
         updateUnreadCount()
         setInterval(updateUnreadCount, 60000) // Update every minute
       })
+
+      {% if messages %}
+      document.addEventListener('DOMContentLoaded', function () {
+        {% for message in messages %}
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            title: 'Success',
+            text: '{{ message }}',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 3000,  
+            timerProgressBar: true
+        });
+        {% endfor %}
+      });
+{% endif %}
     </script>
   </body>
 </html>

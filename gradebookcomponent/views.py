@@ -11,15 +11,19 @@ from decimal import Decimal
 from django.http import JsonResponse
 from decimal import Decimal
 from collections import defaultdict
-# Create your views here.
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+
 
 #View GradeBookComponents
+@login_required
 def viewGradeBookComponents(request):
     gradebookcomponents = GradeBookComponents.objects.all()
     return render(request, 'gradebookcomponent/gradebook/gradeBook.html', {'gradebookcomponents': gradebookcomponents})
 
 
 #Create GradeBookComponents
+@login_required
 def createGradeBookComponents(request):
     if request.method == 'POST':
         form = GradeBookComponentsForm(request.POST, user=request.user)
@@ -27,13 +31,17 @@ def createGradeBookComponents(request):
             gradebook_component = form.save(commit=False)
             gradebook_component.teacher = request.user
             gradebook_component.save()
+            messages.success(request, 'Gradebook created successfully!')
             return redirect('viewGradeBookComponents')
+        else:
+            messages.success(request, 'An error occured while creating gradebook!')
     else:
         form = GradeBookComponentsForm(user=request.user)
     
     return render(request, 'gradebookcomponent/gradebook/createGradeBook.html', {'form': form})
 
 #Copy GradeBookComponents
+@login_required
 def copyGradeBookComponents(request):
     if request.method == 'POST':
         form = CopyGradeBookForm(request.POST, user=request.user)
@@ -58,7 +66,10 @@ def copyGradeBookComponents(request):
                         category_name=component.category_name,
                         percentage=component.percentage,
                     )
+            messages.success(request, 'Gradebook copied successfully!')
             return redirect('viewGradeBookComponents')
+        else:
+            messages.success(request, 'An error occured while creating gradebook!')    
     else:
         form = CopyGradeBookForm(user=request.user)
     
@@ -66,50 +77,94 @@ def copyGradeBookComponents(request):
 
 
 #Modify GradeBookComponents
+@login_required
 def updateGradeBookComponents(request, pk):
     gradebookcomponent = get_object_or_404(GradeBookComponents, pk=pk)
     if request.method == 'POST':
         form = GradeBookComponentsForm(request.POST, instance=gradebookcomponent)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Gradebook updated successfully!')
             return redirect('viewGradeBookComponents')
+        else:
+            messages.success(request, 'An error occured while creating gradebook!')
     else:
         form = GradeBookComponentsForm(instance=gradebookcomponent)
     
     return render(request, 'gradebookcomponent/gradebook/updateGradeBook.html', {'form': form, 'gradebookcomponent':gradebookcomponent})
 
 #Delete GradeBookComponents
+@login_required
 def deleteGradeBookComponents(request, pk):
     gradebookcomponent = get_object_or_404(GradeBookComponents, pk=pk)
     gradebookcomponent.delete()
+    messages.success(request, 'Gradebook deleted successfully!')
     return redirect('viewGradeBookComponents')
 
+#View TermGradeBook List
+@login_required
 def termBookList(request):
     termbook = TermGradeBookComponents.objects.all()
-    return render(request, 'gradebookcomponent/termbook/viewTermBook.html', {'termbook': termbook})
+    return render(request, 'gradebookcomponent/termbook/TermBook.html', {'termbook': termbook})
 
-
+#create TermGradeBook
+@login_required
 def createTermGradeBookComponent(request):
     if request.method == 'POST':
         form = TermGradeBookComponentsForm(request.POST, user=request.user)
         if form.is_valid():
             instance = form.save(commit=False)  # Save the main model instance without committing
-            instance.teacher = request.user  # Ensure the teacher is assigned
-            instance.save()  # Now save the instance to the database
+            instance.teacher = request.user 
+            instance.save() 
             
-            form.save_m2m()  # Save the ManyToMany relationships (subjects)
-
-            for subject in instance.subjects.all():
-                print(f"Saved: Teacher={instance.teacher.username}, Term={instance.term.term_name}, Subject={subject.subject_name}, Percentage={instance.percentage}%")
-            
+            form.save_m2m()  
+            messages.success(request, 'Termbook deleted successfully!')
             return redirect('termBookList')
+        else:
+            messages.success(request, 'An error occured while creating termbook!')
     else:
         form = TermGradeBookComponentsForm(user=request.user)
 
     return render(request, 'gradebookcomponent/termbook/createTermBook.html', {'form': form})
 
+#update TermBook
+@login_required
+def updateTermBookComponent(request, id):
+    termbook = get_object_or_404(TermGradeBookComponents, id=id)
+    if request.method == 'POST':
+        form = TermGradeBookComponentsForm(request.POST, instance=termbook, user=request.user)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.teacher = request.user  
+            instance.save()  
+            form.save_m2m() 
+
+            messages.success(request, 'Termbook updated successfully!')
+            return redirect('termBookList')
+        else:
+            messages.error(request, 'An error occurred while updating the termbook!')
+    else:
+        form = TermGradeBookComponentsForm(instance=termbook, user=request.user)
+
+    return render(request, 'gradebookcomponent/termbook/updateTermBook.html', {'form': form, 'termbook': termbook})
+
+#view Termbook
+@login_required
+def viewTermBookComponent(request, id):
+    termbook = get_object_or_404(TermGradeBookComponents, id=id)
+    return render(request, 'gradebookcomponent/termbook/viewTermBook.html', {'termbook': termbook})
+
+#delete TermBook
+@login_required
+def deleteTermBookComponent(request, id):
+    termbook = get_object_or_404(TermGradeBookComponents, id=id)
+    termbook.delete()
+    messages.success(request, 'Termbook deleted successfully!')
+    return redirect('termBookList')
 
 
+#Teacher (see all student scores for an activity)
+@login_required
 def teacherActivityView(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
     student_scores = StudentQuestion.objects.filter(activity_question__activity=activity).values('student').annotate(total_score=Sum('score'))
@@ -132,6 +187,8 @@ def teacherActivityView(request, activity_id):
     })
 
 
+#Student (see all scores for his activity)
+@login_required
 def studentActivityView(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
     user = request.user
@@ -184,7 +241,8 @@ def studentActivityView(request, activity_id):
         'detailed_scores': detailed_scores,
     })
 
-
+# fitler for getting the current semester
+@login_required
 def get_current_semester():
     current_date = timezone.now().date()
     try:
@@ -192,8 +250,9 @@ def get_current_semester():
         return current_semester
     except Semester.DoesNotExist:
         return None
-    
 
+#Teacher (Student breakdown score for all activity)
+@login_required
 def studentTotalScore(request):
     current_semester = get_current_semester()
 
@@ -358,7 +417,8 @@ def studentTotalScore(request):
         'selected_subject_id': selected_subject_id,
     })
 
-
+#display total grade
+@login_required
 def studentTotalScoreForActivityType(request):
     is_teacher = request.user.profile.role.name.lower() == 'teacher'
     students = CustomUser.objects.filter(profile__role__name__iexact='student')  
@@ -367,7 +427,8 @@ def studentTotalScoreForActivityType(request):
         'students': students,  
     })
 
-
+# Teacher (fetch student total score for all activity)
+@login_required
 def studentTotalScoreApi(request):
     current_semester = get_current_semester()
 
@@ -528,9 +589,8 @@ def studentTotalScoreApi(request):
 
     return JsonResponse({'term_data': final_term_data})
 
-
-
-
+# fetcH subject
+@login_required
 def getSubjects(request):
     current_semester = get_current_semester()
 
@@ -550,7 +610,8 @@ def getSubjects(request):
 
     return JsonResponse({'subjects': subjects_list})
 
-
+#student (see student grade)
+@login_required
 def studentSpecificGradeApi(request):
     current_semester = get_current_semester()
 
@@ -691,7 +752,8 @@ def studentSpecificGradeApi(request):
 
     return JsonResponse({'term_data': final_term_data})
 
-
+# Teacher (allow student to see grade)
+@login_required
 def allowGradeVisibility(request, student_id):
     if request.method == "POST":
         subject_id = request.POST.get('subject_id')

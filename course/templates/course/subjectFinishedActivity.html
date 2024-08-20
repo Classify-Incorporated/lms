@@ -21,7 +21,7 @@
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Type</th>
-                <th>Action</th> <!-- Add Action column -->
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -38,8 +38,8 @@
                       </button>
                       <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ activity.id }}">
                         <a class="dropdown-item" href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}"><i class="fas fa-eye"></i> View</a>
-                        {% if is_teacher %}
-                        <a class="dropdown-item" href="{% url 'UpdateActivity' activity.id %}"><i class="fas fa-edit"></i> Update</a> 
+                        {% if is_teacher and not semester_ended %}
+                          <a class="dropdown-item" href="{% url 'UpdateActivity' activity.id %}"><i class="fas fa-edit"></i> Update</a>
                         {% endif %}
                       </div>
                     </div>
