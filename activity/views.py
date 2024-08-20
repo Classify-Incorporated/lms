@@ -11,6 +11,7 @@ from .forms import ActivityForm
 import re
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.contrib import messages
 
 # Add type of activity
 @method_decorator(login_required, name='dispatch')
@@ -158,6 +159,45 @@ class DeleteTempQuestionView(View):
         questions[str(activity_id)] = activity_questions
         request.session['questions'] = questions
         
+        return redirect('add_quiz_type', activity_id=activity_id)\
+
+# edit temporary question
+@method_decorator(login_required, name='dispatch')
+class UpdateQuestionView(View):
+    def get(self, request, activity_id, index):
+        questions = request.session.get('questions', {}).get(str(activity_id), [])
+        if index >= len(questions):
+            return redirect('add_quiz_type', activity_id=activity_id)  # Redirect if index is out of range
+
+        question = questions[index]
+        return render(request, 'activity/question/updateQuestion.html', {
+            'activity_id': activity_id,
+            'index': index,
+            'question': question,
+        })
+
+    def post(self, request, activity_id, index):
+        questions = request.session.get('questions', {}).get(str(activity_id), [])
+        if index >= len(questions):
+            return redirect('add_quiz_type', activity_id=activity_id)  # Redirect if index is out of range
+
+        question = questions[index]
+        question['question_text'] = request.POST.get('question_text', '')
+        question['score'] = float(request.POST.get('score', 0))
+        question['correct_answer'] = request.POST.get('correct_answer', '')
+
+        if 'choices' in request.POST:
+            question['choices'] = request.POST.getlist('choices')
+
+        # Update the specific question in the list
+        questions[index] = question  
+        
+        # Update the session
+        request.session['questions'][str(activity_id)] = questions
+        
+        # Force save the session to ensure it's persisted
+        request.session.modified = True
+
         return redirect('add_quiz_type', activity_id=activity_id)
     
 # Save all created questions
@@ -166,9 +206,10 @@ class SaveAllQuestionsView(View):
     def post(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
         questions = request.session.get('questions', {}).get(str(activity_id), [])
+
         
-        for question_data in questions:
-            quiz_type = QuizType.objects.get(name=question_data['quiz_type'])
+        for i, question_data in enumerate(questions):
+            quiz_type = get_object_or_404(QuizType, name=question_data['quiz_type'])
             question = ActivityQuestion.objects.create(
                 activity=activity,
                 question_text=question_data['question_text'],
@@ -179,19 +220,24 @@ class SaveAllQuestionsView(View):
 
             if quiz_type.name == 'Multiple Choice':
                 for choice_text in question_data['choices']:
-                    QuestionChoice.objects.create(question=question, choice_text=choice_text)
+                    choice = QuestionChoice.objects.create(question=question, choice_text=choice_text)
+                    print(f"Saved choice for Question {i}: {choice_text}")
 
-            # Corrected query to fetch students enrolled in the subject
+            # Fetch students enrolled in the subject associated with the activity
             students = CustomUser.objects.filter(
                 profile__role__name__iexact='Student',
                 subjectenrollment__subject=activity.subject
             ).distinct()
             
             for student in students:
-                StudentQuestion.objects.create(student=student, activity_question=question)
+                student_question = StudentQuestion.objects.create(
+                    student=student, 
+                    activity_question=question
+                )
 
         # Clear the questions from the session
         request.session.pop('questions', None)
+        print("Questions saved and session cleared.")
         
         return redirect('SubjectList')
     
@@ -454,3 +500,21 @@ def deleteActivityView(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
     activity.delete()
     return redirect('subjectList')
+
+
+def activityList(request, subject_id):
+    subject = get_object_or_404(Subject, id=subject_id)
+    activities = Activity.objects.filter(subject=subject)
+
+    return render(request, 'activity/activities/activityList.html', {
+        'subject': subject,
+        'activities': activities,
+    })
+
+@login_required
+def deleteActivity(request, activity_id):
+    activity = get_object_or_404(Activity, id=activity_id)
+    subject_id = activity.subject.id 
+    activity.delete() 
+    messages.success(request, 'Activity deleted successfully!')
+    return redirect('activityList', subject_id=subject_id)
