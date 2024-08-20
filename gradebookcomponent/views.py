@@ -307,7 +307,6 @@ def studentTotalScore(request):
                     if participation_score:
                         weighted_participation_score = (participation_score.score / participation_score.max_score) * participation_component.percentage
                         term_has_data = True
-                        print(f"Participation score found for student {student.get_full_name()} with score {participation_score.score}/{participation_score.max_score} in subject {subject.subject_name} for term {term.term_name}")
 
                         student_scores_data.append({
                             'student': student.get_full_name(),
@@ -374,8 +373,6 @@ def studentTotalScore(request):
                             # Convert score and max_score to Decimal before adding
                             student_total_score += Decimal(score)
                             max_score_sum += Decimal(max_score)
-                            
-                            print(f"Term: {term.term_name}, Student: {student.get_full_name()}, Question: {question}, Score: {score}/{max_score}")
 
                             student_scores_data.append({
                                 'student': student.get_full_name(),
@@ -403,7 +400,6 @@ def studentTotalScore(request):
 
     # Print participation data for each subject
     for term_data in term_scores_data:
-        print(f"Participation scores for subject {term_data['subject'].subject_name}, term {term_data['term'].term_name}:")
         for data in term_data['student_scores_data']:
             if data['is_participation']:
                 print(f"  Student: {data['student']}, Score: {data['total_score']}/{data['max_score']}, Weighted Score: {data['weighted_score']}")
@@ -618,8 +614,6 @@ def studentSpecificGradeApi(request):
 
     if not current_semester:
         return JsonResponse({'error': 'No current semester found.'}, status=400)
-    
-    print(f"Current Semester: {current_semester}")
 
     user = request.user
     is_student = user.profile.role.name.lower() == 'student'
@@ -645,14 +639,11 @@ def studentSpecificGradeApi(request):
             # Ensure the student is enrolled in this subject for the current semester
             try:
                 subject_enrollment = SubjectEnrollment.objects.get(student=user, subject=subject, semester=current_semester)
-                print(f"Student {user.get_full_name()} is enrolled in {subject.subject_name} for term {term.term_name}.")
             except SubjectEnrollment.DoesNotExist:
-                print(f"Student {user.get_full_name()} is NOT enrolled in {subject.subject_name} for term {term.term_name}. Skipping.")
                 continue  # Skip this subject if the student is not enrolled in the current semester
 
             # Check if the student is allowed to view grades for this subject
             if not subject_enrollment.can_view_grade:
-                print(f"Grades for {subject.subject_name} are hidden for {user.get_full_name()}.")
                 continue  # Skip this subject if grades are hidden
 
             student_scores = {'term_scores': [], 'total_weighted_score': Decimal(0)}
@@ -794,6 +785,4 @@ def allowGradeVisibility(request, student_id):
 
         return JsonResponse({'status': 'success'})
     
-    # Print failure message if the method is not POST
-    print("Failed to update grade visibility. Invalid request method.")
     return JsonResponse({'status': 'failure'}, status=400)

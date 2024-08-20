@@ -217,20 +217,16 @@ def subjectStudentList(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     
     selected_semester_id = request.GET.get('semester')
-    if selected_semester_id and selected_semester_id.strip():  # Ensure it's not empty
+    if selected_semester_id and selected_semester_id.strip(): 
         selected_semester = get_object_or_404(Semester, id=selected_semester_id)
     else:
         now = timezone.localtime(timezone.now())
         selected_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
-    
-    print(f"Selected Semester: {selected_semester}")  # Debugging
 
     students = CustomUser.objects.filter(
         subjectenrollment__subject=subject,
         subjectenrollment__semester=selected_semester
     ).distinct()
-
-    print(f"Students: {students}")  # Debugging
 
     return render(request, 'course/viewStudentRoster.html', {
         'subject': subject,
