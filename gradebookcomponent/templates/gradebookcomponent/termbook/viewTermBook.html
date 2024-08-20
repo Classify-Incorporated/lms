@@ -1,42 +1,31 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}
-  TermBook - {{ termbook.term.term_name }}
-{% endblock %}
-{% block content %}
-  <h1 class="h3 mb-2 text-gray-800">TermBook Details</h1>
-
-  <!-- TermBook Details Card -->
-  <div class="card shadow mb-4">
-    <div class="card-header py-3">
-      <h6 class="m-0 font-weight-bold text-primary">Details for {{ termbook.term.term_name }}</h6>
+<div>
+  <h5 class="font-weight-bold">Details for {{ termbook.term.term_name }}</h5>
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <p>
+        <strong>Teacher:</strong> {{ termbook.teacher.get_full_name }}
+      </p>
     </div>
-    <div class="card-body">
-      <div class="row mb-3">
-        <div class="col-md-6">
-          <p><strong>Teacher:</strong> {{ termbook.teacher.get_full_name }}</p>
-        </div>
-        <div class="col-md-6">
-          <p><strong>Percentage:</strong> {{ termbook.percentage }}%</p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-12">
-          <p><strong>Assigned Subjects:</strong></p>
-          <ul>
-            {% if termbook.subjects.exists %}
-              {% for subject in termbook.subjects.all %}
-                <li>{{ subject.subject_name }}</li>
-              {% endfor %}
-            {% else %}
-              <li>No subjects assigned.</li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
+    <div class="col-md-6">
+      <p>
+        <strong>Percentage:</strong> {{ termbook.percentage }}%
+      </p>
     </div>
   </div>
-
-  <!-- Back Button -->
-  <a href="{% url 'termBookList' %}" class="btn btn-secondary">Back</a>
-{% endblock %}
+  <div class="row">
+    <div class="col-md-12">
+      <p>
+        <strong>Assigned Subjects:</strong>
+      </p>
+      <ul>
+        {% if termbook.subjects.exists %}
+          {% for subject in termbook.subjects.all %}
+            <li>{{ subject.subject_name }}</li>
+          {% endfor %}
+        {% else %}
+          <li>No subjects assigned.</li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</div>
