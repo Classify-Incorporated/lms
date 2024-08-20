@@ -14,7 +14,7 @@ from .forms import semesterForm, termForm, ParticipationForm
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django import forms
-
+from django.http import HttpResponse
 # Handle the enrollment of irregular students
 
 class enrollStudentView(View):
@@ -217,11 +217,20 @@ def subjectStudentList(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     
     selected_semester_id = request.GET.get('semester')
-    if selected_semester_id and selected_semester_id.strip(): 
-        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
-    else:
+    selected_semester = None
+
+    if selected_semester_id and selected_semester_id.strip() and selected_semester_id != 'None':
+        try:
+            selected_semester = Semester.objects.get(id=selected_semester_id)
+        except Semester.DoesNotExist:
+            selected_semester = None
+
+    if not selected_semester:
         now = timezone.localtime(timezone.now())
         selected_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+
+    if not selected_semester:
+        return HttpResponse("No active semester found.", status=404)
 
     students = CustomUser.objects.filter(
         subjectenrollment__subject=subject,
@@ -231,7 +240,7 @@ def subjectStudentList(request, pk):
     return render(request, 'course/viewStudentRoster.html', {
         'subject': subject,
         'students': students,
-        'selected_semester': selected_semester, 
+        'selected_semester': selected_semester,
     })
 
 
