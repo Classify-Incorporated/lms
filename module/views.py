@@ -63,7 +63,7 @@ def deleteModule(request, pk):
     return redirect('success')
 
 
-def upload_scorm_package(request, subject_id):
+def uploadScormPackage(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)  # Fetch the subject
 
     if request.method == 'POST':

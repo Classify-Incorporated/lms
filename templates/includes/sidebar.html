@@ -77,6 +77,13 @@
             <span>Subject</span>
           </a>
         {% endif %}
+
+        {% if user|has_perm:'subject.view_subject' %}
+          <a class="collapse-item" href="{% url 'viewGradeBookComponents' %}">
+            <i class="bx bx-book"></i>
+            <span>Grade Book</span>
+          </a>
+        {% endif %}
       </div>
     </div>
   </li>
@@ -116,6 +123,13 @@
           <a class="collapse-item" href="{% url 'termList' %}">
             <i class="bx bx-calendar-event"></i>
             Term
+          </a>
+        {% endif %}
+
+        {% if user|has_perm:'course.view_term' %}
+          <a class="collapse-item" href="{% url 'termBookList' %}">
+            <i class="bx bx-calendar-event"></i>
+            Term Grading
           </a>
         {% endif %}
       </div>

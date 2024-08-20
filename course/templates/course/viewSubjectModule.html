@@ -12,49 +12,15 @@
       </div>
     </div>
 
-    {% if is_teacher and in_current_semester %}
-      <div class="row">
-        <div class="col-12 mb-3">
-          <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
-          <button class="btn btn-secondary ml-2" data-toggle="modal" data-target="#selectTermModal">Student Participation</button>
+    {% if is_teacher %}
+        <div class="row">
+          <div class="col-12 mb-3">
+            <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
+          </div>
         </div>
-      </div>
     {% endif %}
-
-    <!-- Modal for Selecting Term -->
-    <div class="modal fade" id="selectTermModal" tabindex="-1" role="dialog" aria-labelledby="selectTermModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="selectTermModalLabel">Select Term and Set Max Score</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          </div>
-          <div class="modal-body">
-            <form id="selectTermForm">
-              <div class="form-group">
-                <label for="termSelect">Term</label>
-                <select class="form-control" id="termSelect" name="term">
-                  <option value="" disabled selected>Select a term</option>
-                  {% for t in terms %}
-                    <option value="{{ t.id }}">{{ t.term_name }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="maxScoreInput">Max Participation Score</label>
-                <input type="number" class="form-control" id="maxScoreInput" name="max_score" value="100" step="0.01" min="0" />
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-primary" id="goToParticipationScores">Go</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="row">
+  
       <!-- Sidebar for Activities -->
       <div class="col-md-3">
         <div class="card mb-3">
@@ -78,31 +44,28 @@
         </div>
 
         <!-- Activities to be Graded -->
-        {% if is_teacher %}
-          <div class="card mb-3">
-            <div class="card-header">Activities to be Graded</div>
-            <ul class="list-group list-group-flush">
-              {% for activity, count in activities_with_grading_needed %}
-                <li class="list-group-item">
-                  <a href="{% url 'grade_essays' activity.id %}">{{ activity.activity_name }} - {{ count }} items to grade</a>
-                </li>
-              {% endfor %}
-            </ul>
-          </div>
-        {% endif %}
+        <div class="card mb-3">
+          <div class="card-header">Activities to be Graded</div>
+          <ul class="list-group list-group-flush">
+              {% if is_teacher %}
+                  {% for activity, count in activities_with_grading_needed %}
+                      <li class="list-group-item">
+                          <a href="{% url 'grade_essays' activity.id %}">
+                              {{ activity.activity_name }} - {{ count }} submissions to grade
+                          </a>
+                      </li>
+                  {% endfor %}
+              {% endif %}
+          </ul>
+      </div>
+      
 
         <div class="card mb-3">
           <div class="card-header">Finished Activities</div>
           <ul class="list-group list-group-flush">
-            {% for activity in finished_activities|slice:':2' %}
+            {% for activity in finished_activities|slice:":2" %}
               <li class="list-group-item">
-                <a href="{% if is_student %}
-                    {% url 'studentActivityView' activity.id %}
-                  {% else %}
-                    {% url 'teacherActivityView' activity.id %}
-                  {% endif %}">
-                  {{ activity.activity_name }}
-                </a>
+                <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}">{{ activity.activity_name }}</a>
               </li>
             {% endfor %}
             {% if finished_activities|length > 2 %}
@@ -112,6 +75,7 @@
             {% endif %}
           </ul>
         </div>
+
 
         <div class="card mb-3">
           <div class="card-header">Student Roster</div>
@@ -128,8 +92,11 @@
         <div class="card mb-3">
           <div class="card-header d-flex justify-content-between align-items-center">
             <span>Modules</span>
-            {% if in_current_semester %}
-              <a href="{% url 'createModule' subject.id %}" class="btn btn-primary">Add</a>
+            {% if is_teacher %}
+              <div>
+                <a href="{% url 'createModule' subject.id %}" class="btn btn-primary ml-auto">Add</a>
+                <a href="{% url 'upload' subject.id %}" class="btn btn-primary ml-2">Add PPT</a>
+              </div>
             {% endif %}
           </div>
           <ul class="list-group list-group-flush">
@@ -138,29 +105,18 @@
                 <a href="{{ module.file.url }}" target="_blank">{{ module.file_name }}</a>
               </li>
             {% endfor %}
+            {% if scorm_packages %}
+              {% for scorm in scorm_packages %}
+                <li class="list-group-item">
+                  <a href="{{ scorm.pptx_link }}&action=embedview" target="_blank">{{ scorm.package_name }}</a>
+                </li>
+              {% endfor %}
+            {% endif %}
           </ul>
         </div>
       </div>
+      
     </div>
-    <!-- Back Button -->
-    <a href="{% url 'SubjectList' %}" class="btn btn-secondary mb-3">Back</a>
   </div>
-
-  {% block scripts %}
-    <script>
-      // JavaScript code for modal behavior or other interactions
-      document.getElementById('goToParticipationScores').addEventListener('click', function () {
-        var term = document.getElementById('termSelect').value;
-        var maxScore = document.getElementById('maxScoreInput').value;
-    
-        if (term) {
-            // Redirect to the participationScoresView with the term and max_score as query parameters
-            var url = "{% url 'participationScore' subject.id 0 %}".replace('/0/', '/' + term + '/');
-            window.location.href = url + "?max_score=" + maxScore;
-        } else {
-            alert("Please select a term before proceeding.");
-        }
-    });
-    </script>
-  {% endblock %}
+  <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
 {% endblock %}
