@@ -1,5 +1,6 @@
 from django import forms
 from .models import Semester, Term
+from subject.models import Subject
 
 class semesterForm(forms.ModelForm):
     school_year = forms.ChoiceField(
@@ -24,3 +25,9 @@ class termForm(forms.ModelForm):
             'semester': forms.Select(attrs={'class': 'form-control'}),
             'term_name': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+class ParticipationForm(forms.Form):
+    term = forms.ModelChoiceField(queryset=Term.objects.all(), label="Select Term")
+    subject = forms.ModelChoiceField(queryset=Subject.objects.all(), label="Select Subject")
+    max_score = forms.DecimalField(max_digits=5, decimal_places=2, label="Max Score", initial=100)
+

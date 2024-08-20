@@ -10,9 +10,10 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
 from django.utils import timezone
-from .forms import semesterForm, termForm
+from .forms import semesterForm, termForm, ParticipationForm
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
+from django import forms
 
 # Handle the enrollment of irregular students
 
@@ -356,12 +357,27 @@ def updateTerm(request, pk):
 
 # Participation Scores
 @login_required
-def participationScoresView(request, subject_id, term_id):
+def selectParticipation(request, subject_id):
+    subject = get_object_or_404(Subject, id=subject_id)
+
+    if request.method == 'POST':
+        form = ParticipationForm(request.POST, initial={'subject': subject})
+        if form.is_valid():
+            term = form.cleaned_data['term']
+            max_score = form.cleaned_data['max_score']
+            return redirect('participationScore', subject_id=subject.id, term_id=term.id, max_score=int(max_score))
+    else:
+        form = ParticipationForm(initial={'subject': subject})
+        form.fields['subject'].widget = forms.HiddenInput()
+
+    return render(request, 'course/participation/selectParticipation.html', {'form': form})
+
+
+@login_required
+def participationScoresView(request, subject_id, term_id, max_score):
     subject = get_object_or_404(Subject, id=subject_id)
     term = get_object_or_404(Term, id=term_id)
     students = CustomUser.objects.filter(subjectenrollment__subject=subject).distinct()
-
-    max_score = request.GET.get('max_score', 100)
 
     if request.method == 'POST':
         for student in students:

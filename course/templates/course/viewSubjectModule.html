@@ -19,6 +19,7 @@
           <div class="col-12 mb-3">
             <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
             <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
+            <a href="{% url 'selectParticipation' subject.id %}" class="btn btn-secondary">Add Participation</a>
           </div>
         </div>
     {% endif %}
@@ -125,5 +126,6 @@
       
     </div>
   </div>
+
   <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
 {% endblock %}
