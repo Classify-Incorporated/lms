@@ -7,6 +7,7 @@ class SubjectEnrollment(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
     enrollment_date = models.DateField(auto_now_add=True)
     semester = models.ForeignKey('Semester', on_delete=models.CASCADE, null=True, blank=True)
+    can_view_grade = models.BooleanField(default=False)
 
     class Meta:
         constraints = [

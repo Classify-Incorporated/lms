@@ -3,7 +3,7 @@ from .models import SubjectEnrollment, Semester, Term, Retake, StudentParticipat
 from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
-from module.models import Module
+from module.models import Module, SCORMPackage
 from activity.models import Activity ,StudentQuestion, ActivityQuestion
 from django.views import View
 import json
@@ -62,43 +62,24 @@ def enrollStudent(request):
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
-
+    
     is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
     is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
-
+    
     now = timezone.localtime(timezone.now())
-
-    # Get the selected semester from the request parameters
-    selected_semester_id = request.GET.get('semester')
-    if selected_semester_id and selected_semester_id != 'None':
-        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
-    else:
-        # Default to the current semester
-        selected_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
-
-    # Check if the selected semester is the current semester
-    current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
-    in_current_semester = (selected_semester == current_semester)
-
-    # Retrieve all terms associated with the selected semester
-    terms = Term.objects.filter(semester=selected_semester)
-
+    
     if is_student:
-        # Get activities where the student has completed them with score > 0 and status is True
         completed_activities = StudentQuestion.objects.filter(
-            student=user,
-            score__gt=0,
-            status=True
+            student=user, 
+            score__gt=0
         ).values_list('activity_question__activity_id', flat=True).distinct()
-
-        # Get activities where the student has answered essays
+        
         answered_essays = StudentQuestion.objects.filter(
             student=user,
             activity_question__quiz_type__name='Essay',
             student_answer__isnull=False
         ).values_list('activity_question__activity_id', flat=True).distinct()
-
-        # Get activities where the student has uploaded documents
+        
         answered_documents = StudentQuestion.objects.filter(
             student=user,
             activity_question__quiz_type__name='Document',
@@ -106,41 +87,31 @@ def subjectDetail(request, pk):
             status=True
         ).values_list('activity_question__activity_id', flat=True).distinct()
 
-        # Exclude activities where submission_time is not null (activity has been submitted)
-        submitted_activities = StudentQuestion.objects.filter(
-            student=user,
-            submission_time__isnull=False
-        ).values_list('activity_question__activity_id', flat=True).distinct()
-
-        # Combine all excluded activities
-        excluded_activities = completed_activities.union(answered_essays, answered_documents, submitted_activities)
-
-        # Display all activities for the subject, regardless of term, excluding completed ones
+        excluded_activities = completed_activities.union(answered_essays, answered_documents)
+        
         activities = Activity.objects.filter(subject=subject).exclude(id__in=excluded_activities)
-
-        # Display all finished activities
+        
         finished_activities = Activity.objects.filter(
-            subject=subject,
-            end_time__lte=timezone.now()
+            subject=subject, 
+            end_time__lte=now, 
+            id__in=completed_activities.union(answered_essays, answered_documents)
         )
-
-        # Filter activities based on their timing
-        upcoming_activities = activities.filter(start_time__gt=timezone.now())
-        ongoing_activities = activities.filter(start_time__lte=timezone.now(), end_time__gte=timezone.now())
+        upcoming_activities = activities.filter(start_time__gt=now)
+        ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
 
         modules = Module.objects.filter(subject=subject)
-
+        scorm_packages = SCORMPackage.objects.filter(subject=subject)
     else:
-        # For teachers, list all activities
         modules = Module.objects.filter(subject=subject)
+        scorm_packages = SCORMPackage.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject)
-
-        finished_activities = activities.filter(
-            end_time__lte=timezone.now(),
+        finished_activities = Activity.objects.filter(
+            subject=subject, 
+            end_time__lte=now, 
             id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct()
         )
-        upcoming_activities = activities.filter(start_time__gt=timezone.now())
-        ongoing_activities = activities.filter(start_time__lte=timezone.now(), end_time__gte=timezone.now())
+        upcoming_activities = activities.filter(start_time__gt=now)
+        ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
 
     activities_with_grading_needed = []
     ungraded_items_count = 0
@@ -151,30 +122,28 @@ def subjectDetail(request, pk):
                 quiz_type__name__in=['Essay', 'Document']
             )
             ungraded_items = StudentQuestion.objects.filter(
-                activity_question__in=questions_requiring_grading,
-                status=True,
-                score=0
-            ).filter(
-                Q(student_answer__isnull=False) | Q(uploaded_file__isnull=False)
+                Q(activity_question__in=questions_requiring_grading),
+                Q(student_answer__isnull=False) | Q(uploaded_file__isnull=False),
+                status=True, 
+                score=0  
             )
             if ungraded_items.exists():
                 activities_with_grading_needed.append((activity, ungraded_items.count()))
                 ungraded_items_count += ungraded_items.count()
-
+    
     return render(request, 'course/viewSubjectModule.html', {
         'subject': subject,
         'modules': modules,
+        'scorm_packages': scorm_packages,  # Add SCORM packages to the context
         'ongoing_activities': ongoing_activities,
         'upcoming_activities': upcoming_activities,
         'finished_activities': finished_activities,
         'activities_with_grading_needed': activities_with_grading_needed,
         'is_student': is_student,
         'is_teacher': is_teacher,
-        'ungraded_items_count': ungraded_items_count,
-        'in_current_semester': in_current_semester,
-        'selected_semester': selected_semester,
-        'terms': terms,
+        'ungraded_items_count': ungraded_items_count
     })
+
 
 # get all the finished activities
 @login_required
