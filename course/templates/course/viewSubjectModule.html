@@ -13,11 +13,15 @@
     </div>
 
     {% if is_teacher %}
+    {% now "Y-m-d" as today_date %}
+    {% if selected_semester.start_date|date:"Y-m-d" <= today_date and selected_semester.end_date|date:"Y-m-d" >= today_date %}
         <div class="row">
           <div class="col-12 mb-3">
-            <a href="{% url 'add_activity' subject.id %}" class="btn btn-primary">Add Activity</a>
+            <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
+            <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
           </div>
         </div>
+    {% endif %}
     {% endif %}
     <div class="row">
   
@@ -28,7 +32,7 @@
           <ul class="list-group list-group-flush">
             {% for activity in ongoing_activities %}
               <li class="list-group-item">
-                <a href="{% url 'display_question' activity.id %}">{{ activity.activity_name }}</a>
+                <a href="{% url 'display_question' activity.id %}?semester={{ selected_semester_id }}">{{ activity.activity_name }}</a>
               </li>
             {% endfor %}
           </ul>
@@ -50,14 +54,14 @@
               {% if is_teacher %}
                   {% for activity, count in activities_with_grading_needed %}
                       <li class="list-group-item">
-                          <a href="{% url 'grade_essays' activity.id %}">
+                          <a href="{% url 'grade_essays' activity.id %}?semester={{ selected_semester_id }}">
                               {{ activity.activity_name }} - {{ count }} submissions to grade
                           </a>
                       </li>
                   {% endfor %}
               {% endif %}
           </ul>
-      </div>
+        </div>
       
 
         <div class="card mb-3">
@@ -65,12 +69,12 @@
           <ul class="list-group list-group-flush">
             {% for activity in finished_activities|slice:":2" %}
               <li class="list-group-item">
-                <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}{% else %}{% url 'teacherActivityView' activity.id %}{% endif %}">{{ activity.activity_name }}</a>
+                <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}?semester={{ selected_semester_id }}{% else %}{% url 'teacherActivityView' activity.id %}?semester={{ selected_semester_id }}{% endif %}">{{ activity.activity_name }}</a>
               </li>
             {% endfor %}
             {% if finished_activities|length > 2 %}
               <li class="list-group-item">
-                <a href="{% url 'subjectFinishedActivities' subject.id %}">View More</a>
+                <a href="{% url 'subjectFinishedActivities' subject.id %}?semester={{ selected_semester_id }}">View More</a>
               </li>
             {% endif %}
           </ul>
@@ -81,8 +85,8 @@
           <div class="card-header">Student Roster</div>
           <ul class="list-group list-group-flush">
             <li class="list-group-item">
-              <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester.id }}">View List</a>
-            </li>
+              <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}">View List</a>
+            </li>            
           </ul>
         </div>
       </div>
@@ -93,10 +97,13 @@
           <div class="card-header d-flex justify-content-between align-items-center">
             <span>Modules</span>
             {% if is_teacher %}
-              <div>
-                <a href="{% url 'createModule' subject.id %}" class="btn btn-primary ml-auto">Add</a>
-                <a href="{% url 'upload' subject.id %}" class="btn btn-primary ml-2">Add PPT</a>
-              </div>
+              {% now "Y-m-d" as today_date %}
+                {% if selected_semester.start_date|date:"Y-m-d" <= today_date and selected_semester.end_date|date:"Y-m-d" >= today_date %}
+                  <div>
+                    <a href="{% url 'createModule' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary ml-auto">Add</a>
+                    <a href="{% url 'upload' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary ml-2">Add PPT</a>
+                  </div>
+                {% endif %}
             {% endif %}
           </div>
           <ul class="list-group list-group-flush">

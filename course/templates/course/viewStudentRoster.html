@@ -5,7 +5,11 @@
 {% endblock %}
 {% block content %}
   <div class="container mt-4">
-    <h1 class="h3 mb-4 text-center text-gray-800">Student Roster for {{ subject.subject_name }}</h1>
+    <h1 class="h3 mb-4 text-center text-gray-800">
+      Student Roster for {{ subject.subject_name }}
+      <br>
+      <small>{{ selected_semester.semester_name }} ({{ selected_semester.school_year }})</small>
+    </h1>
     <div class="row justify-content-center">
       <div class="col-lg-12">
         <div class="card shadow mb-4">

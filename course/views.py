@@ -62,56 +62,73 @@ def enrollStudent(request):
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
-    
+
+    selected_semester_id = request.GET.get('semester')
+    selected_semester = None
+
+    if selected_semester_id and selected_semester_id != 'None':
+        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
+        terms = Term.objects.filter(semester=selected_semester)
+    else:
+        now = timezone.localtime(timezone.now())
+        selected_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+        terms = Term.objects.filter(semester=selected_semester)
+
     is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
     is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
     
-    now = timezone.localtime(timezone.now())
     
     if is_student:
         completed_activities = StudentQuestion.objects.filter(
             student=user, 
+            activity_question__activity__term__in=terms,  # Filter by terms within the selected semester
             score__gt=0
         ).values_list('activity_question__activity_id', flat=True).distinct()
         
         answered_essays = StudentQuestion.objects.filter(
             student=user,
             activity_question__quiz_type__name='Essay',
+            activity_question__activity__term__in=terms,  # Filter by terms within the selected semester
             student_answer__isnull=False
         ).values_list('activity_question__activity_id', flat=True).distinct()
         
         answered_documents = StudentQuestion.objects.filter(
             student=user,
             activity_question__quiz_type__name='Document',
+            activity_question__activity__term__in=terms,  # Filter by terms within the selected semester
             uploaded_file__isnull=False,
             status=True
         ).values_list('activity_question__activity_id', flat=True).distinct()
 
         excluded_activities = completed_activities.union(answered_essays, answered_documents)
         
-        activities = Activity.objects.filter(subject=subject).exclude(id__in=excluded_activities)
+        activities = Activity.objects.filter(subject=subject, term__in=terms).exclude(id__in=excluded_activities)
         
         finished_activities = Activity.objects.filter(
             subject=subject, 
-            end_time__lte=now, 
+            term__in=terms,  # Filter by terms within the selected semester
+            end_time__lte=timezone.localtime(timezone.now()), 
             id__in=completed_activities.union(answered_essays, answered_documents)
         )
-        upcoming_activities = activities.filter(start_time__gt=now)
-        ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
+        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
+        ongoing_activities = activities.filter(start_time__lte=timezone.localtime(timezone.now()), end_time__gte=timezone.localtime(timezone.now()))
 
         modules = Module.objects.filter(subject=subject)
         scorm_packages = SCORMPackage.objects.filter(subject=subject)
     else:
         modules = Module.objects.filter(subject=subject)
         scorm_packages = SCORMPackage.objects.filter(subject=subject)
-        activities = Activity.objects.filter(subject=subject)
+        activities = Activity.objects.filter(subject=subject, term__in=terms)  # Filter by terms within the selected semester
         finished_activities = Activity.objects.filter(
             subject=subject, 
-            end_time__lte=now, 
-            id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct()
+            term__in=terms,  # Filter by terms within the selected semester
+            end_time__lte=timezone.localtime(timezone.now()), 
+            id__in=StudentQuestion.objects.filter(
+                activity_question__activity__term__in=terms  # Filter by terms within the selected semester
+            ).values_list('activity_question__activity_id', flat=True).distinct()
         )
-        upcoming_activities = activities.filter(start_time__gt=now)
-        ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
+        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
+        ongoing_activities = activities.filter(start_time__lte=timezone.localtime(timezone.now()), end_time__gte=timezone.localtime(timezone.now()))
 
     activities_with_grading_needed = []
     ungraded_items_count = 0
@@ -141,7 +158,9 @@ def subjectDetail(request, pk):
         'activities_with_grading_needed': activities_with_grading_needed,
         'is_student': is_student,
         'is_teacher': is_teacher,
-        'ungraded_items_count': ungraded_items_count
+        'ungraded_items_count': ungraded_items_count,
+        'selected_semester_id': selected_semester_id,
+        'selected_semester': selected_semester,  # Pass selected semester to template
     })
 
 
@@ -197,16 +216,20 @@ def subjectStudentList(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     
     selected_semester_id = request.GET.get('semester')
-    if selected_semester_id:
+    if selected_semester_id and selected_semester_id.strip():  # Ensure it's not empty
         selected_semester = get_object_or_404(Semester, id=selected_semester_id)
     else:
         now = timezone.localtime(timezone.now())
         selected_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+    
+    print(f"Selected Semester: {selected_semester}")  # Debugging
 
     students = CustomUser.objects.filter(
         subjectenrollment__subject=subject,
         subjectenrollment__semester=selected_semester
     ).distinct()
+
+    print(f"Students: {students}")  # Debugging
 
     return render(request, 'course/viewStudentRoster.html', {
         'subject': subject,

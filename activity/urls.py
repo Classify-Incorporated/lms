@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     AddActivityView, AddQuizTypeView, AddQuestionView, DisplayQuestionsView, GradeIndividualEssayView,
     SubmitAnswersView, GradeEssayView, SaveAllQuestionsView,ActivityDetailView,DeleteTempQuestionView,
-    activityCompletedView, studentQuizzesExams, deleteActivityView, UpdateActivity
+    UpdateQuestionView,
+    activityCompletedView, studentQuizzesExams, deleteActivityView, UpdateActivity, activityList, deleteActivity
 )
 
 urlpatterns = [
@@ -10,6 +11,7 @@ urlpatterns = [
     path('quiz_type/<int:activity_id>/', AddQuizTypeView.as_view(), name='add_quiz_type'),
     path('add_question/<int:activity_id>/<int:quiz_type_id>/', AddQuestionView.as_view(), name='add_question'),
     path('delete_temp_question/<int:activity_id>/<int:index>/', DeleteTempQuestionView.as_view(), name='delete_temp_question'),
+    path('edit_question/<int:activity_id>/<int:index>/', UpdateQuestionView.as_view(), name='edit_question'),
     path('display_question/<int:activity_id>/', DisplayQuestionsView.as_view(), name='display_question'),
     path('submit_answers/<int:activity_id>/', SubmitAnswersView.as_view(), name='submit_answers'),
     path('grade_essays/<int:activity_id>/', GradeEssayView.as_view(), name='grade_essays'),
@@ -20,6 +22,9 @@ urlpatterns = [
     path('activity_completed/<int:score>/<int:activity_id>/<str:show_score>/', activityCompletedView, name='activity_completed'),
     path('studentQuizzesExams/', studentQuizzesExams, name='studentQuizzesExams'),
     path('activity_detail/<int:activity_id>/', ActivityDetailView.as_view(), name='activity_detail'),
+    path('activityList/<int:subject_id>/', activityList, name='activityList'),
+    path('deleteActivity/<int:activity_id>/', deleteActivity, name='deleteActivity'),
+
 
     path('deleteActivityView/<int:activity_id>/', deleteActivityView, name='deleteActivityView'),
     
