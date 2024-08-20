@@ -322,8 +322,10 @@ def updateSemester(request, pk):
 @login_required
 def termList(request):
     terms = Term.objects.all()
+    form = termForm()
     return render(request, 'course/term/termList.html', {
         'terms': terms,
+        'form': form,
     })
 
 # Create Semester

@@ -1,37 +1,42 @@
 {% extends 'base.html' %}
 {% block title %}
-{{ activity.activity_name }}
+  {{ activity.activity_name }}
 {% endblock %}
 {% block content %}
-{{ activity.activity_name }}</h1>
-  <div class="card shadow mb-4">
-    <div class="card-body">
-      <div class="container">
-        {% for entry in detailed_scores %}
-          <div class="student-score-card mb-4">
-            <div class="progress-circle" data-score="{{ entry.total_score }}" data-max="{{ entry.max_score }}">
-              <span class="progress-text">{{ entry.total_score|floatformat:"0" }} / {{ entry.max_score|floatformat:"0" }}</span>
-              <div class="progress-inner-circle"></div>
-            </div>
-            <div class="student-info">
-              <h4>{{ entry.student.first_name }} {{ entry.student.last_name }}</h4>
-              <p><strong>Submission Date:</strong> {{ entry.submission_time }}</p>
-              {% for question in entry.questions %}
-                <p><strong>Question {{ question.number }}:</strong> {{ question.question_text }}</p>
-                
-                {% if question.quiz_type.name != 'Essay' and question.correct_answer != None %}
-                  <p><strong>Correct Answer:</strong> {{ question.correct_answer }}</p>
-                {% endif %}
-                
-                <p><strong>Student Answer:</strong> {{ question.student_answer|safe }}</p>
-              {% endfor %}
-            </div>
-          </div>
-        {% endfor %}
+  <h3 class="text-center">{{ activity.activity_name }}</h3>
+
+  <div class="container">
+    {% for entry in detailed_scores %}
+      <div class="student-score-card mb-4">
+        <div class="student-info">
+          <h4>{{ entry.student.first_name }} {{ entry.student.last_name }}</h4>
+          <p>
+            <strong>Submission Date:</strong> {{ entry.submission_time }}
+          </p>
+          {% for question in entry.questions %}
+            <p>
+              <strong>Question {{ question.number }}:</strong> {{ question.question_text }}
+            </p>
+
+            {% if question.quiz_type.name != 'Essay' and question.correct_answer != None %}
+              <p>
+                <strong>Correct Answer:</strong> {{ question.correct_answer }}
+              </p>
+            {% endif %}
+
+            <p>
+              <strong>Student Answer:</strong> {{ question.student_answer|safe }}
+            </p>
+          {% endfor %}
+        </div>
+        <div class="progress-circle" data-score="{{ entry.total_score }}" data-max="{{ entry.max_score }}">
+          <span class="progress-text">{{ entry.total_score|floatformat:'0' }} / {{ entry.max_score|floatformat:'0' }}</span>
+          <div class="progress-inner-circle"></div>
+        </div>
       </div>
-    </div>
+    {% endfor %}
+    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
   </div>
-  <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
 
   <style>
     .student-score-card {
@@ -39,22 +44,21 @@
       align-items: center;
       border: 1px solid #ddd;
       border-radius: 8px;
-      padding: 16px;
-      background-color: #fff;
+      padding: 20px;
     }
     .student-score-card + .student-score-card {
       margin-top: 16px;
     }
     .progress-circle {
-      width: 80px;
-      height: 80px;
+      width: 160px;
+      height: 160px;
       border-radius: 50%;
       background: conic-gradient(#4caf50 0% 0%, transparent 0% 100%);
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 20px;
       font-weight: bold;
       color: #000;
       transition: transform 0.3s ease;
@@ -64,8 +68,8 @@
       transform: scale(1.1);
     }
     .progress-inner-circle {
-      width: 66px;
-      height: 66px;
+      width: 145px;
+      height: 145px;
       border-radius: 50%;
       background-color: #f3f3f3;
       position: absolute;
@@ -88,15 +92,15 @@
   </style>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('.progress-circle').forEach(function(circle) {
-        const score = parseFloat(circle.getAttribute('data-score'));
-        const max = parseFloat(circle.getAttribute('data-max'));
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.progress-circle').forEach(function (circle) {
+        const score = parseFloat(circle.getAttribute('data-score'))
+        const max = parseFloat(circle.getAttribute('data-max'))
         if (!isNaN(score) && !isNaN(max) && max > 0) {
-          const percentage = (score / max) * 100;
-          circle.style.background = `conic-gradient(#4caf50 0% ${percentage}%, transparent ${percentage}% 100%)`;
+          const percentage = (score / max) * 100
+          circle.style.background = `conic-gradient(#4caf50 0% ${percentage}%, transparent ${percentage}% 100%)`
         }
-      });
-    });
+      })
+    })
   </script>
 {% endblock %}
