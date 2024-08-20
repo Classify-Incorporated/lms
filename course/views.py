@@ -10,9 +10,10 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
 from django.utils import timezone
-from .forms import semesterForm, termForm
+from .forms import semesterForm, termForm, ParticipationForm
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
+from django import forms
 
 # Handle the enrollment of irregular students
 
@@ -62,56 +63,73 @@ def enrollStudent(request):
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
-    
+
+    selected_semester_id = request.GET.get('semester')
+    selected_semester = None
+
+    if selected_semester_id and selected_semester_id != 'None':
+        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
+        terms = Term.objects.filter(semester=selected_semester)
+    else:
+        now = timezone.localtime(timezone.now())
+        selected_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+        terms = Term.objects.filter(semester=selected_semester)
+
     is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
     is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
     
-    now = timezone.localtime(timezone.now())
     
     if is_student:
         completed_activities = StudentQuestion.objects.filter(
             student=user, 
+            activity_question__activity__term__in=terms,  # Filter by terms within the selected semester
             score__gt=0
         ).values_list('activity_question__activity_id', flat=True).distinct()
         
         answered_essays = StudentQuestion.objects.filter(
             student=user,
             activity_question__quiz_type__name='Essay',
+            activity_question__activity__term__in=terms,  # Filter by terms within the selected semester
             student_answer__isnull=False
         ).values_list('activity_question__activity_id', flat=True).distinct()
         
         answered_documents = StudentQuestion.objects.filter(
             student=user,
             activity_question__quiz_type__name='Document',
+            activity_question__activity__term__in=terms,  # Filter by terms within the selected semester
             uploaded_file__isnull=False,
             status=True
         ).values_list('activity_question__activity_id', flat=True).distinct()
 
         excluded_activities = completed_activities.union(answered_essays, answered_documents)
         
-        activities = Activity.objects.filter(subject=subject).exclude(id__in=excluded_activities)
+        activities = Activity.objects.filter(subject=subject, term__in=terms).exclude(id__in=excluded_activities)
         
         finished_activities = Activity.objects.filter(
             subject=subject, 
-            end_time__lte=now, 
+            term__in=terms,  # Filter by terms within the selected semester
+            end_time__lte=timezone.localtime(timezone.now()), 
             id__in=completed_activities.union(answered_essays, answered_documents)
         )
-        upcoming_activities = activities.filter(start_time__gt=now)
-        ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
+        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
+        ongoing_activities = activities.filter(start_time__lte=timezone.localtime(timezone.now()), end_time__gte=timezone.localtime(timezone.now()))
 
         modules = Module.objects.filter(subject=subject)
         scorm_packages = SCORMPackage.objects.filter(subject=subject)
     else:
         modules = Module.objects.filter(subject=subject)
         scorm_packages = SCORMPackage.objects.filter(subject=subject)
-        activities = Activity.objects.filter(subject=subject)
+        activities = Activity.objects.filter(subject=subject, term__in=terms)  # Filter by terms within the selected semester
         finished_activities = Activity.objects.filter(
             subject=subject, 
-            end_time__lte=now, 
-            id__in=StudentQuestion.objects.values_list('activity_question__activity_id', flat=True).distinct()
+            term__in=terms,  # Filter by terms within the selected semester
+            end_time__lte=timezone.localtime(timezone.now()), 
+            id__in=StudentQuestion.objects.filter(
+                activity_question__activity__term__in=terms  # Filter by terms within the selected semester
+            ).values_list('activity_question__activity_id', flat=True).distinct()
         )
-        upcoming_activities = activities.filter(start_time__gt=now)
-        ongoing_activities = activities.filter(start_time__lte=now, end_time__gte=now)
+        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
+        ongoing_activities = activities.filter(start_time__lte=timezone.localtime(timezone.now()), end_time__gte=timezone.localtime(timezone.now()))
 
     activities_with_grading_needed = []
     ungraded_items_count = 0
@@ -141,7 +159,9 @@ def subjectDetail(request, pk):
         'activities_with_grading_needed': activities_with_grading_needed,
         'is_student': is_student,
         'is_teacher': is_teacher,
-        'ungraded_items_count': ungraded_items_count
+        'ungraded_items_count': ungraded_items_count,
+        'selected_semester_id': selected_semester_id,
+        'selected_semester': selected_semester,  # Pass selected semester to template
     })
 
 
@@ -197,7 +217,7 @@ def subjectStudentList(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     
     selected_semester_id = request.GET.get('semester')
-    if selected_semester_id:
+    if selected_semester_id and selected_semester_id.strip(): 
         selected_semester = get_object_or_404(Semester, id=selected_semester_id)
     else:
         now = timezone.localtime(timezone.now())
@@ -335,12 +355,27 @@ def updateTerm(request, pk):
 
 # Participation Scores
 @login_required
-def participationScoresView(request, subject_id, term_id):
+def selectParticipation(request, subject_id):
+    subject = get_object_or_404(Subject, id=subject_id)
+
+    if request.method == 'POST':
+        form = ParticipationForm(request.POST, initial={'subject': subject})
+        if form.is_valid():
+            term = form.cleaned_data['term']
+            max_score = form.cleaned_data['max_score']
+            return redirect('participationScore', subject_id=subject.id, term_id=term.id, max_score=int(max_score))
+    else:
+        form = ParticipationForm(initial={'subject': subject})
+        form.fields['subject'].widget = forms.HiddenInput()
+
+    return render(request, 'course/participation/selectParticipation.html', {'form': form})
+
+
+@login_required
+def participationScoresView(request, subject_id, term_id, max_score):
     subject = get_object_or_404(Subject, id=subject_id)
     term = get_object_or_404(Term, id=term_id)
     students = CustomUser.objects.filter(subjectenrollment__subject=subject).distinct()
-
-    max_score = request.GET.get('max_score', 100)
 
     if request.method == 'POST':
         for student in students:

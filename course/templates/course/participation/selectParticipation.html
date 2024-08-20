@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}
+  Select Participation Details
+{% endblock %}
+{% block content %}
+  <div class="container">
+    <h2>Select Participation Details</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Proceed</button>
+    </form>
+  </div>
+{% endblock %}

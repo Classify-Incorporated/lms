@@ -13,7 +13,7 @@ from decimal import Decimal
 from collections import defaultdict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
+from django.core.paginator import Paginator
 
 #View GradeBookComponents
 @login_required
@@ -243,7 +243,7 @@ def studentActivityView(request, activity_id):
 
 # fitler for getting the current semester
 @login_required
-def get_current_semester():
+def get_current_semester(request):
     current_date = timezone.now().date()
     try:
         current_semester = Semester.objects.get(start_date__lte=current_date, end_date__gte=current_date)
@@ -254,7 +254,7 @@ def get_current_semester():
 #Teacher (Student breakdown score for all activity)
 @login_required
 def studentTotalScore(request):
-    current_semester = get_current_semester()
+    current_semester = get_current_semester(request)
 
     if not current_semester:
         return render(request, 'gradebookcomponent/studentTotalScore.html', {
@@ -307,7 +307,6 @@ def studentTotalScore(request):
                     if participation_score:
                         weighted_participation_score = (participation_score.score / participation_score.max_score) * participation_component.percentage
                         term_has_data = True
-                        print(f"Participation score found for student {student.get_full_name()} with score {participation_score.score}/{participation_score.max_score} in subject {subject.subject_name} for term {term.term_name}")
 
                         student_scores_data.append({
                             'student': student.get_full_name(),
@@ -374,8 +373,6 @@ def studentTotalScore(request):
                             # Convert score and max_score to Decimal before adding
                             student_total_score += Decimal(score)
                             max_score_sum += Decimal(max_score)
-                            
-                            print(f"Term: {term.term_name}, Student: {student.get_full_name()}, Question: {question}, Score: {score}/{max_score}")
 
                             student_scores_data.append({
                                 'student': student.get_full_name(),
@@ -403,7 +400,6 @@ def studentTotalScore(request):
 
     # Print participation data for each subject
     for term_data in term_scores_data:
-        print(f"Participation scores for subject {term_data['subject'].subject_name}, term {term_data['term'].term_name}:")
         for data in term_data['student_scores_data']:
             if data['is_participation']:
                 print(f"  Student: {data['student']}, Score: {data['total_score']}/{data['max_score']}, Weighted Score: {data['weighted_score']}")
@@ -430,7 +426,7 @@ def studentTotalScoreForActivityType(request):
 # Teacher (fetch student total score for all activity)
 @login_required
 def studentTotalScoreApi(request):
-    current_semester = get_current_semester()
+    current_semester = get_current_semester(request)
 
     if not current_semester:
         return JsonResponse({'error': 'No current semester found.'}, status=400)
@@ -440,7 +436,7 @@ def studentTotalScoreApi(request):
 
     if is_student:
         students = CustomUser.objects.filter(id=user.id)
-        subjects = Subject.objects.filter(subjectenrollment__student=user)
+        subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
         
         # Check if the student is allowed to view grades
         for subject in subjects:
@@ -450,7 +446,7 @@ def studentTotalScoreApi(request):
 
     else:
         students = CustomUser.objects.filter(profile__role__name__iexact='student')
-        subjects = Subject.objects.filter(assign_teacher=user)
+        subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
         
     activity_types = ActivityType.objects.all()
     terms = Term.objects.filter(semester=current_semester)
@@ -482,7 +478,7 @@ def studentTotalScoreApi(request):
 
             if participation_component:
                 for student in students:
-                    if not student.subjectenrollment_set.filter(subject=subject).exists():
+                    if not student.subjectenrollment_set.filter(subject=subject, semester=current_semester).exists():
                         continue
 
                     participation_score = StudentParticipationScore.objects.filter(
@@ -512,7 +508,7 @@ def studentTotalScoreApi(request):
                     activity_percentage = Decimal(0)
 
                 for student in students:
-                    if not student.subjectenrollment_set.filter(subject=subject).exists():
+                    if not student.subjectenrollment_set.filter(subject=subject, semester=current_semester).exists():
                         continue
 
                     student_total_score = Decimal(0)
@@ -528,7 +524,7 @@ def studentTotalScoreApi(request):
                         if not student_questions.exists():
                             # Mark missed activities
                             max_score = activity.activityquestion_set.aggregate(total_max_score=Sum('score'))['total_max_score'] or Decimal(0)
-                            max_score_sum += Decimal(max_score)  # Ensure max_score is a Decimal
+                            max_score_sum += Decimal(max_score)
                             student_scores[student]['term_scores'].append({
                                 'term_name': term.term_name,
                                 'activity_type': activity_type.name,
@@ -565,19 +561,19 @@ def studentTotalScoreApi(request):
                     'term_name': term.term_name,
                     'total_weighted_score': f"{weighted_term_score:.6f}",
                     'percentage': f"{weighted_term_percentage:.1f}%",
-                    'missed': any(score.get('missed', False) for score in scores['term_scores'])  # Use get() to avoid KeyError
+                    'missed': any(score.get('missed', False) for score in scores['term_scores'])
                 })
 
     final_term_data = []
     for student_obj, subjects in student_data.items():
         student_subjects = []
-        student_id = student_obj.id  # Access the student's ID from the object
+        student_id = student_obj.id
 
         for subject_name, terms in subjects.items():
-            subject_id = Subject.objects.get(subject_name=subject_name).id  # Retrieve the actual subject ID
+            subject_id = Subject.objects.get(subject_name=subject_name).id
             student_subjects.append({
                 'subject_name': subject_name,
-                'subject_id': subject_id,  # Include the subject ID in the response
+                'subject_id': subject_id,
                 'terms': terms,
                 'total_weighted_grade': float(student_total_weighted_grade[student_obj][subject_name])
             })
@@ -589,10 +585,11 @@ def studentTotalScoreApi(request):
 
     return JsonResponse({'term_data': final_term_data})
 
+
 # fetcH subject
 @login_required
 def getSubjects(request):
-    current_semester = get_current_semester()
+    current_semester = get_current_semester(request)
 
     if not current_semester:
         return JsonResponse({'error': 'No current semester found.'}, status=400)
@@ -613,7 +610,7 @@ def getSubjects(request):
 #student (see student grade)
 @login_required
 def studentSpecificGradeApi(request):
-    current_semester = get_current_semester()
+    current_semester = get_current_semester(request)
 
     if not current_semester:
         return JsonResponse({'error': 'No current semester found.'}, status=400)
@@ -624,7 +621,8 @@ def studentSpecificGradeApi(request):
     if not is_student:
         return JsonResponse({'error': 'Only students can access this data.'}, status=403)
 
-    subjects = Subject.objects.filter(subjectenrollment__student=user)
+    # Filter subjects based on the current semester
+    subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester)
     activity_types = ActivityType.objects.all()
     terms = Term.objects.filter(semester=current_semester)
 
@@ -638,8 +636,13 @@ def studentSpecificGradeApi(request):
 
     for term in terms:
         for subject in subjects:
+            # Ensure the student is enrolled in this subject for the current semester
+            try:
+                subject_enrollment = SubjectEnrollment.objects.get(student=user, subject=subject, semester=current_semester)
+            except SubjectEnrollment.DoesNotExist:
+                continue  # Skip this subject if the student is not enrolled in the current semester
+
             # Check if the student is allowed to view grades for this subject
-            subject_enrollment = SubjectEnrollment.objects.get(student=user, subject=subject, semester=current_semester)
             if not subject_enrollment.can_view_grade:
                 continue  # Skip this subject if grades are hidden
 
@@ -705,7 +708,7 @@ def studentSpecificGradeApi(request):
                     else:
                         # If the activity is missed, consider max score and set student score to 0
                         max_score = activity.activityquestion_set.aggregate(total_max_score=Sum('score'))['total_max_score'] or Decimal(0)
-                        max_score_sum += Decimal(max_score)  # Explicitly convert to Decimal
+                        max_score_sum += Decimal(max_score)
 
                         student_scores['term_scores'].append({
                             'term_name': term.term_name,
@@ -752,14 +755,34 @@ def studentSpecificGradeApi(request):
 
     return JsonResponse({'term_data': final_term_data})
 
+
 # Teacher (allow student to see grade)
 @login_required
 def allowGradeVisibility(request, student_id):
     if request.method == "POST":
         subject_id = request.POST.get('subject_id')
         can_view_grade = request.POST.get('can_view_grade') == 'true'
-        subject_enrollment = get_object_or_404(SubjectEnrollment, student_id=student_id, subject_id=subject_id)
-        subject_enrollment.can_view_grade = can_view_grade
-        subject_enrollment.save()
+        
+        # Filter instead of get, as there might be multiple enrollments
+        subject_enrollments = SubjectEnrollment.objects.filter(student_id=student_id, subject_id=subject_id)
+
+        if not subject_enrollments.exists():
+            return JsonResponse({'status': 'failure', 'message': 'No enrollments found for this student and subject.'}, status=400)
+        
+        for enrollment in subject_enrollments:
+            # Retrieve the subject name
+            subject_name = enrollment.subject.subject_name
+
+            # Print the current visibility status before changing it
+            print(f"Before update: Student {student_id} - Subject: {subject_name} - can_view_grade: {enrollment.can_view_grade}")
+
+            # Update the visibility status
+            enrollment.can_view_grade = can_view_grade
+            enrollment.save()
+
+            # Print the updated visibility status
+            print(f"After update: Student {student_id} - Subject: {subject_name} - can_view_grade: {enrollment.can_view_grade}")
+
         return JsonResponse({'status': 'success'})
+    
     return JsonResponse({'status': 'failure'}, status=400)

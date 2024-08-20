@@ -5,7 +5,7 @@ Edit Question
 {% endblock %}
 
 {% block content %}
-<h1>Edit Question for {{ question.activity.activity_name }} ({{ quiz_type.name }})</h1>
+<h1>Edit Question for {{ activity.activity_name }}</h1>
 
 <form method="post">
     {% csrf_token %}
@@ -17,17 +17,18 @@ Edit Question
         <label for="score">Score:</label>
         <input type="number" id="score" name="score" class="form-control" value="{{ question.score }}" required>
     </div>
-    {% if quiz_type.name == 'Multiple Choice' %}
+
+    {% if question.quiz_type == 'Multiple Choice' %}
         <div id="choices">
-            {% for choice in question.choices.all %}
-                <div class="form-group">
-                    <label for="choices">Choice:</label>
-                    <input type="text" name="choices" class="form-control" value="{{ choice.choice_text }}" required>
+            {% for choice in question.choices %}
+                <div class="input-group mb-3">
+                    <input type="radio" name="correct_answer" value="{{ forloop.counter0 }}" {% if forloop.counter0 == question.correct_answer %}checked{% endif %}>
+                    <input type="text" name="choices" class="form-control ml-2" value="{{ choice }}" required>
                 </div>
             {% endfor %}
         </div>
-        <button type="button" onclick="addChoice()">Add Another Choice</button>
-    {% elif quiz_type.name == 'True/False' %}
+        <button type="button" class="btn btn-secondary" onclick="addChoice()">Add Another Choice</button>
+    {% elif question.quiz_type == 'True/False' %}
         <div class="form-group">
             <label for="correct_answer">Correct Answer:</label>
             <select id="correct_answer" name="correct_answer" class="form-control" required>
@@ -35,7 +36,7 @@ Edit Question
                 <option value="False" {% if question.correct_answer == 'False' %}selected{% endif %}>False</option>
             </select>
         </div>
-    {% elif quiz_type.name != 'Essay' %}
+    {% elif question.quiz_type != 'Essay' %}
         <div class="form-group">
             <label for="correct_answer">Correct Answer:</label>
             <input type="text" id="correct_answer" name="correct_answer" class="form-control" value="{{ question.correct_answer }}" required>

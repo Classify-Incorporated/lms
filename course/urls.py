@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
 
     enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,
-    createTerm,termList,updateTerm,subjectFinishedActivities, participationScoresView,
+    createTerm,termList,updateTerm,subjectFinishedActivities, participationScoresView, selectParticipation,
     enrollStudentView,
 )
 
@@ -27,5 +27,6 @@ urlpatterns = [
     path('termList/', termList, name='termList'),
 
     # Participation Scores
-    path('participationScore/<int:subject_id>/term/<int:term_id>/', participationScoresView, name='participationScore'),
+    path('participationScore/<int:subject_id>/term/<int:term_id>/max_score/<int:max_score>/', participationScoresView, name='participationScore'),
+    path('selectParticipation/<int:subject_id>/', selectParticipation, name='selectParticipation'),
 ]
