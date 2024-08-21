@@ -72,16 +72,8 @@
               <li class="list-group-item">
                 <a href="{% if is_student %}
                     {% url 'studentActivityView' activity.id %}
-                    
-                    
-                    
-                    ?semester={{ selected_semester_id }}
                   {% else %}
                     {% url 'teacherActivityView' activity.id %}
-                    
-                    
-                    
-                    ?semester={{ selected_semester_id }}
                   {% endif %}">
                   {{ activity.activity_name }}
                 </a>
