@@ -38,6 +38,7 @@ class Activity(models.Model):
     term = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
+    show_score = models.BooleanField(default=False)
 
     def __str__(self):
         return self.activity_name

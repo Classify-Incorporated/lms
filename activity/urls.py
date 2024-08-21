@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     AddActivityView, AddQuizTypeView, AddQuestionView, DisplayQuestionsView, GradeIndividualEssayView,
     SubmitAnswersView, GradeEssayView, SaveAllQuestionsView,ActivityDetailView,DeleteTempQuestionView,
-    UpdateQuestionView,
+    UpdateQuestionView, toggleShowScore,
     activityCompletedView, deleteActivityView, UpdateActivity, activityList, deleteActivity
 )
 
@@ -22,6 +22,7 @@ urlpatterns = [
     path('activity_completed/<int:score>/<int:activity_id>/<str:show_score>/', activityCompletedView, name='activity_completed'),
     path('activity_detail/<int:activity_id>/', ActivityDetailView.as_view(), name='activity_detail'),
     path('activityList/<int:subject_id>/', activityList, name='activityList'),
+    path('toggleShowScore/<int:activity_id>/', toggleShowScore, name='toggleShowScore'),
     path('deleteActivity/<int:activity_id>/', deleteActivity, name='deleteActivity'),
 
 

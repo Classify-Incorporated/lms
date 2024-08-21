@@ -509,6 +509,12 @@ def activityList(request, subject_id):
         'activities': activities,
     })
 
+def toggleShowScore(request, activity_id):
+    activity = get_object_or_404(Activity, id=activity_id)
+    activity.show_score = not activity.show_score
+    activity.save()
+    return redirect('activityList', subject_id=activity.subject.id)
+
 @login_required
 def deleteActivity(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
