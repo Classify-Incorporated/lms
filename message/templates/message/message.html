@@ -29,6 +29,11 @@
                         <option value="teacher_{{ instructor.id }}">{{ instructor.first_name }} {{ instructor.last_name }}</option>
                         {% endfor %}
                     </optgroup>
+                    <optgroup label="Students">
+                        {% for student in students %}
+                        <option value="student_{{ student.id }}">{{ student.first_name }} {{ student.last_name }}</option>
+                        {% endfor %}
+                    </optgroup>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary">Send</button>

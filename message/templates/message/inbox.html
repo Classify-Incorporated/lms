@@ -59,84 +59,14 @@
               {% if message_status_list %}
                 {% for item in message_status_list %}
                   <tr class="message-row {% if not item.read %}unread{% endif %}" data-id="{{ item.message.id }}">
-                    <td>
-                      <input type="checkbox" class="selectItem" />
-                    </td>
+                    <td><input type="checkbox" class="selectItem" /></td>
                     <td class="{% if not item.read %}font-weight-bolder{% endif %} text-left">{{ item.message.sender }}</td>
                     <td class="{% if not item.read %}font-weight-bolder{% endif %} text-left">
                       <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">{{ item.message.subject }} - {{ item.message.body|truncatewords:18 }}</a>
                     </td>
                     <td>
-                      <span class="badge {% if item.read %}
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                                                                
-                          badge-success
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        {% else %}
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          badge-warning
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        {% endif %}">
-                        {% if item.read %}
-                          Read
-                        {% else %}
-                          Unread
-                        {% endif %}
+                      <span class="badge {% if item.read %}badge-success{% else %}badge-warning{% endif %}">
+                        {% if item.read %}Read{% else %}Unread{% endif %}
                       </span>
                     </td>
                   </tr>
@@ -146,7 +76,7 @@
                   <td colspan="5">No matching records found</td>
                 </tr>
               {% endif %}
-            </tbody>
+            </tbody>            
           </table>
         </div>
         <!-- Card Footer -->
@@ -191,31 +121,38 @@
       <form id="sendMessageForm" method="post" action="{% url 'send_message' %}">
         {% csrf_token %}
         <div class="form-group">
-          <label for="recipient_type">To:</label>
-          <select class="form-control" id="recipient_type" name="recipient_type" required>
-            <option value="" disabled selected>Select Recipient</option>
-            <optgroup label="Subjects">
-              {% for subject in subjects %}
-                <option value="subject_{{ subject.id }}">{{ subject.subject_name }}</option>
-              {% endfor %}
-            </optgroup>
-            <optgroup label="Instructors">
-              {% for instructor in instructors %}
-                <option value="teacher_{{ instructor.id }}">{{ instructor.username }}</option>
-              {% endfor %}
-            </optgroup>
+            <label for="recipient_type">To:</label>
+            <select id="recipient_type" name="recipient_type" class="form-control" required>
+              <option value="">Select Recipient</option>
+              <optgroup label="Subjects">
+                  {% for subject in subjects %}
+                  <option value="subject_{{ subject.id }}">{{ subject.subject_name }}</option>
+                  {% endfor %}
+              </optgroup>
+              <optgroup label="Instructors">
+                  {% for instructor in instructors %}
+                  <option value="teacher_{{ instructor.id }}">{{ instructor.first_name }} {{ instructor.last_name }}</option>
+                  {% endfor %}
+              </optgroup>
+              <optgroup label="Students">
+                  {% for student in students %}
+                  <option value="student_{{ student.id }}">{{ student.first_name }} {{ student.last_name }}</option>
+                  {% endfor %}
+              </optgroup>
           </select>
+          
         </div>
         <div class="form-group">
-          <label for="subject">Subject:</label>
-          <input type="text" class="form-control" id="subject" name="subject" required />
+            <label for="subject">Subject:</label>
+            <input type="text" class="form-control" id="subject" name="subject" required />
         </div>
         <div class="form-group">
-          <label for="body">Message:</label>
-          <textarea class="form-control" id="body" name="body" rows="5" required></textarea>
+            <label for="body">Message:</label>
+            <textarea class="form-control" id="body" name="body" rows="5" required></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Send</button>
-      </form>
+    </form>
+    
     </div>
   </div>
   <div id="sendMessageModalBackdrop" class="custom-modal-backdrop"></div>
