@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Latest Log Details
+{% endblock %}
+
+{% block content %}
+    <h1>Latest Log</h1>
+    {% if latest_log %}
+        <p><strong>Time:</strong> {{ latest_log.created_at }}</p>
+        <p><strong>Message:</strong> {{ latest_log.message }}</p>
+        <p><strong>Message:</strong> {{ latest_log.subject }}</p>
+    {% else %}
+        <p>No logs available.</p>
+    {% endif %}
+{% endblock %}

@@ -1,15 +1,14 @@
 from django.urls import path
 from .views import (
     dashboard, activity_stream,
-    assist, tools, sign_out, createProfile, user_login_view, admin_login_view,
+    assist, tools, sign_out, createProfile, admin_login_view,
 
     viewProfile, updateProfile, activateProfile, deactivateProfile, student
 )
 
 urlpatterns = [
     #Login Function
-    path('', user_login_view, name='user_login_view'),
-    path('admin_login_view/', admin_login_view, name='admin_login_view'),
+    path('', admin_login_view, name='admin_login_view'),
 
     #View Profile
     path('student/', student, name='student'),

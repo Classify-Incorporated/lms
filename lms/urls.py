@@ -35,7 +35,7 @@ urlpatterns = [
     path('', include('activity.urls')),
     path('', include('message.urls')),
     path('', include('gradebookcomponent.urls')),
-    path('', include('studentgrade.urls')),
+    path('', include('logs.urls')),
 ]
 
 if settings.DEBUG:

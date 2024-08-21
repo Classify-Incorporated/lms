@@ -26,6 +26,7 @@ def createModule(request, subject_id):
             module = form.save(commit=False)
             module.subject = subject  
             module.save()
+            print(module)  # Print the saved module object
             return redirect('subjectDetail', pk=subject_id)
     else:
         form = moduleForm()

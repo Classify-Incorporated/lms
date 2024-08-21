@@ -15,6 +15,7 @@ from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django import forms
 from django.http import HttpResponse
+from module.forms import moduleForm
 # Handle the enrollment of irregular students
 
 class enrollStudentView(View):
@@ -148,7 +149,9 @@ def subjectDetail(request, pk):
             if ungraded_items.exists():
                 activities_with_grading_needed.append((activity, ungraded_items.count()))
                 ungraded_items_count += ungraded_items.count()
-    
+
+    form = moduleForm()
+
     return render(request, 'course/viewSubjectModule.html', {
         'subject': subject,
         'modules': modules,
@@ -163,6 +166,7 @@ def subjectDetail(request, pk):
         'selected_semester_id': selected_semester_id,
         'selected_semester': selected_semester,  # Pass selected semester to template
         'answered_activity_ids': answered_activity_ids,
+        'form': form,
     })
 
 # get all the finished activities
