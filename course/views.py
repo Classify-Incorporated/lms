@@ -78,6 +78,7 @@ def subjectDetail(request, pk):
     is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
     is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
     
+    answered_activity_ids = []
     
     if is_student:
         completed_activities = StudentQuestion.objects.filter(
@@ -101,35 +102,34 @@ def subjectDetail(request, pk):
             status=True
         ).values_list('activity_question__activity_id', flat=True).distinct()
 
-        excluded_activities = completed_activities.union(answered_essays, answered_documents)
+        answered_activity_ids = set(completed_activities).union(answered_essays, answered_documents)
         
-        activities = Activity.objects.filter(subject=subject, term__in=terms).exclude(id__in=excluded_activities)
+        activities = Activity.objects.filter(subject=subject, term__in=terms)
         
-        finished_activities = Activity.objects.filter(
-            subject=subject, 
-            term__in=terms,  # Filter by terms within the selected semester
+        finished_activities = activities.filter(
             end_time__lte=timezone.localtime(timezone.now()), 
-            id__in=completed_activities.union(answered_essays, answered_documents)
+            id__in=answered_activity_ids
+        )
+        ongoing_activities = activities.filter(
+            start_time__lte=timezone.localtime(timezone.now()), 
+            end_time__gte=timezone.localtime(timezone.now())
         )
         upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
-        ongoing_activities = activities.filter(start_time__lte=timezone.localtime(timezone.now()), end_time__gte=timezone.localtime(timezone.now()))
 
         modules = Module.objects.filter(subject=subject)
         scorm_packages = SCORMPackage.objects.filter(subject=subject)
     else:
         modules = Module.objects.filter(subject=subject)
         scorm_packages = SCORMPackage.objects.filter(subject=subject)
-        activities = Activity.objects.filter(subject=subject, term__in=terms)  # Filter by terms within the selected semester
-        finished_activities = Activity.objects.filter(
-            subject=subject, 
-            term__in=terms,  # Filter by terms within the selected semester
-            end_time__lte=timezone.localtime(timezone.now()), 
-            id__in=StudentQuestion.objects.filter(
-                activity_question__activity__term__in=terms  # Filter by terms within the selected semester
-            ).values_list('activity_question__activity_id', flat=True).distinct()
+        activities = Activity.objects.filter(subject=subject, term__in=terms)
+        finished_activities = activities.filter(
+            end_time__lte=timezone.localtime(timezone.now())
+        )
+        ongoing_activities = activities.filter(
+            start_time__lte=timezone.localtime(timezone.now()), 
+            end_time__gte=timezone.localtime(timezone.now())
         )
         upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
-        ongoing_activities = activities.filter(start_time__lte=timezone.localtime(timezone.now()), end_time__gte=timezone.localtime(timezone.now()))
 
     activities_with_grading_needed = []
     ungraded_items_count = 0
@@ -162,8 +162,8 @@ def subjectDetail(request, pk):
         'ungraded_items_count': ungraded_items_count,
         'selected_semester_id': selected_semester_id,
         'selected_semester': selected_semester,  # Pass selected semester to template
+        'answered_activity_ids': answered_activity_ids,
     })
-
 
 # get all the finished activities
 @login_required

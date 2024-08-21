@@ -34,11 +34,20 @@
           <ul class="list-group list-group-flush">
             {% for activity in ongoing_activities %}
               <li class="list-group-item">
-                <a href="{% url 'display_question' activity.id %}?semester={{ selected_semester_id }}">{{ activity.activity_name }}</a>
+                {% if activity.id in answered_activity_ids %}
+                  <a href="{% url 'studentActivityView' activity.id %}?semester={{ selected_semester_id }}">
+                    {{ activity.activity_name }} (Answered)
+                  </a>
+                {% else %}
+                  <a href="{% url 'display_question' activity.id %}?semester={{ selected_semester_id }}">
+                    {{ activity.activity_name }}
+                  </a>
+                {% endif %}
               </li>
             {% endfor %}
           </ul>
         </div>
+        
 
         <!-- Upcoming Activities -->
         <div class="card mb-3">

@@ -2,7 +2,7 @@ from django import forms
 from .models import CustomUser, Profile
 
 class CustomLoginForm(forms.Form):
-    email = forms.EmailField()
+    username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
 
 # Profile Form
