@@ -27,7 +27,21 @@ class termForm(forms.ModelForm):
         }
 
 class ParticipationForm(forms.Form):
-    term = forms.ModelChoiceField(queryset=Term.objects.all(), label="Select Term")
-    subject = forms.ModelChoiceField(queryset=Subject.objects.all(), label="Select Subject")
-    max_score = forms.DecimalField(max_digits=5, decimal_places=2, label="Max Score", initial=100)
+    term = forms.ModelChoiceField(
+        queryset=Term.objects.all(),
+        label="Select Term",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    subject = forms.ModelChoiceField(
+        queryset=Subject.objects.all(),
+        label="Select Subject",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    max_score = forms.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        label="Max Score", 
+        initial=100,
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
 

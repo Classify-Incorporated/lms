@@ -13,22 +13,22 @@
     </div>
 
     {% if is_teacher %}
-
-    {% now "Y-m-d" as today_date %}
-    {% if selected_semester.start_date|date:"Y-m-d" <= today_date and selected_semester.end_date|date:"Y-m-d" >= today_date %}
+      {% now 'Y-m-d' as today_date %}
+      {% if selected_semester.start_date|date:'Y-m-d' <= today_date and selected_semester.end_date|date:'Y-m-d' >= today_date %}
         <div class="row">
           <div class="col-12 mb-3">
             <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
             <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
-            <a href="{% url 'selectParticipation' subject.id %}" class="btn btn-secondary">Add Participation</a>
+            <a href="javascript:void(0);" onclick="openParticipationModal('{{ subject.id }}')" class="btn btn-secondary">Add Participation</a>
           </div>
         </div>
-      </div>
+      {% endif %}
     {% endif %}
-    {% endif %}
+
     <div class="row">
       <!-- Sidebar for Activities -->
       <div class="col-md-3">
+        <!-- Ongoing Activities -->
         <div class="card mb-3">
           <div class="card-header">Ongoing Activities</div>
           <ul class="list-group list-group-flush">
@@ -40,6 +40,7 @@
           </ul>
         </div>
 
+        <!-- Upcoming Activities -->
         <div class="card mb-3">
           <div class="card-header">Upcoming Activities</div>
           <ul class="list-group list-group-flush">
@@ -53,26 +54,37 @@
         <div class="card mb-3">
           <div class="card-header">Activities to be Graded</div>
           <ul class="list-group list-group-flush">
-
-              {% if is_teacher %}
-                  {% for activity, count in activities_with_grading_needed %}
-                      <li class="list-group-item">
-                          <a href="{% url 'grade_essays' activity.id %}?semester={{ selected_semester_id }}">
-                              {{ activity.activity_name }} - {{ count }} submissions to grade
-                          </a>
-                      </li>
-                  {% endfor %}
-              {% endif %}
+            {% if is_teacher %}
+              {% for activity, count in activities_with_grading_needed %}
+                <li class="list-group-item">
+                  <a href="{% url 'grade_essays' activity.id %}?semester={{ selected_semester_id }}">{{ activity.activity_name }} - {{ count }} submissions to grade</a>
+                </li>
+              {% endfor %}
+            {% endif %}
           </ul>
         </div>
 
+        <!-- Finished Activities -->
         <div class="card mb-3">
           <div class="card-header">Finished Activities</div>
           <ul class="list-group list-group-flush">
             {% for activity in finished_activities|slice:':2' %}
               <li class="list-group-item">
-
-                <a href="{% if is_student %}{% url 'studentActivityView' activity.id %}?semester={{ selected_semester_id }}{% else %}{% url 'teacherActivityView' activity.id %}?semester={{ selected_semester_id }}{% endif %}">{{ activity.activity_name }}</a>
+                <a href="{% if is_student %}
+                    {% url 'studentActivityView' activity.id %}
+                    
+                    
+                    
+                    ?semester={{ selected_semester_id }}
+                  {% else %}
+                    {% url 'teacherActivityView' activity.id %}
+                    
+                    
+                    
+                    ?semester={{ selected_semester_id }}
+                  {% endif %}">
+                  {{ activity.activity_name }}
+                </a>
               </li>
             {% endfor %}
             {% if finished_activities|length > 2 %}
@@ -83,12 +95,13 @@
           </ul>
         </div>
 
+        <!-- Student Roster -->
         <div class="card mb-3">
           <div class="card-header">Student Roster</div>
           <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}">View List</a>
-            </li>            
+            </li>
           </ul>
         </div>
       </div>
@@ -99,13 +112,13 @@
           <div class="card-header d-flex justify-content-between align-items-center">
             <span>Modules</span>
             {% if is_teacher %}
-              {% now "Y-m-d" as today_date %}
-                {% if selected_semester.start_date|date:"Y-m-d" <= today_date and selected_semester.end_date|date:"Y-m-d" >= today_date %}
-                  <div>
-                    <a href="{% url 'createModule' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary ml-auto">Add</a>
-                    <a href="{% url 'upload' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary ml-2">Add PPT</a>
-                  </div>
-                {% endif %}
+              {% now 'Y-m-d' as today_date %}
+              {% if selected_semester.start_date|date:'Y-m-d' <= today_date and selected_semester.end_date|date:'Y-m-d' >= today_date %}
+                <div>
+                  <a href="javascript:void(0);" onclick="openModuleModal('{{ subject.id }}')" class="btn btn-primary ml-auto">Add</a>
+                  <a href="javascript:void(0);" onclick="openUploadPPTModal('{{ subject.id }}')" class="btn btn-primary ml-2">Add PPT</a>
+                </div>
+              {% endif %}
             {% endif %}
           </div>
           <ul class="list-group list-group-flush">
@@ -126,7 +139,97 @@
       </div>
     </div>
 
-  <div class="text-right mr-3">
-    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+    <div class="text-right mr-3">
+      <a href="{% url 'SubjectList' %}" class="btn btn-secondary">Back</a>
+    </div>
   </div>
+
+  <!-- Custom Modal for Adding Participation -->
+  <div id="participationModal" class="custom-modal">
+    <div class="custom-modal-header d-flex justify-content-between align-items-center">
+      <h5>Select Participation Details</h5>
+      <button class="close-btn" id="closeParticipationModalBtn"></button>
+    </div>
+    <div class="custom-modal-body" id="participationModalBody">
+      <!-- The content will be loaded dynamically here -->
+    </div>
+  </div>
+  <div id="participationModalBackdrop" class="custom-modal-backdrop"></div>
+
+  <!-- Custom Modal for Adding Module -->
+  <div id="moduleModal" class="custom-modal">
+    <div class="custom-modal-header d-flex justify-content-between align-items-center">
+      <h5>Add Module</h5>
+      <button class="close-btn" id="closeModuleModalBtn"></button>
+    </div>
+    <div class="custom-modal-body" id="moduleModalBody">
+      <!-- The content will be loaded dynamically here -->
+    </div>
+  </div>
+  <div id="moduleModalBackdrop" class="custom-modal-backdrop"></div>
+
+  <!-- Custom Modal for Uploading PPT -->
+  <div id="uploadPPTModal" class="custom-modal">
+    <div class="custom-modal-header d-flex justify-content-between align-items-center">
+      <h5>Upload SCORM Package</h5>
+      <button class="close-btn" id="closeUploadPPTModalBtn"></button>
+    </div>
+    <div class="custom-modal-body" id="uploadPPTModalBody">
+      <!-- The content will be loaded dynamically here -->
+    </div>
+  </div>
+  <div id="uploadPPTModalBackdrop" class="custom-modal-backdrop"></div>
+
+  <script>
+    // Function to open the Participation modal and load the content dynamically
+    function openParticipationModal(subjectId) {
+      fetch(`/selectParticipation/${subjectId}/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('participationModalBody').innerHTML = html
+          document.getElementById('participationModal').classList.add('show')
+          document.getElementById('participationModalBackdrop').classList.add('show')
+        })
+    }
+    
+    // Function to open the Module modal and load the content dynamically
+    function openModuleModal(subjectId) {
+      fetch(`/createModule/${subjectId}/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('moduleModalBody').innerHTML = html
+          document.getElementById('moduleModal').classList.add('show')
+          document.getElementById('moduleModalBackdrop').classList.add('show')
+        })
+    }
+    
+    // Function to open the Upload PPT modal and load the content dynamically
+    function openUploadPPTModal(subjectId) {
+      fetch(`/upload/${subjectId}/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('uploadPPTModalBody').innerHTML = html
+          document.getElementById('uploadPPTModal').classList.add('show')
+          document.getElementById('uploadPPTModalBackdrop').classList.add('show')
+        })
+    }
+    
+    // Script to close the Participation modal
+    document.getElementById('closeParticipationModalBtn').addEventListener('click', function () {
+      document.getElementById('participationModal').classList.remove('show')
+      document.getElementById('participationModalBackdrop').classList.remove('show')
+    })
+    
+    // Script to close the Module modal
+    document.getElementById('closeModuleModalBtn').addEventListener('click', function () {
+      document.getElementById('moduleModal').classList.remove('show')
+      document.getElementById('moduleModalBackdrop').classList.remove('show')
+    })
+    
+    // Script to close the Upload PPT modal
+    document.getElementById('closeUploadPPTModalBtn').addEventListener('click', function () {
+      document.getElementById('uploadPPTModal').classList.remove('show')
+      document.getElementById('uploadPPTModalBackdrop').classList.remove('show')
+    })
+  </script>
 {% endblock %}
