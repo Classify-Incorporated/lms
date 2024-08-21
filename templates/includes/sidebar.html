@@ -28,8 +28,8 @@
       </a>
     </li>
   {% endif %}
-  <li class="nav-item {% if request.resolver_match.url_name == 'activity_stream' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'activity_stream' %}">
+  <li class="nav-item {% if request.resolver_match.url_name == 'subjectLogDetails' %}active{% endif %}">
+    <a class="nav-link" href="{% url 'subjectLogDetails' %}">
       <i class="bx bx-bar-chart-alt-2"></i>
       <span>Activity Stream</span>
     </a>

@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'message',
     'activity',
     'gradebookcomponent',
-    'studentgrade',
+    'logs',
 
     'django.contrib.sites',
     'allauth',

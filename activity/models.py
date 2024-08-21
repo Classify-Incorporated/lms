@@ -4,6 +4,7 @@ from accounts.models import CustomUser
 from course.models import Term
 import uuid
 import os
+from logs.models import SubjectLog
 
 def get_upload_path(instance, filename):
     filename = f"{uuid.uuid4()}{os.path.splitext(filename)[1]}"
@@ -42,6 +43,15 @@ class Activity(models.Model):
 
     def __str__(self):
         return self.activity_name
+    
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None  # Check if the object is new (not yet saved)
+        super().save(*args, **kwargs)
+        if is_new:
+            SubjectLog.objects.create(
+                subject=self.subject,
+                message=f"A new activity named'{self.activity_name}' has been created for {self.subject.subject_name}."
+            )
     
     
 class ActivityQuestion(models.Model):

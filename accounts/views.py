@@ -5,9 +5,6 @@ from .models import CustomUser, Profile
 from django.contrib.auth.decorators import login_required
 
 
-def user_login_view(request):
-        return render(request, 'accounts/login.html')
-
 def admin_login_view(request):
     if request.method == 'POST':
         form = CustomLoginForm(request.POST)
@@ -19,7 +16,7 @@ def admin_login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('dashboard')  # Change 'dashboard' to your actual success URL
+                return redirect('dashboard')
             else:
                 return render(request, 'accounts/login.html', {'form': form, 'error': 'Invalid email or password'})
         else:
