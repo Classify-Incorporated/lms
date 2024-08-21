@@ -45,7 +45,7 @@ def viewProfile(request, pk):
 def updateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     if request.method == 'POST':
-        form = profileForm(request.POST, instance=profile)
+        form = profileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
             return redirect('viewProfile', pk=profile.pk)  # Redirect to viewProfile with profile ID
