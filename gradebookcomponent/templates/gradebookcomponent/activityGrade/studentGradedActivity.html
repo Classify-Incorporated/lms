@@ -18,21 +18,34 @@
               <strong>Question {{ question.number }}:</strong> {{ question.question_text }}
             </p>
 
-            {% if question.quiz_type.name != 'Essay' and question.correct_answer != None %}
+            {% if question.correct_answer != 'Answer hidden' %}
               <p>
                 <strong>Correct Answer:</strong> {{ question.correct_answer }}
               </p>
             {% endif %}
 
-            <p>
-              <strong>Student Answer:</strong> {{ question.student_answer|safe }}
-            </p>
+            {% if question.student_answer != 'Student answer hidden' %}
+              <p>
+                <strong>Student Answer:</strong> {{ question.student_answer|safe }}
+              </p>
+            {% else %}
+              <p>
+                <strong>Student Answer:</strong> Hidden by teacher
+              </p>
+            {% endif %}
           {% endfor %}
         </div>
+        {% if question.correct_answer != 'Answer hidden' %}
         <div class="progress-circle" data-score="{{ entry.total_score }}" data-max="{{ entry.max_score }}">
           <span class="progress-text">{{ entry.total_score|floatformat:'0' }} / {{ entry.max_score|floatformat:'0' }}</span>
           <div class="progress-inner-circle"></div>
         </div>
+        {% else %}
+        <div class="progress-circle" data-score="0" data-max="100">
+          <span class="progress-text">Score Hidden</span>
+          <div class="progress-inner-circle"></div>
+        </div>
+        {% endif %}
       </div>
     {% endfor %}
     <div class="text-right">

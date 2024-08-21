@@ -218,12 +218,22 @@ def studentActivityView(request, activity_id):
             else:
                 student_answer_display = question.student_answer or "No answer provided"
 
-            question_details.append({
-                'number': i,
-                'question_text': question.activity_question.question_text,
-                'correct_answer': question.activity_question.correct_answer,
-                'student_answer': student_answer_display,
-            })
+            if activity.show_score:
+                question_details.append({
+                    'number': i,
+                    'question_text': question.activity_question.question_text,
+                    'correct_answer': question.activity_question.correct_answer,
+                    'student_answer': student_answer_display,
+                    'score': question.score,
+                })
+            else:
+                question_details.append({
+                    'number': i,
+                    'question_text': question.activity_question.question_text,
+                    'student_answer': 'Student answer hidden',
+                    'score': 'Score hidden',
+                    'correct_answer': 'Answer hidden',
+                })
 
             if latest_submission_time is None or (question.submission_time and question.submission_time > latest_submission_time):
                 latest_submission_time = question.submission_time

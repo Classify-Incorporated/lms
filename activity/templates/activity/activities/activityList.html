@@ -17,6 +17,7 @@
             <th>Term</th>
             <th>Start Time</th>
             <th>End Time</th>
+            <th>Show Score</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -28,6 +29,12 @@
               <td>{{ activity.term.term_name }}</td>
               <td>{{ activity.start_time }}</td>
               <td>{{ activity.end_time }}</td>
+              <td>
+                <form method="post" action="{% url 'toggleShowScore' activity.id %}">
+                  {% csrf_token %}
+                  <input type="checkbox" name="show_score" onchange="this.form.submit()" {% if activity.show_score %}checked{% endif %}>
+                </form>
+              </td>
               <td>
                 <div class="dropdown">
                   <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
