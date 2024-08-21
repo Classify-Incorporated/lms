@@ -1,14 +1,6 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}
-
-{% endblock %}
-{% block content %}
-  <h1>Upload SCORM Package</h1>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Upload</button>
-    <a href="{% url 'SubjectList' %}" class="btn btn-secondary">Back</a>
-  </form>
-{% endblock %}
+<!-- upload.html -->
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-primary">Upload</button>
+</form>
