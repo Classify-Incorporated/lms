@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from allauth.socialaccount.models import SocialToken
 from django.contrib import messages
+from roles.models import Role
 
 @login_required
 def send_message(request):
@@ -26,11 +27,15 @@ def send_message(request):
             teacher_id = recipient_type.split('_')[1]
             teacher = get_object_or_404(CustomUser, id=teacher_id)
             recipients = [teacher]
+        elif recipient_type.startswith('student_'):
+            student_id = recipient_type.split('_')[1]
+            student = get_object_or_404(CustomUser, id=student_id)
+            recipients = [student]
 
         message = Message.objects.create(subject=subject_text, body=body, sender=sender)
         message.recipients.set(recipients)
         message.save()
-        messages.success(request, 'Message sent successfully!')
+
         # Add entries to MessageUnreadStatus for each recipient
         for recipient in recipients:
             MessageUnreadStatus.objects.create(
@@ -39,18 +44,21 @@ def send_message(request):
                 created_at=timezone.now()  # Set the timestamp for when the message was created
             )
 
+        messages.success(request, 'Message sent successfully!')
         return redirect('inbox')
     else:
         messages.error(request, 'There was an error when sending the Message. Please try again.')
 
     subjects = Subject.objects.all()
     instructors = CustomUser.objects.filter(groups__name='Instructor')
+    students = CustomUser.objects.filter(groups__name='Student')  # Fetch all students
 
     unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
 
     return render(request, 'message/inbox.html', {
         'subjects': subjects,
         'instructors': instructors,
+        'students': students,  # Pass students to the template
         'unread_messages_count': unread_messages_count,
     })
 
@@ -94,12 +102,8 @@ def send_message(request):
 
 @login_required
 def inbox(request):
-    if not request.user.is_authenticated:
-        return redirect('account_login')  # Ensure user is redirected to login if not authenticated
-
     messages = Message.objects.filter(recipients=request.user)
-    # unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
-
+    
     message_status_list = []
     for message in messages:
         read_status = MessageReadStatus.objects.filter(message=message, user=request.user).first()
@@ -109,14 +113,18 @@ def inbox(request):
         })
 
     subjects = Subject.objects.all()
-    instructors = CustomUser.objects.filter(groups__name='Instructor')
+    instructor_role = Role.objects.get(name='Teacher')
+    student_role = Role.objects.get(name='Student')
+    instructors = CustomUser.objects.filter(profile__role=instructor_role) if instructor_role else CustomUser.objects.none()
+    students = CustomUser.objects.filter(profile__role=student_role) if student_role else CustomUser.objects.none()
 
     return render(request, 'message/inbox.html', {
         'message_status_list': message_status_list,
-        # 'unread_messages_count': unread_messages_count,  # Pass the unread count
         'subjects': subjects,
         'instructors': instructors,
+        'students': students, 
     })
+
 
 # def view_message(request, message_id):
 #     message = get_object_or_404(Message, id=message_id)
