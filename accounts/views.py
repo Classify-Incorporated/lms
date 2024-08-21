@@ -89,4 +89,4 @@ def createProfile(request):
 
 def sign_out(request):
     auth_logout(request)
-    return redirect('user_login_view')
+    return redirect('admin_login_view')

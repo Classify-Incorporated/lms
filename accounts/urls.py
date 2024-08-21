@@ -8,8 +8,7 @@ from .views import (
 
 urlpatterns = [
     #Login Function
-    path('', user_login_view, name='user_login_view'),
-    path('admin_login_view/', admin_login_view, name='admin_login_view'),
+    path('', admin_login_view, name='admin_login_view'),
 
     #View Profile
     path('student/', student, name='student'),
