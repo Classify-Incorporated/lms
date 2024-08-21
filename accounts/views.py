@@ -4,6 +4,7 @@ from .forms import CustomLoginForm, profileForm
 from .models import CustomUser, Profile
 from django.contrib.auth.decorators import login_required
 
+
 def user_login_view(request):
         return render(request, 'accounts/login.html')
 
@@ -11,50 +12,50 @@ def admin_login_view(request):
     if request.method == 'POST':
         form = CustomLoginForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email']
+            username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            print(f'Login attempt for email: {email}')
 
             # Authenticate the user
-            user = authenticate(request, username=email, password=password)
+            user = authenticate(request, username=username, password=password)
             if user is not None:
-                print(f'User authenticated: {email}')
                 login(request, user)
                 return redirect('dashboard')  # Change 'dashboard' to your actual success URL
             else:
-                print('Authentication failed')
                 return render(request, 'accounts/login.html', {'form': form, 'error': 'Invalid email or password'})
         else:
-            print('Login form is not valid')
             return render(request, 'accounts/login.html', {'form': form, 'error': 'Form data is not valid'})
     else:
         form = CustomLoginForm()
     return render(request, 'accounts/login.html', {'form': form})
 
 #List Profile
+@login_required
 def student(request):
     profiles = Profile.objects.filter(role__name__iexact='student')
     return render(request, 'accounts/student.html', {'profiles': profiles})
 
 #View Profile
+@login_required
 def viewProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     return render(request, 'accounts/viewStudentProfile.html',{'profile': profile})
 
 #Modify Profile
+@login_required
 def updateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     if request.method == 'POST':
-        form = profileForm(request.POST, request.FILES, instance=profile)
+        form = profileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('viewProfile', pk=profile.pk)  # Redirect to viewProfile with profile ID
+            return redirect('student')
     else:
         form = profileForm(instance=profile)
-    return render(request, 'accounts/updateStudentProfile.html', {'form': form, 'profile': profile})
+    return render(request, 'accounts/updateStudentProfile.html', {'form': form,'profile': profile})
 
 
 #Activate Profile
+@login_required
 def activateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     profile.active = True
@@ -62,6 +63,7 @@ def activateProfile(request, pk):
     return redirect('viewProfile', pk=profile.pk)
 
 #Deactivate Profile
+@login_required
 def deactivateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     profile.active = False

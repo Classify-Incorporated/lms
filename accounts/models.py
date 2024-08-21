@@ -12,8 +12,8 @@ def get_upload_path(instance, filename):
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
 
     def has_perm(self, perm, obj=None):
         if super().has_perm(perm, obj):
