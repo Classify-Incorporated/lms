@@ -7,7 +7,6 @@ Student Grades
 {% block content %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<div class="container">
     <h1>Student Grades</h1>
 
     <div class="form-group">
@@ -47,7 +46,7 @@ Student Grades
             </tbody>
         </table>
     </div>
-</div>
+
 
 <script>
     const isTeacher = {{ is_teacher|yesno:"true,false" }};  // Check if the user is a teacher
