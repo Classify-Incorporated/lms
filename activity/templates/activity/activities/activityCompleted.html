@@ -7,6 +7,9 @@
 {% block content %}
   <h1>Thank you!</h1>
   <p>Your answers have been submitted successfully.</p>
+  <div class="text-right mr-3">
+    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+  </div>
   {% if show_score %}
     <div class="progress-circle" data-score="{{ score }}" data-max="{{ max_score }}">
       <span class="progress-text">{{ score|floatformat:"0" }} / {{ max_score|floatformat:"0" }}</span>

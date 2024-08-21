@@ -455,36 +455,6 @@ class GradeIndividualEssayView(View):
         return redirect('grade_essays', activity_id=activity_id)
 
 
-# List all quizzes and exams for a teacher's students
-@login_required
-def studentQuizzesExams(request):
-    teacher = request.user
-
-    # Get subjects where the teacher is assigned
-    subjects = Subject.objects.filter(assign_teacher=teacher).distinct()
-
-    # Get activities for these subjects
-    activities = Activity.objects.filter(subject__in=subjects).distinct()
-
-    activity_details = []
-
-    student_activities = StudentActivity.objects.filter(activity__in=activities).select_related('student', 'activity', 'activity__subject')
-    max_scores = ActivityQuestion.objects.filter(activity__in=activities).values('activity_id').annotate(Max('score'))
-
-    max_score_dict = {item['activity_id']: item['score__max'] for item in max_scores}
-
-    for student_activity in student_activities:
-        activity_detail = {
-            'activity': student_activity.activity,
-            'subject': student_activity.activity.subject.subject_name,
-            'student': student_activity.student,
-            'score': student_activity.score,
-            'max_score': max_score_dict.get(student_activity.activity_id, 0),
-        }
-        activity_details.append(activity_detail)
-
-    return render(request, 'activity/activities/allActivity.html', {'activity_details': activity_details})
-
 # Display activity details
 @method_decorator(login_required, name='dispatch')
 class ActivityDetailView(View):
