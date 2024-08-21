@@ -1,50 +1,36 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  Total Scores for All Students - {{ current_semester.semester_name }} {{ current_semester.school_year }}
+  Total Scores for {{ student.get_full_name }} in {{ current_semester.semester_name }} - {{ current_semester.school_year }}
 {% endblock %}
 
 {% block content %}
-  <h1>Total Scores for All Students</h1>
+  <h1>Total Scores for {{ student.get_full_name }}</h1>
   <h2>{{ current_semester.semester_name }} - {{ current_semester.school_year }}</h2>
 
   <!-- Filter Form -->
   <form method="get">
     <div class="form-row">
-      <div class="form-group col-md-6">
-        <label for="term">Select Term:</label>
-        <select id="term" name="term" class="form-control" onchange="this.form.submit()">
-          <option value="all" {% if selected_term_id == 'all' %}selected{% endif %}>All Terms</option>
-          {% for term in terms %}
-            <option value="{{ term.id }}" {% if selected_term_id == term.id|stringformat:"s" %}selected{% endif %}>
-              {{ term.term_name }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="form-group col-md-6">
-        <label for="subject">Select Subject:</label>
-        <select id="subject" name="subject" class="form-control" onchange="this.form.submit()">
-          <option value="all" {% if selected_subject_id == 'all' %}selected{% endif %}>All Subjects</option>
-          {% for subject in subjects %}
-            <option value="{{ subject.id }}" {% if selected_subject_id == subject.id|stringformat:"s" %}selected{% endif %}>
-              {{ subject.subject_name }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
+        <div class="form-group col-md-6">
+            <label for="term">Select Term:</label>
+            <select id="term" name="term" class="form-control" onchange="this.form.submit()">
+                <option value="all" {% if selected_term_id == 'all' %}selected{% endif %}>All Terms</option>
+                {% for term in terms %}
+                    <option value="{{ term.id }}" {% if selected_term_id == term.id|stringformat:"s" %}selected{% endif %}>
+                        {{ term.term_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
-  </form>
+</form>
 
   {% if term_scores_data %}
-    <!-- Display Participation Scores Separately -->
     <h3>Participation Scores</h3>
     <div class="table-responsive">
       <table class="table table-bordered table-striped">
         <thead>
           <tr>
-            <th>Student Name</th>
             <th>Participation Score</th>
             <th>Max Score</th>
             <th>Percentage</th>
@@ -56,7 +42,6 @@
             {% for data in term_data.student_scores_data %}
               {% if data.is_participation %}
                 <tr>
-                  <td>{{ data.student }}</td>
                   <td>{{ data.total_score }}</td>
                   <td>{{ data.max_score }}</td>
                   <td>{{ data.percentage|floatformat:2 }}%</td>
@@ -76,7 +61,6 @@
         <table class="table table-bordered table-striped">
           <thead>
             <tr>
-              <th>Student Name</th>
               <th>Activity Name</th>
               <th>Question Text</th>
               <th>Total Score</th>
@@ -90,7 +74,6 @@
             {% for data in term_data.student_scores_data %}
               {% if not data.is_participation %}
                 <tr {% if data.missed %}class="text-danger"{% endif %}>
-                  <td>{{ data.student }}</td>
                   <td>{{ data.activity_name }}</td>
                   <td>{{ data.question_text }}</td>
                   <td>{{ data.score }}</td>
