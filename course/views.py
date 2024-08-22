@@ -16,6 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django import forms
 from django.http import HttpResponse
 from module.forms import moduleForm
+from django.contrib import messages
 # Handle the enrollment of irregular students
 
 class enrollStudentView(View):
@@ -41,7 +42,7 @@ class enrollStudentView(View):
 
         return redirect('subjectDetail', pk=subject.pk)
 
-# Add Irregular Student
+# Enrollled Student
 @login_required
 def enrollStudent(request):
     student_role = Role.objects.get(name__iexact='student')
@@ -56,6 +57,41 @@ def enrollStudent(request):
         'profiles_json': profiles_json,
         'subjects': subjects,
         'semesters': semesters
+    })
+
+#enrolled Student List
+@login_required
+def subjectEnrollmentList(request):
+    user = request.user
+    selected_semester_id = request.GET.get('semester', None)  # Get the selected semester from the query parameters
+    
+    if selected_semester_id:
+        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
+    else:
+        selected_semester = None
+
+    if user.profile.role.name.lower() == 'teacher':  # Assuming you have a 'role' field in the Profile model linked to CustomUser
+        # Filter enrollments based on the subjects assigned to the teacher and the selected semester
+        enrollments = SubjectEnrollment.objects.select_related('subject', 'semester', 'student').filter(subject__assign_teacher=user)
+    else:
+        # Display all enrollments for the selected semester or all if none selected
+        enrollments = SubjectEnrollment.objects.select_related('subject', 'semester', 'student')
+    
+    if selected_semester:
+        enrollments = enrollments.filter(semester=selected_semester)
+    
+    subjects = {}
+    for enrollment in enrollments:
+        if enrollment.subject not in subjects:
+            subjects[enrollment.subject] = []
+        subjects[enrollment.subject].append(enrollment)
+    
+    semesters = Semester.objects.all()  # Get all semesters for the dropdown
+
+    return render(request, 'course/subjectEnrollment/enrolledStudentList.html', {
+        'subjects': subjects,
+        'semesters': semesters,
+        'selected_semester': selected_semester,
     })
 
 
@@ -305,7 +341,10 @@ def createSemester(request):
         form = semesterForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Semester created successfully!')
             return redirect('semesterList')
+        else:
+            messages.error(request, 'There was an error creating the semester. Please try again.')
     else:
         form = semesterForm()
     return render(request, 'course/semester/createSemester.html', {
@@ -320,7 +359,10 @@ def updateSemester(request, pk):
         form = semesterForm(request.POST, instance=semester)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Semester updated successfully!')
             return redirect('semesterList')
+        else:
+            messages.error(request, 'There was an error updating the semester. Please try again.')
     else:
         form = semesterForm(instance=semester)
     return render(request, 'course/semester/updateSemester.html', {
@@ -344,7 +386,10 @@ def createTerm(request):
         form = termForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Term created successfully!')
             return redirect('termList')
+        else:
+            messages.error(request, 'There was an error creating the term. Please try again.')
     else:
         form = termForm()
     return render(request, 'course/term/createTerm.html', {
@@ -359,7 +404,10 @@ def updateTerm(request, pk):
         form = termForm(request.POST, instance=term)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Term updated successfully!')
             return redirect('termList')
+        else:
+            messages.error(request, 'There was an error updating the term. Please try again.')
     else:
         form = termForm(instance=term)
     return render(request, 'course/term/updateterm.html', {
@@ -400,6 +448,7 @@ def participationScoresView(request, subject_id, term_id, max_score):
             )
             score.score = score_value
             score.max_score = max_score
+            messages.success(request, 'Participation scores saved successfully!')
             score.save()
 
         return redirect('subjectDetail', pk=subject.id)

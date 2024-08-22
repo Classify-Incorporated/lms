@@ -12,7 +12,7 @@ from roles.models import Role
 @login_required
 def send_message(request):
     if request.method == 'POST':
-        subject_text = request.POST.get('subject')  # Renamed to avoid conflict with Subject model
+        subject_text = request.POST.get('subject') 
         body = request.POST.get('body')
         sender = request.user
         recipient_type = request.POST.get('recipient_type')
@@ -63,43 +63,6 @@ def send_message(request):
     })
 
 
-
-# @login_required
-# def send_message(request):
-#     if request.method == 'POST':
-#         subject_text = request.POST.get('subject')  # Renamed to avoid conflict with Subject model
-#         body = request.POST.get('body')
-#         sender = request.user
-#         recipient_type = request.POST.get('recipient_type')
-
-#         recipients = []
-#         if recipient_type.startswith('subject_'):
-#             subject_id = recipient_type.split('_')[1]
-#             subject = get_object_or_404(Subject, id=subject_id)
-#             subject_enrollments = subject.subjectenrollment_set.all().distinct()
-#             recipients = [enrollment.student for enrollment in subject_enrollments]
-#         elif recipient_type.startswith('teacher_'):
-#             teacher_id = recipient_type.split('_')[1]
-#             teacher = get_object_or_404(CustomUser, id=teacher_id)
-#             recipients = [teacher]
-
-#         message = Message.objects.create(subject=subject_text, body=body, sender=sender)
-#         message.recipients.set(recipients)
-#         message.save()
-
-#         return redirect('inbox')
-
-#     subjects = Subject.objects.all()
-#     instructors = CustomUser.objects.filter(groups__name='Instructor')
-
-#     unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
-
-#     return render(request, 'message/inbox.html', {
-#         'subjects': subjects,
-#         'instructors': instructors,
-#         'unread_messages_count': unread_messages_count,
-#     })
-
 @login_required
 def inbox(request):
     messages = Message.objects.filter(recipients=request.user)
@@ -125,17 +88,6 @@ def inbox(request):
         'students': students, 
     })
 
-
-# def view_message(request, message_id):
-#     message = get_object_or_404(Message, id=message_id)
-#     read_status, created = MessageReadStatus.objects.get_or_create(user=request.user, message=message)
-
-
-#     if not read_status.read_at:
-#         read_status.read_at = timezone.now()
-#         read_status.save()
-
-#     return render(request, 'message/viewMessage.html', {'message': message})
 
 def view_message(request, message_id):
     message = get_object_or_404(Message, id=message_id)

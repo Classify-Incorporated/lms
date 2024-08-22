@@ -13,7 +13,6 @@ from decimal import Decimal
 from collections import defaultdict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 
 #View GradeBookComponents
 @login_required
@@ -265,7 +264,8 @@ def get_current_semester(request):
 @login_required
 def studentTotalScore(request, student_id, subject_id):
     selected_semester_id = request.GET.get('semester', None)
-    
+    selected_term_id = request.GET.get('term', 'all')  # Capture selected term
+
     if selected_semester_id == 'null':
         selected_semester_id = None
     
@@ -279,7 +279,6 @@ def studentTotalScore(request, student_id, subject_id):
             })
 
     user = request.user
-    selected_term_id = request.GET.get('term', 'all')
 
     # Fetch the student and subject based on IDs, filtering by the selected semester
     student = get_object_or_404(CustomUser, id=student_id)
@@ -297,8 +296,11 @@ def studentTotalScore(request, student_id, subject_id):
         student_scores_data = []
         term_has_data = False
 
+        # Ensure participation scores are retrieved for both teachers and students
         participation_component = GradeBookComponents.objects.filter(
-            teacher=user, subject=subject, is_participation=True
+            teacher=user if user.profile.role.name.lower() == 'teacher' else subject.assign_teacher,
+            subject=subject,
+            is_participation=True
         ).first()
 
         if participation_component:
@@ -327,7 +329,7 @@ def studentTotalScore(request, student_id, subject_id):
 
             try:
                 gradebook_component = GradeBookComponents.objects.get(
-                    teacher=user, 
+                    teacher=user if user.profile.role.name.lower() == 'teacher' else subject.assign_teacher,
                     subject=subject, 
                     activity_type=activity_type
                 )
@@ -400,6 +402,7 @@ def studentTotalScore(request, student_id, subject_id):
         'selected_term_id': selected_term_id,
         'student': student,
     })
+
 
 
 #display total grade
@@ -582,7 +585,6 @@ def studentTotalScoreApi(request):
 
     return JsonResponse({'term_data': final_term_data})
 
-
 @login_required
 def getSemesters(request):
     semesters = Semester.objects.all().order_by('-start_date')
@@ -603,18 +605,29 @@ def getSemesters(request):
 # fetcH subject
 @login_required
 def getSubjects(request):
-    current_semester = get_current_semester(request)
+    semester_id = request.GET.get('semester_id')
 
-    if not current_semester:
-        return JsonResponse({'error': 'No current semester found.'}, status=400)
+    if not semester_id:
+        return JsonResponse({'error': 'Semester ID not provided.'}, status=400)
+
+    try:
+        selected_semester = Semester.objects.get(id=semester_id)
+    except Semester.DoesNotExist:
+        return JsonResponse({'error': 'Selected semester not found.'}, status=404)
 
     user = request.user
     is_student = user.profile.role.name.lower() == 'student'
 
     if is_student:
-        subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).values('id', 'subject_name')
+        subjects = Subject.objects.filter(
+            subjectenrollment__student=user, 
+            subjectenrollment__semester=selected_semester
+        ).values('id', 'subject_name')
     else:
-        subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).values('id', 'subject_name')
+        subjects = Subject.objects.filter(
+            assign_teacher=user, 
+            subjectenrollment__semester=selected_semester
+        ).values('id', 'subject_name')
 
     unique_subjects = {subject['id']: subject for subject in subjects}.values()
     subjects_list = list(unique_subjects)

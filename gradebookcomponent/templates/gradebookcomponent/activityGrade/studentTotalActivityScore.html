@@ -7,104 +7,95 @@ Student Grades
 {% block content %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <h1>Student Grades</h1>
+<h1>Student Grades</h1>
 
-    <div class="form-group">
-        <label for="semester">Select Semester:</label>
-        <select id="semester" class="form-control">
-            <!-- Semesters will be dynamically populated here -->
-        </select>
-    </div>
-    
-    <div class="form-group">
-        <label for="subject">Select Subject:</label>
-        <select id="subject" class="form-control">
-            <!-- Subjects will be dynamically populated here -->
-        </select>
-    </div>
+<div class="form-group">
+    <label for="semester">Select Semester:</label>
+    <select id="semester" class="form-control">
+        <option value="" disabled>Select a Semester</option>
+        <!-- The semesters will be populated here by JavaScript -->
+    </select>
+</div>
 
-    <div class="table-responsive">
-        <table id="scores-table" class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Subject</th>
-                    <th>Student Name</th>
-                    <th>Prelim</th>
-                    <th>Mid Term</th>
-                    <th>Semi-Final</th>
-                    <th>Final</th>
-                    <th>Total Term Weighted Score</th>
-                    {% if is_teacher %}
-                        <th>
-                            Allow View <br>
-                            <input type="checkbox" id="checkAll" onclick="toggleAllCheckboxes(this)">
-                        </th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
+<div class="form-group">
+    <label for="subject">Select Subject:</label>
+    <select id="subject" class="form-control">
+        <option value="all" selected>All Subjects</option>
+    </select>
+</div>
 
+<div class="table-responsive">
+    <table id="scores-table" class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Student Name</th>
+                <th>Prelim</th>
+                <th>Mid Term</th>
+                <th>Semi-Final</th>
+                <th>Final</th>
+                <th>Total Term Weighted Score</th>
+                {% if is_teacher %}
+                    <th>
+                        Allow View <br>
+                        <input type="checkbox" id="checkAll" onclick="toggleAllCheckboxes(this)">
+                    </th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
 
 <script>
-    const isTeacher = {{ is_teacher|yesno:"true,false" }};  // Check if the user is a teacher
+    const isTeacher = {{ is_teacher|yesno:"true,false" }};
     let semesterId = null;
 
-    // Fetch and display student scores based on selected subject and semester
     function fetchScores() {
         const subjectId = $('#subject').val();
-        const apiUrl = '/studentTotalScoreApi/'; // Use the unified endpoint
-        
+        const apiUrl = '/studentTotalScoreApi/';
+
         $.ajax({
             url: apiUrl,
             data: {
                 subject: subjectId || 'all',
-                semester: semesterId || 'current' 
+                semester: semesterId || 'current'
             },
             success: function(data) {
-                console.log('API Response:', data);
                 const scoresTableBody = $('#scores-table tbody');
-                scoresTableBody.empty(); // Clear the table body before adding new data
-    
+                scoresTableBody.empty();
+
                 if (data && data.term_data) {
                     data.term_data.forEach(function(studentData) {
                         const studentName = studentData.student;
-    
+
                         studentData.subjects.forEach(function(subjectData) {
                             const subjectName = subjectData.subject_name;
                             const subjectId = subjectData.subject_id;
                             const totalWeightedGrade = subjectData.total_weighted_grade;
-    
+
                             const studentRow = $('<tr>');
                             studentRow.append(`<td><a href="/studentTotalScore/${studentData.student_id}/${subjectId}/?semester=${semesterId}">${subjectName}</a></td>`);
                             studentRow.append(`<td>${studentName}</td>`);
-    
-                            // Initialize term score placeholders
+
                             let termScores = {
                                 'Prelim': 'N/A',
                                 'Mid Term': 'N/A',
                                 'Semi-Final': 'N/A',
                                 'Final': 'N/A'
                             };
-    
-                            // Fill in the term scores
+
                             subjectData.terms.forEach(function(term) {
                                 termScores[term.term_name] = `${parseFloat(term.percentage).toFixed(2)}%`;
                             });
-    
-                            // Add term scores to the row
+
                             studentRow.append(`<td>${termScores['Prelim']}</td>`);
                             studentRow.append(`<td>${termScores['Mid Term']}</td>`);
                             studentRow.append(`<td>${termScores['Semi-Final']}</td>`);
                             studentRow.append(`<td>${termScores['Final']}</td>`);
-    
-                            // Add total weighted grade
-                            const grade = calculateGrade(totalWeightedGrade);
-                            studentRow.append(`<td>${totalWeightedGrade.toFixed(2)}% (${grade})</td>`);
-    
-                            // Add the checkbox form for grade visibility if the user is a teacher
+                            studentRow.append(`<td>${totalWeightedGrade.toFixed(2)}% (${calculateGrade(totalWeightedGrade)})</td>`);
+
                             if (isTeacher) {
                                 const checkboxForm = `
                                     <td>
@@ -112,7 +103,7 @@ Student Grades
                                     </td>`;
                                 studentRow.append(checkboxForm);
                             }
-    
+
                             scoresTableBody.append(studentRow);
                         });
                     });
@@ -120,7 +111,6 @@ Student Grades
                     const noDataRow = $('<tr>');
                     noDataRow.append('<td colspan="8" class="text-center">No data found</td>');
                     scoresTableBody.append(noDataRow);
-                    console.warn('No data found or data structure is incorrect.');
                 }
             },
             error: function(xhr, status, error) {
@@ -159,21 +149,23 @@ Student Grades
         });
     }
 
-    // Fetch the list of subjects and populate the dropdown
     function fetchSubjects() {
         $.ajax({
             url: '/getSubjects/',
+            data: {
+                semester_id: semesterId
+            },
             success: function(data) {
-                console.log("Subjects Data: ", data);
-    
                 if (data && data.subjects) {
                     const subjectDropdown = $('#subject');
-                    subjectDropdown.empty(); // Clear any existing options
+                    subjectDropdown.empty();
                     subjectDropdown.append('<option value="all">All Subjects</option>');
-                    
+
                     data.subjects.forEach(function(subject) {
                         subjectDropdown.append(`<option value="${subject.id}">${subject.subject_name}</option>`);
                     });
+
+                    fetchScores();
                 } else {
                     console.warn('No subjects found or data structure is incorrect.');
                 }
@@ -188,27 +180,21 @@ Student Grades
         $.ajax({
             url: '/getSemesters/',
             success: function(data) {
-                console.log("Semesters Data: ", data);
-    
                 if (data && data.semesters) {
                     const semesterDropdown = $('#semester');
-                    semesterDropdown.empty(); // Clear any existing options
+                    semesterDropdown.empty();
 
-                    // Identify and select the current semester
-                    const currentSemester = data.semesters.find(semester => semester.is_current_semester);
-                    if (currentSemester) {
-                        semesterId = currentSemester.id;
-                        semesterDropdown.append(`<option value="${currentSemester.id}">${currentSemester.semester_name} - ${currentSemester.school_year}</option>`);
-                    }
+                    semesterDropdown.append('<option value="" disabled>Select a Semester</option>');
 
-                    // Add other semesters
                     data.semesters.forEach(function(semester) {
-                        if (semester.id !== semesterId) {
-                            semesterDropdown.append(`<option value="${semester.id}">${semester.semester_name} - ${semester.school_year}</option>`);
-                        }
+                        const option = `<option value="${semester.id}" ${semester.is_current_semester ? 'selected' : ''}>${semester.semester_name} - ${semester.school_year}</option>`;
+                        semesterDropdown.append(option);
                     });
 
-                    fetchScores(); // Fetch scores for the selected semester
+                    // Set semesterId to the current semester or first option
+                    semesterId = data.semesters.find(semester => semester.is_current_semester)?.id || data.semesters[0].id;
+
+                    fetchSubjects();
                 } else {
                     console.warn('No semesters found or data structure is incorrect.');
                 }
@@ -219,34 +205,28 @@ Student Grades
         });
     }
 
-    // Calculate the grade based on the term weighted score
     function calculateGrade(termWeightedScore) {
-        if (termWeightedScore >= 97.5) return '1.00 (Excellent)';
-        if (termWeightedScore >= 94.5) return '1.25 (Very Good)';
-        if (termWeightedScore >= 91.5) return '1.50 (Very Good)';
-        if (termWeightedScore >= 88.5) return '1.75 (Very Good)';
-        if (termWeightedScore >= 85.5) return '2.00 (Satisfactory)';
-        if (termWeightedScore >= 82.5) return '2.25 (Satisfactory)';
-        if (termWeightedScore >= 79.5) return '2.50 (Satisfactory)';
-        if (termWeightedScore >= 76.5) return '2.75 (Fair)';
-        if (termWeightedScore >= 74.5) return '3.00 (Fair)';
+        if (termWeightedScore >= 97.5) return '1.00';
+        if (termWeightedScore >= 94.5) return '1.25';
+        if (termWeightedScore >= 91.5) return '1.50';
+        if (termWeightedScore >= 88.5) return '1.75';
+        if (termWeightedScore >= 85.5) return '2.00';
+        if (termWeightedScore >= 82.5) return '2.25';
+        if (termWeightedScore >= 79.5) return '2.50';
+        if (termWeightedScore >= 76.5) return '2.75';
+        if (termWeightedScore >= 74.5) return '3.00';
         return '5.00 (Failed)';
     }
 
-    // Initialize the page: fetch subjects and scores
     $(document).ready(function() {
-        fetchSemesters(); // Populate semesters dropdown
-        fetchSubjects(); // Populate subjects dropdown
+        fetchSemesters();
 
-        // Re-fetch scores when the subject or semester selection changes
         $('#subject').change(fetchScores);
         $('#semester').change(function () {
-            const selectedValue = $(this).val();
-            semesterId = selectedValue !== 'null' ? selectedValue : 'current';
-            fetchScores();
+            semesterId = $(this).val();
+            fetchSubjects();
         });
     });
 </script>
-
 
 {% endblock %}

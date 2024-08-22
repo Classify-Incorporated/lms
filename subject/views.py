@@ -3,6 +3,7 @@ from .forms import subjectForm
 from .models import Subject
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+
 # Create your views here.
 
 #Subject List

@@ -3,7 +3,9 @@ from django.contrib.auth import logout as auth_logout, authenticate, login
 from .forms import CustomLoginForm, profileForm
 from .models import CustomUser, Profile
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.sessions.models import Session
+from django.utils import timezone
+from django.contrib.auth import get_user_model
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -67,9 +69,32 @@ def deactivateProfile(request, pk):
     profile.save()
     return redirect('viewProfile', pk=profile.pk)
 
-@login_required
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+    sessions = Session.objects.filter(expire_date__gte=timezone.now())
+    user_ids = []
+
+    for session in sessions:
+        data = session.get_decoded()
+        user_id = data.get('_auth_user_id')
+        if user_id:
+            user_ids.append(user_id)
+
+    # Fetch users based on the active session IDs
+    active_users = get_user_model().objects.filter(id__in=user_ids).distinct()
+
+    # Print the names of logged-in users to the console
+    for user in active_users:
+        print(f"Logged in user: {user.get_full_name()} (Username: {user.username})")
+
+    # Count active users
+    active_users_count = active_users.count()
+
+    context = {
+        'active_users_count': active_users_count,
+        'active_users': active_users,  # Passing the user objects to the template
+    }
+    return render(request, 'accounts/dashboard.html', context)
+
 
 def activity_stream(request):
     return render(request, 'accounts/activity_stream.html')
