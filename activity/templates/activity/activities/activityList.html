@@ -30,10 +30,7 @@
               <td>{{ activity.start_time }}</td>
               <td>{{ activity.end_time }}</td>
               <td>
-                <form method="post" action="{% url 'toggleShowScore' activity.id %}">
-                  {% csrf_token %}
-                  <input type="checkbox" name="show_score" onchange="this.form.submit()" {% if activity.show_score %}checked{% endif %}>
-                </form>
+                <input type="checkbox" data-activity-id="{{ activity.id }}" class="show-score-checkbox" {% if activity.show_score %}checked{% endif %}>
               </td>
               <td>
                 <div class="dropdown">
@@ -54,4 +51,32 @@
     </div>
   </div>
   <a href="javascript:history.back()" class="btn btn-secondary mt-3">Back</a>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+      $(document).ready(function() {
+          $('.show-score-checkbox').change(function() {
+              const activityId = $(this).data('activity-id');
+              
+              $.ajax({
+                  type: 'POST',
+                  url: '{% url "toggleShowScore" 0 %}'.replace('0', activityId),
+                  data: {
+                      'csrfmiddlewaretoken': '{{ csrf_token }}',
+                  },
+                  success: function(response) {
+                      if (response.success) {
+                          console.log('Show score toggled to:', response.show_score);
+                      } else {
+                          console.error('Failed to toggle show score');
+                      }
+                  },
+                  error: function(xhr, status, error) {
+                      console.error('An error occurred:', error);
+                  }
+              });
+          });
+      });
+  </script>
+  
 {% endblock %}

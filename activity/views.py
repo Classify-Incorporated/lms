@@ -12,6 +12,8 @@ import re
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 # Add type of activity
 @method_decorator(login_required, name='dispatch')
@@ -93,6 +95,7 @@ class AddQuizTypeView(View):
 @method_decorator(login_required, name='dispatch')
 class AddQuestionView(View):
     def get(self, request, activity_id, quiz_type_id):
+        print(f"Activity ID: {activity_id}, Quiz Type ID: {quiz_type_id}")
         activity = get_object_or_404(Activity, id=activity_id)
         quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
         return render(request, 'activity/question/createQuestion.html', {
@@ -509,11 +512,12 @@ def activityList(request, subject_id):
         'activities': activities,
     })
 
+@require_POST
 def toggleShowScore(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
     activity.show_score = not activity.show_score
     activity.save()
-    return redirect('activityList', subject_id=activity.subject.id)
+    return JsonResponse({'success': True, 'show_score': activity.show_score})
 
 @login_required
 def deleteActivity(request, activity_id):
