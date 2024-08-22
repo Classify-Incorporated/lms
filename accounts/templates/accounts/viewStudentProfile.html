@@ -79,7 +79,9 @@
               <h6 class="text-muted">{{ profile.user.email }}</h6>
             </div>
           </div>
+          {% if user.is_superuser %}
           <button class="btn btn-secondary" id="editBtn"><i class="fas fa-edit"></i> Edit</button>
+          {% endif %}
         </div>
       </div>
       <div class="row">

@@ -34,6 +34,8 @@
       <span>Activity Stream</span>
     </a>
   </li>
+
+{% if not user.is_superuser %}
   <li class="nav-item">
     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
       <i class="bx bx-chalkboard"></i>
@@ -82,9 +84,18 @@
             <span>Subject Percentage</span>
           </a>
         {% endif %}
+
+        {% if user|has_perm:'course.view_term' %}
+          <a class="collapse-item" href="{% url 'termBookList' %}">
+            <i class="bx bx-calendar-event"></i>
+            Term Percentage
+          </a>
+        {% endif %}
       </div>
     </div>
   </li>
+
+  {% endif %}
 
   {% if user|has_perm:'course.view_subjectenrollment' %}
     <li class="nav-item {% if request.resolver_match.url_name == 'subjectEnrollmentList' %}active{% endif %}">
@@ -134,12 +145,6 @@
           </a>
         {% endif %}
 
-        {% if user|has_perm:'course.view_term' %}
-          <a class="collapse-item" href="{% url 'termBookList' %}">
-            <i class="bx bx-calendar-event"></i>
-            Term Percentage
-          </a>
-        {% endif %}
       </div>
     </div>
   </li>

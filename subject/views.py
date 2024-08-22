@@ -9,9 +9,13 @@ from django.contrib import messages
 #Subject List
 @login_required
 def subjectList(request):
-    subjects = Subject.objects.all()
+    if request.user.profile.role.name.lower() == 'teacher':
+        subjects = Subject.objects.filter(assign_teacher=request.user)
+    else:
+        subjects = Subject.objects.all()
+
     form = subjectForm()
-    return render(request, 'subject/subject.html',{'subjects': subjects, 'form': form})
+    return render(request, 'subject/subject.html', {'subjects': subjects, 'form': form})
 
 #Create Subject
 @login_required

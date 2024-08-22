@@ -5,7 +5,7 @@
       <h5>Add Role</h5>
     </div>
     <div class="custom-modal-body">
-      <form method="POST">
+      <form method="POST" action="{% url 'createTermGradeBookComponent' %}">
         {% csrf_token %}
         <div class="form-group">
           <label for="role">Role:</label>
