@@ -3,12 +3,14 @@ from .views import (
 
     enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,
     createTerm,termList,updateTerm,subjectFinishedActivities, participationScoresView, selectParticipation,
-    enrollStudentView,
+    enrollStudentView, subjectEnrollmentList, 
 )
 
 urlpatterns = [
+    #enrolled student
     path('enrollStudent/', enrollStudent, name='enrollStudent'),
     path('enrollStudentView/', enrollStudentView.as_view(), name='enrollStudentView'),
+    path('subjectEnrollmentList/', subjectEnrollmentList, name='subjectEnrollmentList'),
 
     path('SubjectList/', subjectList, name='SubjectList'),
 

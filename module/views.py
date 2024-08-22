@@ -26,8 +26,10 @@ def createModule(request, subject_id):
             module = form.save(commit=False)
             module.subject = subject  
             module.save()
-            print(module)  # Print the saved module object
+            messages.success(request, 'Module created successfully!')
             return redirect('subjectDetail', pk=subject_id)
+        else:
+            messages.error(request, 'There was an error creating the module. Please try again.')
     else:
         form = moduleForm()
 
@@ -42,7 +44,10 @@ def updateModule(request, pk):
         form = moduleForm(request.POST, instance=module)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Module updated successfully!')
             return redirect('success')
+        else:
+            messages.error(request, 'There was an error updated the module. Please try again.')
     else:
         form = moduleForm(instance=module)
     
@@ -60,19 +65,21 @@ def viewModule(request, pk):
 @teacher_required
 def deleteModule(request, pk):
     module = get_object_or_404(Module, pk=pk)
+    messages.success(request, 'Module deleted successfully!')
     module.delete()
     return redirect('success')
 
 
 def uploadScormPackage(request, subject_id):
-    subject = get_object_or_404(Subject, pk=subject_id)  # Fetch the subject
+    subject = get_object_or_404(Subject, pk=subject_id)  
 
     if request.method == 'POST':
         form = SCORMPackageForm(request.POST, request.FILES)
         if form.is_valid():
-            scorm_package = form.save(commit=False)  # Don't save to the database yet
-            scorm_package.subject = subject  # Associate the SCORM package with the subject
-            scorm_package.save()  # Now save to the database
+            scorm_package = form.save(commit=False) 
+            scorm_package.subject = subject  
+            messages.success(request, 'SCORM Package uploaded successfully!')
+            scorm_package.save() 
             return redirect('subjectDetail', pk=subject.pk)
     else:
         form = SCORMPackageForm()
