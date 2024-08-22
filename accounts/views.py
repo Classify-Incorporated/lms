@@ -6,6 +6,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from course.models import Semester, SubjectEnrollment
+from subject.models import Subject
+from django.db.models import Count
+from datetime import timedelta
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -69,29 +73,62 @@ def deactivateProfile(request, pk):
     profile.save()
     return redirect('viewProfile', pk=profile.pk)
 
+
 def dashboard(request):
+    # Get active sessions
     sessions = Session.objects.filter(expire_date__gte=timezone.now())
     user_ids = []
 
     for session in sessions:
-        data = session.get_decoded()
-        user_id = data.get('_auth_user_id')
+        session_data = session.get_decoded()
+        user_id = session_data.get('_auth_user_id')
         if user_id:
             user_ids.append(user_id)
 
     # Fetch users based on the active session IDs
     active_users = get_user_model().objects.filter(id__in=user_ids).distinct()
 
-    # Print the names of logged-in users to the console
-    for user in active_users:
-        print(f"Logged in user: {user.get_full_name()} (Username: {user.username})")
-
     # Count active users
     active_users_count = active_users.count()
 
+    # Determine the current semester based on today's date
+    today = timezone.now().date()
+    current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
+
+    if current_semester:
+        # Count the number of subjects in the current semester
+        subject_count = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct().count()
+
+        # Count the number of students per subject in the current semester
+        student_counts = SubjectEnrollment.objects.filter(semester=current_semester) \
+                                                  .values('subject__subject_name') \
+                                                  .annotate(student_count=Count('student')) \
+                                                  .order_by('-student_count')
+    else:
+        subject_count = 0
+        student_counts = []
+
+    # Calculate the number of active students per day for the last 7 days
+    start_date = today - timedelta(days=6)
+    active_users_per_day = []
+    for i in range(7):
+        day = start_date + timedelta(days=i)
+        sessions_on_day = sessions.filter(expire_date__date=day)
+        user_ids_on_day = set()
+        for session in sessions_on_day:
+            session_data = session.get_decoded()
+            user_id = session_data.get('_auth_user_id')
+            if user_id:
+                user_ids_on_day.add(user_id)
+        unique_users_on_day = get_user_model().objects.filter(id__in=user_ids_on_day).distinct().count()
+        active_users_per_day.append({'date': day, 'count': unique_users_on_day})
+
     context = {
         'active_users_count': active_users_count,
-        'active_users': active_users,  # Passing the user objects to the template
+        'active_users': active_users,
+        'subject_count': subject_count,
+        'student_counts': student_counts,  # Include student counts per subject
+        'active_users_per_day': active_users_per_day,  # Include active users per day
     }
     return render(request, 'accounts/dashboard.html', context)
 
