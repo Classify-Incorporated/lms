@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Enrolled Students by Subject
+{% endblock %}
+
+{% block content %}
+  <h1>Enrolled Students by Subject</h1>
+
+  {% if user.profile.role.name.lower != 'teacher' and user.profile.role.name.lower != 'student' %}
+    <a href="{% url 'enrollStudent' %}" class="btn btn-primary">Enroll Student</a>
+  {% endif %}
+
+  <!-- Semester Filter -->
+  <form method="get">
+    <div class="form-group">
+        <label for="semester">Select Semester:</label>
+        <select id="semester" name="semester" class="form-control" onchange="this.form.submit()">
+            <option value="">All Semesters</option>
+            {% for semester in semesters %}
+                <option value="{{ semester.id }}" {% if selected_semester and selected_semester.id == semester.id %}selected{% endif %}>
+                    {{ semester.semester_name }} - {{ semester.school_year }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+  </form>
+
+  {% for subject, enrollments in subjects.items %}
+    <h2>{{ subject.subject_name }}</h2>
+    
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Student Name</th>
+          <th>Semester</th>
+          <th>Enrollment Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for enrollment in enrollments %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ enrollment.student.get_full_name }}</td>
+            <td>{{ enrollment.semester.semester_name }} - {{ enrollment.semester.school_year }}</td>
+            <td>{{ enrollment.enrollment_date }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endfor %}
+{% endblock %}
