@@ -2,9 +2,14 @@ from django import forms
 from .models import CustomUser, Profile
 
 class CustomLoginForm(forms.Form):
-    username = forms.CharField()
-    password = forms.CharField(widget=forms.PasswordInput)
-
+    username = forms.CharField(
+        label='',
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-user', 'placeholder': 'Username'})
+    )
+    password = forms.CharField(
+        label='',
+        widget=forms.PasswordInput(attrs={'class': 'form-control form-control-user', 'placeholder': 'Password'})
+    )
 # Profile Form
 class profileForm(forms.ModelForm):
     class Meta:

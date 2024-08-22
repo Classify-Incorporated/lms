@@ -36,7 +36,7 @@
                     </div>
                     <form class="user" method="POST" action="{% url 'admin_login_view' %}">
                       {% csrf_token %}
-                      {{form.as_p}}
+                      {{ form.as_p }}
                       <div class="form-group">
                         <div class="custom-control custom-checkbox small">
                           <input type="checkbox" name="remember" class="custom-control-input" id="customCheck" />

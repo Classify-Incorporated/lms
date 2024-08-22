@@ -25,5 +25,5 @@ class SCORMPackageForm(forms.ModelForm):
         fields = ['package_name', 'pptx_link']
         widgets = {
             'package_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'pptx_link': forms.FileInput(attrs={'class': 'form-control'}),
+            'pptx_link': forms.TextInput(attrs={'class': 'form-control'}),
         }
