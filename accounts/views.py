@@ -10,6 +10,8 @@ from course.models import Semester, SubjectEnrollment
 from subject.models import Subject
 from django.db.models import Count
 from datetime import timedelta
+import requests
+from bs4 import BeautifulSoup
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -18,7 +20,6 @@ def admin_login_view(request):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
 
-            # Authenticate the user
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
@@ -31,19 +32,16 @@ def admin_login_view(request):
         form = CustomLoginForm()
     return render(request, 'accounts/login.html', {'form': form})
 
-#List Profile
 @login_required
 def student(request):
     profiles = Profile.objects.filter(role__name__iexact='student')
     return render(request, 'accounts/student.html', {'profiles': profiles})
 
-#View Profile
 @login_required
 def viewProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     return render(request, 'accounts/viewStudentProfile.html',{'profile': profile})
 
-#Modify Profile
 @login_required
 def updateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
@@ -56,8 +54,6 @@ def updateProfile(request, pk):
         form = profileForm(instance=profile)
     return render(request, 'accounts/updateStudentProfile.html', {'form': form,'profile': profile})
 
-
-#Activate Profile
 @login_required
 def activateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
@@ -65,7 +61,6 @@ def activateProfile(request, pk):
     profile.save()
     return redirect('viewProfile', pk=profile.pk)
 
-#Deactivate Profile
 @login_required
 def deactivateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
@@ -73,9 +68,34 @@ def deactivateProfile(request, pk):
     profile.save()
     return redirect('viewProfile', pk=profile.pk)
 
+def fetch_lms_articles():
+    url = "https://www.techlearning.com/news"  # Example URL
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    articles = []
+    for item in soup.select('.listingResult.small'):
+        title_element = item.select_one('h3')
+        description_element = item.select_one('p')
+        link_element = item.select_one('a')
+        thumbnail_element = item.select_one('img')
+
+        if title_element and description_element and link_element:
+            title = title_element.get_text(strip=True)
+            description = description_element.get_text(strip=True)
+            link = link_element['href']
+            thumbnail = thumbnail_element['src'] if thumbnail_element else 'default_thumbnail.jpg'
+
+            articles.append({
+                'title': title,
+                'description': description,
+                'url': link,
+                'thumbnail_url': thumbnail,
+            })
+
+    return articles
 
 def dashboard(request):
-    # Get active sessions
     sessions = Session.objects.filter(expire_date__gte=timezone.now())
     user_ids = []
 
@@ -85,21 +105,14 @@ def dashboard(request):
         if user_id:
             user_ids.append(user_id)
 
-    # Fetch users based on the active session IDs
     active_users = get_user_model().objects.filter(id__in=user_ids).distinct()
-
-    # Count active users
     active_users_count = active_users.count()
 
-    # Determine the current semester based on today's date
     today = timezone.now().date()
     current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
 
     if current_semester:
-        # Count the number of subjects in the current semester
         subject_count = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct().count()
-
-        # Count the number of students per subject in the current semester
         student_counts = SubjectEnrollment.objects.filter(semester=current_semester) \
                                                   .values('subject__subject_name') \
                                                   .annotate(student_count=Count('student')) \
@@ -108,7 +121,6 @@ def dashboard(request):
         subject_count = 0
         student_counts = []
 
-    # Calculate the number of active students per day for the last 7 days
     start_date = today - timedelta(days=6)
     active_users_per_day = []
     for i in range(7):
@@ -123,19 +135,19 @@ def dashboard(request):
         unique_users_on_day = get_user_model().objects.filter(id__in=user_ids_on_day).distinct().count()
         active_users_per_day.append({'date': day, 'count': unique_users_on_day})
 
+    articles = fetch_lms_articles()
+
     context = {
         'active_users_count': active_users_count,
-        'active_users': active_users,
         'subject_count': subject_count,
-        'student_counts': student_counts,  # Include student counts per subject
-        'active_users_per_day': active_users_per_day,  # Include active users per day
+        'student_counts': student_counts,
+        'active_users_per_day': active_users_per_day,
+        'articles': articles,
     }
     return render(request, 'accounts/dashboard.html', context)
 
-
 def activity_stream(request):
     return render(request, 'accounts/activity_stream.html')
-
 
 def assist(request):
     return render(request, 'accounts/assist.html')
