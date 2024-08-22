@@ -4,9 +4,8 @@ from .models import SubjectLog
 from subject.models import Subject
 # Create your views here.
 
-def subjectLogDetails(request,):
-    latest_log = SubjectLog.objects.all().order_by('-created_at').first()  # Fetch the latest log
-    print(latest_log)
+def subjectLogDetails(request):
+    latest_logs = SubjectLog.objects.all().order_by('-created_at')[:5]  # Get the 5 most recent logs
     return render(request, 'logs/subjectLogDetails.html', {
-        'latest_log': latest_log,
+        'latest_logs': latest_logs,
     })

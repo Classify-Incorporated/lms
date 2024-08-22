@@ -17,6 +17,49 @@
     <!-- Custom styles for this template -->
     <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet" />
     <link href="{% static 'css/custom-sidebar.css' %}" rel="stylesheet" />
+    <!-- Custom styles for Microsoft button -->
+    <style>
+      .btn-microsoft {
+        background-color: #f3f3f3;
+        border: 1px solid #ddd;
+        color: #333;
+        padding: 8px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .btn-microsoft:hover {
+        background-color: #e6e6e6;
+      }
+      
+      .microsoft-icon {
+        display: grid;
+        grid-template-columns: repeat(2, 10px);
+        grid-template-rows: repeat(2, 10px);
+        gap: 1.5px;
+        margin-right: 8px;
+      }
+      
+      .square {
+        width: 10px;
+        height: 10px;
+      }
+      
+      .red {
+        background-color: #f35325;
+      }
+      .green {
+        background-color: #81bc06;
+      }
+      .blue {
+        background-color: #05a6f0;
+      }
+      .yellow {
+        background-color: #ffba08;
+      }
+    </style>
   </head>
 
   <body class="bg-login">
@@ -45,7 +88,14 @@
                       </div>
                       <button type="submit" class="btn btn-primary btn-user btn-block">Login</button>
                       <hr />
-                      <a href="{% provider_login_url 'microsoft' %}" class="btn btn-success btn-user btn-block"><i class="fab fa-microsoft fa-fw"></i> Login with Office 365</a>
+                      <a href="{% provider_login_url 'microsoft' %}" class="btn btn-microsoft btn-user btn-block">
+                        <div class="microsoft-icon">
+                          <div class="square red"></div>
+                          <div class="square green"></div>
+                          <div class="square blue"></div>
+                          <div class="square yellow"></div>
+                        </div>Login with Office 365
+                      </a>
                     </form>
                     <hr />
                     <div class="text-center">

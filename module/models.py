@@ -29,7 +29,7 @@ class Module(models.Model):
         if is_new:
             SubjectLog.objects.create(
                 subject=self.subject,
-                message=f"A new module named'{self.file_name}' has been created for {self.subject.subject_name}."
+                message=f"A new module named '{self.file_name}' has been created for {self.subject.subject_name}."
             )
     
 class SCORMPackage(models.Model):
@@ -49,5 +49,5 @@ class SCORMPackage(models.Model):
         if is_new:
             SubjectLog.objects.create(
                 subject=self.subject,
-                message=f"A new SCORM package named'{self.package_name}' has been created for {self.subject.subject_name}."
+                message=f"A new SCORM package named '{self.package_name}' has been created for {self.subject.subject_name}."
             )

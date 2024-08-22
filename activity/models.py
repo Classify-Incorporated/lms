@@ -50,7 +50,7 @@ class Activity(models.Model):
         if is_new:
             SubjectLog.objects.create(
                 subject=self.subject,
-                message=f"A new activity named'{self.activity_name}' has been created for {self.subject.subject_name}."
+                message=f"A new activity named '{self.activity_name}' has been created for {self.subject.subject_name}."
             )
     
     
