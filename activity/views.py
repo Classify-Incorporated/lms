@@ -44,6 +44,11 @@ class AddActivityView(View):
 
         activity_type = get_object_or_404(ActivityType, id=activity_type_id)
         term = get_object_or_404(Term, id=term_id)
+
+        # Validation: Check if the activity name is unique for the semester and assigned teacher
+        if Activity.objects.filter(activity_name=activity_name, term=term, subject__assign_teacher=subject.assign_teacher).exists():
+            messages.error(request, 'An activity with this name already exists.')
+            return self.get(request, subject_id) 
         
         activity = Activity.objects.create(
             activity_name=activity_name,

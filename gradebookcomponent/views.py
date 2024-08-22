@@ -17,7 +17,11 @@ from django.contrib.auth.decorators import login_required
 #View GradeBookComponents
 @login_required
 def viewGradeBookComponents(request):
-    gradebookcomponents = GradeBookComponents.objects.all()
+    if request.user.profile.role.name.lower() == 'teacher':
+        gradebookcomponents = GradeBookComponents.objects.filter(teacher=request.user)
+    else:
+        gradebookcomponents = GradeBookComponents.objects.all()
+    
     return render(request, 'gradebookcomponent/gradebook/gradeBook.html', {'gradebookcomponents': gradebookcomponents})
 
 
@@ -103,7 +107,10 @@ def deleteGradeBookComponents(request, pk):
 #View TermGradeBook List
 @login_required
 def termBookList(request):
-    termbook = TermGradeBookComponents.objects.all()
+    if request.user.profile.role.name.lower() == 'teacher':
+        termbook = TermGradeBookComponents.objects.filter(teacher=request.user)
+    else:
+        termbook = TermGradeBookComponents.objects.all()
     return render(request, 'gradebookcomponent/termbook/TermBook.html', {'termbook': termbook})
 
 #create TermGradeBook

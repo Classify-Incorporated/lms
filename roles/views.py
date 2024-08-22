@@ -6,6 +6,7 @@ from django.contrib.auth.models import Permission
 from collections import defaultdict
 from .decorators import admin_required 
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 #Role List
 @login_required
@@ -46,23 +47,28 @@ def viewRole(request, role_id):
 
 # Create role
 @login_required
-# @admin_required
+@admin_required
 def createRole(request):
     if request.method == 'POST':
         form = roleForm(request.POST)
         if form.is_valid():
-            role = form.save() 
+            role = form.save()
 
             selected_permissions = request.POST.getlist('permissions')
             permissions = Permission.objects.filter(id__in=selected_permissions)
-            
+
             role.permissions.set(permissions)
             
-            return redirect('display_role')
+            messages.success(request, 'Role created successfully!')
+            return redirect('roleList')
+        else:
+            messages.error(request, 'There was an error creating the role. Please check the form.')
     else:
         form = roleForm()
 
-    permissions = Permission.objects.filter(content_type__app_label__in=['accounts','subject','course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade','roles'])
+    permissions = Permission.objects.filter(content_type__app_label__in=[
+        'accounts', 'subject', 'course', 'activity', 'module', 'message', 
+        'gradebookcomponent', 'studentgrade', 'roles'])
 
     structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
     for perm in permissions:
