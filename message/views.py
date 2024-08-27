@@ -63,10 +63,10 @@ def send_message(request):
         'unread_messages_count': unread_messages_count,
     })
 
-
 @login_required
 def inbox(request):
-    messages = Message.objects.filter(recipients=request.user)
+    # Filter to only show messages that are not trashed
+    messages = Message.objects.filter(recipients=request.user, is_trashed=False)
     
     message_status_list = []
     for message in messages:
@@ -155,8 +155,8 @@ def sent(request):
 
 @login_required
 def trash(request):
-    # Filter messages where the sender is the logged-in user and are trashed
-    messages = Message.objects.filter(sender=request.user, is_trashed=True)
+    # Filter messages where the logged-in user is a recipient and the message is trashed
+    messages = Message.objects.filter(recipients=request.user, is_trashed=True)
 
     message_status_list = []
     for message in messages:
@@ -178,13 +178,22 @@ def trash(request):
         'students': students, 
     })
 
+
 @csrf_exempt
 @login_required
 def trash_messages(request):
     if request.method == 'POST':
         message_ids = request.POST.getlist('message_ids[]')
         if message_ids:
-            Message.objects.filter(id__in=message_ids, sender=request.user).update(is_trashed=True)
+            # Debugging statement to check if message_ids are being passed correctly
+            print("Trashing messages with IDs:", message_ids)
+            
+            # Update the messages to set is_trashed=True
+            update_count = Message.objects.filter(id__in=message_ids, recipients=request.user).update(is_trashed=True)
+            
+            # Debugging statement to check if the update was successful
+            print("Number of messages updated:", update_count)
+            
             return JsonResponse({'status': 'success'})
         else:
             return JsonResponse({'status': 'error', 'message': 'No message IDs provided'}, status=400)
@@ -196,7 +205,8 @@ def untrash_messages(request):
     if request.method == 'POST':
         message_ids = request.POST.getlist('message_ids[]')
         if message_ids:
-            Message.objects.filter(id__in=message_ids, sender=request.user).update(is_trashed=False)
+            # Update the is_trashed field to False where the logged-in user is a recipient
+            Message.objects.filter(id__in=message_ids, recipients=request.user).update(is_trashed=False)
             return JsonResponse({'status': 'success'})
         else:
             return JsonResponse({'status': 'error', 'message': 'No message IDs provided'}, status=400)
