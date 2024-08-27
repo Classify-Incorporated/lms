@@ -90,45 +90,23 @@
   <div class="row">
     <!-- Area Chart -->
     <div class="col-xl-8 col-lg-7">
-      <div class="card shadow mb-4" style=" overflow: hidden;">
+      <div class="card shadow mb-4" style="overflow: hidden;">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-          <h6 class="m-0 font-weight-bold text-primary">News Overview</h6>
+            <h6 class="m-0 font-weight-bold text-primary">News Overview</h6>
         </div>
         <div class="card-body p-0">
-          <div id="newsCarousel" class="carousel slide" data-ride="carousel">
-            <div class="carousel-inner">
-              {% for article in articles %}
-                <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                  <a href="{{ article.url }}" target="_blank" style="text-decoration: none; color: inherit;">
-                    <div class="row no-gutters">
-                      <div class="col-md-12">
-                        <img src="{{ article.thumbnail_url }}" class="d-block w-100" alt="{{ article.title }}" style="height: 380px; object-fit: cover; opacity: 0.9;" />
-                      </div>
-                      <div class="carousel-caption d-none d-md-block text-white p-3" style="border-radius: 0 0 10px 10px;">
-                        <h4 class="font-weight-bold" style="font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 1.9);">{{ article.title }}</h4>
-                        <p style="font-size: 1.2rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 1.9);">{{ article.description|truncatewords:20 }}</p>
-                      </div>
-                    </div>
-                  </a>
+            {% for article in articles %}
+                <div class="p-3">
+                    {% if article.image_url %}
+                        <img src="{{ article.image_url }}" class="img-fluid mb-3" alt="Post Image">
+                    {% endif %}
+                    <h4 class="font-weight-bold">{{ article.message }}</h4>
+                    <p><small>Posted on {{ article.created_time|date:"Y-m-d H:i" }}</small></p>
+                    <a href="{{ article.permalink_url }}" target="_blank">Read more</a>
                 </div>
-              {% endfor %}
-            </div>
-            <a class="carousel-control-prev" href="#newsCarousel" role="button" data-slide="prev">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span class="sr-only">Previous</span>
-            </a>
-            <a class="carousel-control-next" href="#newsCarousel" role="button" data-slide="next">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
-              <span class="sr-only">Next</span>
-            </a>
-            <ol class="carousel-indicators">
-              {% for i in articles %}
-                <li data-target="#newsCarousel" data-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}"></li>
-              {% endfor %}
-            </ol>
-          </div>
+            {% endfor %}
         </div>
-      </div>
+    </div>
     </div>
 
     <div class="col-xl-4 col-lg-5">
