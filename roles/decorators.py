@@ -29,3 +29,13 @@ def student_required(view_func):
             raise PermissionDenied
         return view_func(request, *args, **kwargs)
     return _wrapped_view_func
+
+def teacher_or_admin_required(view_func):
+    def _wrapped_view_func(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            raise PermissionDenied
+        role_name = request.user.profile.role.name.lower()
+        if role_name not in ['teacher', 'admin']:
+            raise PermissionDenied
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view_func

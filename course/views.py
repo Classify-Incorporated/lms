@@ -17,8 +17,10 @@ from django import forms
 from django.http import HttpResponse
 from module.forms import moduleForm
 from django.contrib import messages
-# Handle the enrollment of irregular students
+from django.utils.decorators import method_decorator
 
+# Handle the enrollment of students
+@method_decorator(login_required, name='dispatch')
 class enrollStudentView(View):
     def post(self, request, *args, **kwargs):
         student_profile_id = request.POST.get('student_profile')
@@ -292,7 +294,7 @@ def subjectList(request):
 
     semesters = Semester.objects.all()
 
-    current_date = timezone.now().date()
+    current_date = timezone.localtime(timezone.now()).date()
     current_semester = Semester.objects.filter(start_date__lte=current_date, end_date__gte=current_date).first()
 
     selected_semester_id = request.GET.get('semester', None)

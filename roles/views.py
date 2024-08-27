@@ -10,7 +10,7 @@ from django.contrib import messages
 
 #Role List
 @login_required
-# @admin_required
+@admin_required
 def roleList(request):
     form = roleForm()
     roles = Role.objects.all()
@@ -27,7 +27,7 @@ def roleList(request):
 
 #View Role Details
 @login_required
-# @admin_required
+@admin_required
 def viewRole(request, role_id):
     role_obj = get_object_or_404(Role, id=role_id)
     
@@ -84,7 +84,7 @@ def createRole(request):
 
 # Update Role
 @login_required
-# @admin_required
+@admin_required
 def updateRole(request, pk):
     role_obj = get_object_or_404(Role, pk=pk)
     

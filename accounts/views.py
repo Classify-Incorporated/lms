@@ -13,6 +13,7 @@ from datetime import timedelta
 import requests
 from bs4 import BeautifulSoup
 
+@login_required
 def admin_login_view(request):
     if request.method == 'POST':
         form = CustomLoginForm(request.POST)
@@ -38,6 +39,11 @@ def student(request):
     return render(request, 'accounts/student.html', {'profiles': profiles})
 
 @login_required
+def staff_list(request):
+    staff = Profile.objects.exclude(role__name__iexact='student').exclude(role__name__iexact='admin')
+    return render(request, 'accounts/staffList.html', {'staff': staff})
+
+@login_required
 def viewProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     return render(request, 'accounts/viewStudentProfile.html',{'profile': profile})
@@ -46,7 +52,7 @@ def viewProfile(request, pk):
 def updateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     if request.method == 'POST':
-        form = profileForm(request.POST, instance=profile)
+        form = profileForm(request.POST,request.FILES, instance=profile)
         if form.is_valid():
             form.save()
             return redirect('student')
