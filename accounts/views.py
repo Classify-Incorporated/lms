@@ -13,7 +13,6 @@ from datetime import timedelta
 import requests
 from bs4 import BeautifulSoup
 
-@login_required
 def admin_login_view(request):
     if request.method == 'POST':
         form = CustomLoginForm(request.POST)

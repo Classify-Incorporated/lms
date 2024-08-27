@@ -13,19 +13,19 @@
           <div class="card-body d-flex align-items-start">
             <div class="log-icon me-3 d-flex align-items-center">
               {% if 'new activity' in log.message|lower %}
-                <i class="fas fa-edit text-secondary" style="font-size: 40px;">&nbsp;</i> <!-- Edit icon for new activity -->
+                <i class="fas fa-edit text-primary" style="font-size: 40px;">&nbsp;</i> <!-- Edit icon for new activity -->
               {% elif 'new module' in log.message|lower %}
-                <i class="fas fa-book text-secondary" style="font-size: 40px;">&nbsp;</i> <!-- Book icon for new module -->
+                <i class="fas fa-book text-primary" style="font-size: 40px;">&nbsp;</i> <!-- Book icon for new module -->
               {% else %}
                 <i class="fas fa-info-circle text-secondary" style="font-size: 40px;">&nbsp;</i> <!-- Default icon for other types -->
               {% endif %}
             </div>
             <div class="log-content w-100">
               <div class="d-flex justify-content-between">
-                <div class="log-date text-muted small">{{ log.created_at|date:'M d, Y H:i A' }}</div>
+                <div class="log-date small">{{ log.created_at|date:'M d, Y H:i A' }}</div>
                 <div class="badge bg-success text-white">{{ log.subject }}</div> <!-- Use badge to highlight subject -->
               </div>
-              <p class="mb-0 mt-2 text-dark">{{ log.message }}</p>
+              <p class="mb-0 mt-2">{{ log.message }}</p>
             </div>
           </div>
         </div>
