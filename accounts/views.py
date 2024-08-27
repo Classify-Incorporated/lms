@@ -108,7 +108,7 @@ def fetch_lms_articles():
 
 def fetch_facebook_posts(request):
     page_id = '370354416168614'
-    access_token = 'EAAWtZAc96AJsBO5lhwJDiIuGxqWEGpnYnEopQuITyNrKfbPvA9aXKt7MoWd6wHW7lJm95cZAdgBLDRXqMuazx9FPNOxGZC7XUP2moKTTLripZB0PqgH1r6AFv5ZBIaxN0md5YV1xVRO06wXQ7Cu8ZBPCC0s9EdCmht1A5To7cl0zOtekGHbZAlzj8sm8UoTIt9ZCy4b7nEXQZAwaOwNYaxrIZCtBeu7LIKHAl3'
+    access_token = 'EAAWtZAc96AJsBO0CYVGN3jQBAwgZCOZBnRZC3v7z1tx5Xh3PdZCD10ZBTMZBNdDSdR0C0G5O00lIvyMhFttEHJAcxeaZCg2t93fuLZCJeTYYnSoZBgj86gLfZAtXK4lKGhDWB6XJ5myxsb9TY3u12fB4WGdcbdSLoDl2TTZAC09S0tSAi9KF8EChALmi7i57imoniGi4PE2IXt3n'
     url = f"https://graph.facebook.com/v20.0/{page_id}/posts"
     params = {
         'access_token': access_token,
@@ -117,7 +117,6 @@ def fetch_facebook_posts(request):
     response = requests.get(url, params=params)
     if response.status_code == 200:
         posts = response.json().get('data', [])
-        # Process the posts to include only the necessary fields
         processed_posts = []
         for post in posts:
             attachments = post.get('attachments', {}).get('data', [])
@@ -126,7 +125,7 @@ def fetch_facebook_posts(request):
                 for attachment in attachments:
                     if 'media' in attachment and 'image' in attachment['media']:
                         image_url = attachment['media']['image']['src']
-                        break  # We found the image, no need to look further
+                        break
 
             processed_posts.append({
                 'message': post.get('message', ''),
@@ -134,9 +133,9 @@ def fetch_facebook_posts(request):
                 'permalink_url': post.get('permalink_url', ''),
                 'image_url': image_url,
             })
-        return processed_posts
+        return JsonResponse(processed_posts, safe=False)
     else:
-        return []
+        return JsonResponse({'error': 'Failed to fetch Facebook posts'}, status=response.status_code)
 
 
 def dashboard(request):
