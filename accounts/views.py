@@ -116,7 +116,6 @@ def fetch_facebook_posts(request):
     response = requests.get(url, params=params)
     if response.status_code == 200:
         posts = response.json().get('data', [])
-        # Process the posts to include only the necessary fields
         processed_posts = []
         for post in posts:
             attachments = post.get('attachments', {}).get('data', [])
@@ -125,7 +124,7 @@ def fetch_facebook_posts(request):
                 for attachment in attachments:
                     if 'media' in attachment and 'image' in attachment['media']:
                         image_url = attachment['media']['image']['src']
-                        break  # We found the image, no need to look further
+                        break
 
             # Extract the first paragraph from the message
             message = post.get('message', '')
@@ -137,9 +136,9 @@ def fetch_facebook_posts(request):
                 'permalink_url': post.get('permalink_url', ''),
                 'image_url': image_url,
             })
-        return processed_posts
+        return JsonResponse(processed_posts, safe=False)
     else:
-        return []
+        return JsonResponse({'error': 'Failed to fetch Facebook posts'}, status=response.status_code)
 
 
 
