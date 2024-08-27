@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
-  Inbox
+  Trash
 {% endblock %}
 {% block content %}
-  <h1 class="h3 mb-2 text-gray-800">Inbox</h1>
+  <h1 class="h3 mb-2 text-gray-800">Trash</h1>
 
   <div class="row">
     <div class="col-md-2">
@@ -37,7 +37,7 @@
     <div class="col-md-10">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Inbox</h5>
+          <h5 class="mb-0">Trash</h5>
           <input type="text" id="searchMail" class="form-control w-25" placeholder="Search Mail" />
         </div>
         <div class="card-body p-0">
@@ -46,8 +46,6 @@
               <tr>
                 <div class="d-flex align-items-center">
                   <input type="checkbox" id="selectAll" class="ml-3 mb-3 mt-3" />
-                  <div class="toolbar" id="toolbar" style="display: none;">
-                    <button class="btn btn-sm btn-trash ml-1" data-toggle="tooltip" title="Trash"><i class="fas fa-trash"></i></button>
                     <button class="btn btn-sm ml-1" data-toggle="tooltip" title="Mark as Read"><i class="fas fa-envelope-open"></i></button>
                     <button class="btn btn-sm ml-1" data-toggle="tooltip" title="Archive"><i class="fas fa-archive"></i></button>
                     <button class="btn btn-sm btn-untrash ml-1" data-toggle="tooltip" title="Move to Inbox"><i class="fas fa-inbox"></i></button>
@@ -59,74 +57,16 @@
             <tbody id="messageTable" class="text-center">
               {% if message_status_list %}
                 {% for item in message_status_list %}
-                  <tr class="message-row {% if not item.read %}unread{% endif %}" data-id="{{ item.message.id }}">
+                  <tr class="message-row" data-id="{{ item.message.id }}">
                     <td>
                       <input type="checkbox" class="selectItem" />
                     </td>
-                    <td class="{% if not item.read %}font-weight-bolder{% endif %} text-left">{{ item.message.sender }}</td>
-                    <td class="{% if not item.read %}font-weight-bolder{% endif %} text-left">
+                    <td class="text-left">{{ item.message.sender }}</td>
+                    <td class="text-left">
                       <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">{{ item.message.subject }} - {{ item.message.body|truncatewords:18 }}</a>
                     </td>
                     <td>
-                      <span class="badge {% if item.read %}
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          badge-success
-
-
-
-
-
-
-
-
-
-
-
-
-                        {% else %}
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          badge-warning
-
-
-
-
-
-
-
-
-
-
-
-
-                        {% endif %}">
-                        {% if item.read %}
-                          Read
-                        {% else %}
-                          Unread
-                        {% endif %}
-                      </span>
+                      <span class="badge badge-info">{{ item.status }}</span>
                     </td>
                   </tr>
                 {% endfor %}
@@ -216,39 +156,6 @@
 
   <!-- Custom Modal Script -->
   <script>
-    document.querySelector('.toolbar .btn-trash').addEventListener('click', function () {
-      const selectedMessages = document.querySelectorAll('.selectItem:checked')
-      const messageIds = Array.from(selectedMessages).map((item) => item.closest('tr').dataset.id)
-    
-      if (messageIds.length > 0) {
-        // Create a new FormData object
-        const formData = new FormData()
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
-        messageIds.forEach((id) => formData.append('message_ids[]', id))
-    
-        // Send the request to trash the messages
-        fetch("{% url 'trash_messages' %}", {
-          method: 'POST',
-          body: formData
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === 'success') {
-              messageIds.forEach((id) => {
-                document.querySelector(`tr[data-id="${id}"]`).remove()
-              })
-              toggleToolbar() // Hide toolbar if no items are selected
-            } else {
-              alert('An error occurred while trying to trash messages.')
-            }
-          })
-          .catch((error) => {
-            console.error('Error:', error)
-            alert('An error occurred while trying to trash messages.')
-          })
-      }
-    })
-    
     document.querySelector('.toolbar .btn-untrash').addEventListener('click', function () {
       const selectedMessages = document.querySelectorAll('.selectItem:checked')
       const messageIds = Array.from(selectedMessages).map((item) => item.closest('tr').dataset.id)
@@ -281,7 +188,6 @@
           })
       }
     })
-    
     document.getElementById('openSendMessageModalBtn').addEventListener('click', function () {
       document.getElementById('sendMessageModal').classList.add('show')
       document.getElementById('sendMessageModalBackdrop').classList.add('show')
