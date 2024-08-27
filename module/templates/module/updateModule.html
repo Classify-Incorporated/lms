@@ -1,0 +1,13 @@
+<!-- updateModule.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Update Module
+{% endblock %}
+{% block content %}
+<form method="post" action="{% url 'updateModule' module.id%}" enctype="multipart/form-data" >
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Save Module</button>
+  </form>
+  {% endblock %}

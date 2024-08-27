@@ -89,6 +89,7 @@ def inbox(request):
     })
 
 
+@login_required
 def view_message(request, message_id):
     message = get_object_or_404(Message, id=message_id)
     # Get or create the read status entry
@@ -104,10 +105,12 @@ def view_message(request, message_id):
 
     return render(request, 'message/viewMessage.html', {'message': message})
 
+@login_required
 def unread_count(request):
     unread_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
     return JsonResponse({'unread_count': unread_count})
 
+@login_required
 def check_authentication(request):
     try:
         social_token = SocialToken.objects.get(account__user=request.user, account__provider='microsoft')

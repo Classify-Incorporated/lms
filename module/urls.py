@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
 
     createModule, updateModule, viewModule, deleteModule, moduleList,
-    uploadScormPackage
+    uploadScormPackage, updateScormPackage, deleteScormPackage
 )
 
 urlpatterns = [
@@ -13,5 +13,7 @@ urlpatterns = [
     path('deleteModule/<int:pk>/', deleteModule, name='deleteModule'),
 
     path('upload/<int:subject_id>/', uploadScormPackage, name='upload'),
+    path('updateScormPackage/<int:id>/', updateScormPackage, name='updateScormPackage'),
+    path('deleteScormPackage/<int:id>/', deleteScormPackage, name='deleteScormPackage'),
 
 ]

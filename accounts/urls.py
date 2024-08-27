@@ -3,7 +3,7 @@ from .views import (
     dashboard, activity_stream,
     assist, tools, sign_out, createProfile, admin_login_view,
 
-    viewProfile, updateProfile, activateProfile, deactivateProfile, student
+    viewProfile, updateProfile, activateProfile, deactivateProfile, student, staff_list
 )
 
 urlpatterns = [
@@ -12,6 +12,7 @@ urlpatterns = [
 
     #View Profile
     path('student/', student, name='student'),
+    path('staff_list/', staff_list, name='staff_list'),
     path('viewProfile/<int:pk>/', viewProfile, name='viewProfile'),
     path('updateProfile/<int:pk>/', updateProfile, name='updateProfile'),
     path('activateProfile/<int:pk>/', activateProfile, name='activateProfile'),

@@ -85,12 +85,6 @@
           </a>
         {% endif %}
 
-        {% if user|has_perm:'course.view_term' %}
-          <a class="collapse-item" href="{% url 'termBookList' %}">
-            <i class="bx bx-calendar-event"></i>
-            Term Percentage
-          </a>
-        {% endif %}
       </div>
     </div>
   </li>
@@ -137,11 +131,25 @@
           </a>
         {% endif %}
 
+        {% if user|has_perm:'course.view_semester' %}
+          <a class="collapse-item" href="{% url 'staff_list' %}">
+            <i class="bx bx-calendar"></i>
+            <span>Staff List</span>
+          </a>
+        {% endif %}
+
 
         {% if user|has_perm:'course.view_term' %}
           <a class="collapse-item" href="{% url 'termList' %}">
             <i class="bx bx-calendar-event"></i>
             Term
+          </a>
+        {% endif %}
+
+        {% if user|has_perm:'subject.view_subject'  %}
+          <a class="collapse-item" href="{% url 'termBookList' %}">
+            <i class="bx bx-calendar-event"></i>
+            Term Percentage
           </a>
         {% endif %}
 

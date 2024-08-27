@@ -33,19 +33,4 @@
     </div>
   </div>
 
-  <!-- Include the modal from add_user.html -->
-  {% include 'accounts/add_user.html' %}
-
-  <!-- Custom Modal Script -->
-  <script>
-    document.getElementById('openModalBtn').addEventListener('click', function () {
-      document.getElementById('customModal').classList.add('show')
-      document.getElementById('customModalBackdrop').classList.add('show')
-    })
-    
-    document.getElementById('closeModalBtn').addEventListener('click', function () {
-      document.getElementById('customModal').classList.remove('show')
-      document.getElementById('customModalBackdrop').classList.remove('show')
-    })
-  </script>
 {% endblock %}
