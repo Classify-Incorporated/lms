@@ -12,6 +12,9 @@ from django.db.models import Count
 from datetime import timedelta
 import requests
 from bs4 import BeautifulSoup
+import requests
+from django.conf import settings
+from django.http import JsonResponse
 
 @login_required
 def admin_login_view(request):
@@ -101,6 +104,41 @@ def fetch_lms_articles():
 
     return articles
 
+
+
+def fetch_facebook_posts(request):
+    page_id = '370354416168614'
+    access_token = 'EAAWtZAc96AJsBO5lhwJDiIuGxqWEGpnYnEopQuITyNrKfbPvA9aXKt7MoWd6wHW7lJm95cZAdgBLDRXqMuazx9FPNOxGZC7XUP2moKTTLripZB0PqgH1r6AFv5ZBIaxN0md5YV1xVRO06wXQ7Cu8ZBPCC0s9EdCmht1A5To7cl0zOtekGHbZAlzj8sm8UoTIt9ZCy4b7nEXQZAwaOwNYaxrIZCtBeu7LIKHAl3'
+    url = f"https://graph.facebook.com/v20.0/{page_id}/posts"
+    params = {
+        'access_token': access_token,
+        'fields': 'message,created_time,id,permalink_url,attachments{media}'
+    }
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        posts = response.json().get('data', [])
+        # Process the posts to include only the necessary fields
+        processed_posts = []
+        for post in posts:
+            attachments = post.get('attachments', {}).get('data', [])
+            image_url = None
+            if attachments:
+                for attachment in attachments:
+                    if 'media' in attachment and 'image' in attachment['media']:
+                        image_url = attachment['media']['image']['src']
+                        break  # We found the image, no need to look further
+
+            processed_posts.append({
+                'message': post.get('message', ''),
+                'created_time': post.get('created_time', ''),
+                'permalink_url': post.get('permalink_url', ''),
+                'image_url': image_url,
+            })
+        return processed_posts
+    else:
+        return []
+
+
 def dashboard(request):
     sessions = Session.objects.filter(expire_date__gte=timezone.now())
     user_ids = []
@@ -141,7 +179,7 @@ def dashboard(request):
         unique_users_on_day = get_user_model().objects.filter(id__in=user_ids_on_day).distinct().count()
         active_users_per_day.append({'date': day, 'count': unique_users_on_day})
 
-    articles = fetch_lms_articles()
+    articles = fetch_facebook_posts(request)
 
     context = {
         'active_users_count': active_users_count,
