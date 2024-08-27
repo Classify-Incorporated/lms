@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from allauth.socialaccount.models import SocialToken
 from django.contrib import messages
 from roles.models import Role
+from django.views.decorators.csrf import csrf_exempt
 
 @login_required
 def send_message(request):
@@ -123,3 +124,77 @@ def check_authentication(request):
         'access_token': access_token,
     }
     return JsonResponse(data)
+
+@login_required
+def sent(request):
+    # Filter messages where the sender is the logged-in user and are not trashed
+    messages = Message.objects.filter(sender=request.user, is_trashed=False)
+
+    message_status_list = []
+    for message in messages:
+        message_status_list.append({
+            'message': message,
+            'status': 'Sent'
+        })
+
+    subjects = Subject.objects.all()
+    instructor_role = Role.objects.get(name='Teacher')
+    student_role = Role.objects.get(name='Student')
+    instructors = CustomUser.objects.filter(profile__role=instructor_role) if instructor_role else CustomUser.objects.none()
+    students = CustomUser.objects.filter(profile__role=student_role) if student_role else CustomUser.objects.none()
+
+    return render(request, 'message/sent.html', {
+        'message_status_list': message_status_list,
+        'subjects': subjects,
+        'instructors': instructors,
+        'students': students, 
+    })
+
+@login_required
+def trash(request):
+    # Filter messages where the sender is the logged-in user and are trashed
+    messages = Message.objects.filter(sender=request.user, is_trashed=True)
+
+    message_status_list = []
+    for message in messages:
+        message_status_list.append({
+            'message': message,
+            'status': 'Trashed'
+        })
+
+    subjects = Subject.objects.all()
+    instructor_role = Role.objects.get(name='Teacher')
+    student_role = Role.objects.get(name='Student')
+    instructors = CustomUser.objects.filter(profile__role=instructor_role) if instructor_role else CustomUser.objects.none()
+    students = CustomUser.objects.filter(profile__role=student_role) if student_role else CustomUser.objects.none()
+
+    return render(request, 'message/trash.html', {
+        'message_status_list': message_status_list,
+        'subjects': subjects,
+        'instructors': instructors,
+        'students': students, 
+    })
+
+@csrf_exempt
+@login_required
+def trash_messages(request):
+    if request.method == 'POST':
+        message_ids = request.POST.getlist('message_ids[]')
+        if message_ids:
+            Message.objects.filter(id__in=message_ids, sender=request.user).update(is_trashed=True)
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'No message IDs provided'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+@login_required
+def untrash_messages(request):
+    if request.method == 'POST':
+        message_ids = request.POST.getlist('message_ids[]')
+        if message_ids:
+            Message.objects.filter(id__in=message_ids, sender=request.user).update(is_trashed=False)
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'No message IDs provided'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)

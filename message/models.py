@@ -9,6 +9,7 @@ class Message(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sent_messages', on_delete=models.CASCADE)
     recipients = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='received_messages')
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_trashed = models.BooleanField(default=False)  # New field
 
     def __str__(self):
         return self.subject
