@@ -88,7 +88,6 @@
   </div>
 
   <div class="row">
-    <!-- Area Chart -->
     <div class="col-xl-8 col-lg-7">
       <div class="card shadow mb-4" style="overflow: hidden;">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
@@ -109,10 +108,16 @@
                         {% endif %}
                       </div>
                       <div class="carousel-caption d-none d-md-block text-white p-3" style="border-radius: 0 0 10px 10px;">
+                        <div class="d-flex align-items-center mb-2">
+                          {% if article.profile_picture_url %}
+                            <img src="{{ article.profile_picture_url }}" alt="Profile Picture" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 1.9);" />
+                          {% endif %}
+                          <div>
+                            <small class="font-weight-bold">{{ article.posted_by }}</small>
+                            <small class="text-muted">&bull; {{ article.created_time|date:'M d, Y, g:i A' }}</small>
+                          </div>
+                        </div>
                         <h4 class="font-weight-bold" style="font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 1.9);">{{ article.message }}</h4>
-                        <p style="font-size: 1.2rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 1.9);">
-                          <small>Posted on {{ article.created_time|date:'Y-m-d H:i' }}</small>
-                        </p>
                       </div>
                     </div>
                   </a>

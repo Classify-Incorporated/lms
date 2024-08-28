@@ -103,15 +103,14 @@ def fetch_lms_articles():
 
     return articles
 
-
-
 def fetch_facebook_posts():
+
     page_id = '370354416168614'
     access_token = 'EAAWtZAc96AJsBO0CYVGN3jQBAwgZCOZBnRZC3v7z1tx5Xh3PdZCD10ZBTMZBNdDSdR0C0G5O00lIvyMhFttEHJAcxeaZCg2t93fuLZCJeTYYnSoZBgj86gLfZAtXK4lKGhDWB6XJ5myxsb9TY3u12fB4WGdcbdSLoDl2TTZAC09S0tSAi9KF8EChALmi7i57imoniGi4PE2IXt3n'
     url = f"https://graph.facebook.com/v20.0/{page_id}/posts"
     params = {
         'access_token': access_token,
-        'fields': 'message,created_time,id,permalink_url,attachments{media}'
+        'fields': 'message,created_time,from{id,name},permalink_url,attachments{media}'
     }
     response = requests.get(url, params=params)
     if response.status_code == 200:
@@ -126,20 +125,35 @@ def fetch_facebook_posts():
                         image_url = attachment['media']['image']['src']
                         break
 
-            # Extract the first paragraph from the message
             message = post.get('message', '')
             first_paragraph = message.split('\n')[0] if message else 'No subject available'
+
+            posted_by = post.get('from', {}).get('name', 'Unknown')
+            posted_by_id = post.get('from', {}).get('id')
+
+            # Fetch profile picture
+            profile_picture_url = None
+            if posted_by_id:
+                profile_picture_response = requests.get(
+                    f"https://graph.facebook.com/v20.0/{posted_by_id}/picture?type=small&redirect=false",
+                    params={'access_token': access_token}
+                )
+                if profile_picture_response.status_code == 200:
+                    profile_picture_data = profile_picture_response.json()
+                    profile_picture_url = profile_picture_data.get('data', {}).get('url')
 
             processed_posts.append({
                 'message': first_paragraph,
                 'created_time': post.get('created_time', ''),
+                'posted_by': posted_by,
+                'profile_picture_url': profile_picture_url,
                 'permalink_url': post.get('permalink_url', ''),
                 'image_url': image_url,
             })
+        
         return processed_posts
     else:
         return []
-
 
 
 def dashboard(request):
