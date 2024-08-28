@@ -1,51 +1,53 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Student Grades
+  Student Grades
 {% endblock %}
 
 {% block content %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<h1>Student Grades</h1>
+<div class="container my-4">
+    <h1 class="mb-4">Student Grades</h1>
 
-<div class="form-group">
-    <label for="semester">Select Semester:</label>
-    <select id="semester" class="form-control">
-        <option value="" disabled>Select a Semester</option>
-        <!-- The semesters will be populated here by JavaScript -->
-    </select>
-</div>
+    <!-- Semester and Subject Filters -->
+    <form method="get" class="form-inline mb-4">
+        <div class="form-group mr-2">
+            <label for="semester" class="mr-2">Select Semester:</label>
+            <select id="semester" name="semester" class="form-control">
+                <option value="" disabled>Select a Semester</option>
+                <!-- The semesters will be populated here by JavaScript -->
+            </select>
+        </div>
 
-<div class="form-group">
-    <label for="subject">Select Subject:</label>
-    <select id="subject" class="form-control">
-        <option value="all" selected>All Subjects</option>
-    </select>
-</div>
+        <div class="form-group">
+            <label for="subject" class="mr-2">Select Subject:</label>
+            <select id="subject" name="subject" class="form-control">
+                <option value="all" selected>All Subjects</option>
+            </select>
+        </div>
+    </form>
 
-<div class="table-responsive">
-    <table id="scores-table" class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Subject</th>
-                <th>Student Name</th>
-                <th>Prelim</th>
-                <th>Mid Term</th>
-                <th>Semi-Final</th>
-                <th>Final</th>
-                <th>Total Term Weighted Score</th>
-                {% if is_teacher %}
-                    <th>
-                        Allow View <br>
-                        <input type="checkbox" id="checkAll" onclick="toggleAllCheckboxes(this)">
-                    </th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table id="scores-table" class="table table-bordered table-hover">
+            <thead>
+                <tr id="term-headers">
+                    <th>Subject</th>
+                    <th>Student Name</th>
+                    <!-- Term headers will be dynamically populated here -->
+                    <th>Total Term Weighted Score</th>
+                    {% if is_teacher %}
+                        <th>
+                            Allow View <br>
+                            <input type="checkbox" id="checkAll" onclick="toggleAllCheckboxes(this)">
+                        </th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
@@ -64,9 +66,19 @@ Student Grades
             },
             success: function(data) {
                 const scoresTableBody = $('#scores-table tbody');
+                const termHeaders = $('#term-headers');
                 scoresTableBody.empty();
 
+                // Keep Subject, Student Name, and other static headers intact
+                termHeaders.find('th').slice(2, -2).remove(); // Clear dynamic headers between the static ones
+
                 if (data && data.term_data) {
+                    const terms = data.term_data[0]?.subjects[0]?.terms.map(term => term.term_name) || [];
+
+                    terms.forEach(term => {
+                        termHeaders.find('th:nth-last-child(2)').before(`<th>${term}</th>`);
+                    });
+
                     data.term_data.forEach(function(studentData) {
                         const studentName = studentData.student;
 
@@ -79,22 +91,20 @@ Student Grades
                             studentRow.append(`<td><a href="/studentTotalScore/${studentData.student_id}/${subjectId}/?semester=${semesterId}">${subjectName}</a></td>`);
                             studentRow.append(`<td>${studentName}</td>`);
 
-                            let termScores = {
-                                'Prelim': 'N/A',
-                                'Mid Term': 'N/A',
-                                'Semi-Final': 'N/A',
-                                'Final': 'N/A'
-                            };
-
-                            subjectData.terms.forEach(function(term) {
-                                termScores[term.term_name] = `${parseFloat(term.percentage).toFixed(2)}%`;
+                            let termScores = {};
+                            terms.forEach(term => {
+                                termScores[term] = 'N/A';
                             });
 
-                            studentRow.append(`<td>${termScores['Prelim']}</td>`);
-                            studentRow.append(`<td>${termScores['Mid Term']}</td>`);
-                            studentRow.append(`<td>${termScores['Semi-Final']}</td>`);
-                            studentRow.append(`<td>${termScores['Final']}</td>`);
-                            studentRow.append(`<td>${totalWeightedGrade.toFixed(2)}% (${calculateGrade(totalWeightedGrade)})</td>`);
+                            subjectData.terms.forEach(function(term) {
+                                termScores[term.term_name] = `${parseFloat(term.percentage).toFixed(2)}`;
+                            });
+
+                            terms.forEach(term => {
+                                studentRow.append(`<td>${termScores[term]}</td>`);
+                            });
+
+                            studentRow.append(`<td>${totalWeightedGrade.toFixed(2)} (${calculateGrade(totalWeightedGrade)})</td>`);
 
                             if (isTeacher) {
                                 const checkboxForm = `
@@ -129,7 +139,6 @@ Student Grades
                 'csrfmiddlewaretoken': '{{ csrf_token }}'
             },
             success: function(response) {
-                console.log('Grade visibility toggled successfully.');
             },
             error: function(xhr, status, error) {
                 console.error("An error occurred while toggling grade visibility: ", error);
@@ -191,7 +200,6 @@ Student Grades
                         semesterDropdown.append(option);
                     });
 
-                    // Set semesterId to the current semester or first option
                     semesterId = data.semesters.find(semester => semester.is_current_semester)?.id || data.semesters[0].id;
 
                     fetchSubjects();
