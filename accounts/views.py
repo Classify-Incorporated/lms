@@ -103,7 +103,8 @@ def fetch_lms_articles():
 
     return articles
 
-def fetch_facebook_posts(request):
+def fetch_facebook_posts():
+
     page_id = '370354416168614'
     access_token = 'EAAWtZAc96AJsBO0CYVGN3jQBAwgZCOZBnRZC3v7z1tx5Xh3PdZCD10ZBTMZBNdDSdR0C0G5O00lIvyMhFttEHJAcxeaZCg2t93fuLZCJeTYYnSoZBgj86gLfZAtXK4lKGhDWB6XJ5myxsb9TY3u12fB4WGdcbdSLoDl2TTZAC09S0tSAi9KF8EChALmi7i57imoniGi4PE2IXt3n'
     url = f"https://graph.facebook.com/v20.0/{page_id}/posts"
@@ -195,7 +196,7 @@ def dashboard(request):
         unique_users_on_day = get_user_model().objects.filter(id__in=user_ids_on_day).distinct().count()
         active_users_per_day.append({'date': day, 'count': unique_users_on_day})
 
-    articles = fetch_facebook_posts(request)
+    articles = fetch_facebook_posts()
 
     context = {
         'active_users_count': active_users_count,

@@ -355,12 +355,13 @@ def studentTotalScore(request, student_id, subject_id):
                 )
 
                 if not student_questions.exists():
+                    max_score = activity.activityquestion_set.aggregate(total_max_score=Sum('score'))['total_max_score'] or Decimal(0)
                     student_scores_data.append({
                         'student': student.get_full_name(),
                         'activity_name': activity.activity_name,
                         'question_text': 'No submission',
                         'score': 0,
-                        'max_score': 0,
+                        'max_score': max_score,
                         'percentage': 0,
                         'weighted_score': 0,
                         'activity': activity.activity_name,
@@ -407,9 +408,9 @@ def studentTotalScore(request, student_id, subject_id):
         'subjects': [subject],
         'term_scores_data': term_scores_data,
         'selected_term_id': selected_term_id,
+        'selected_semester_id': selected_semester_id,  # Pass the selected semester ID to the template
         'student': student,
     })
-
 
 
 #display total grade
@@ -552,7 +553,7 @@ def studentTotalScoreApi(request):
                         student_scores[student]['term_scores'].append({
                             'term_name': term.term_name,
                             'activity_type': activity_type.name,
-                            'term_final_score': weighted_score
+                            'term_final_score': weighted_score,
                         })
                         student_scores[student]['total_weighted_score'] += weighted_score
 

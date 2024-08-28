@@ -8,20 +8,12 @@ class GradeBookComponentsForm(forms.ModelForm):
     class Meta:
         model = GradeBookComponents
         fields = ['subject', 'activity_type', 'category_name', 'percentage', 'is_participation']
-        widgets = {
-            'subject': forms.Select(attrs={'class': 'form-control'}),
-            'activity_type': forms.Select(attrs={'class': 'form-control'}),
-            'category_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'percentage': forms.NumberInput(attrs={'class': 'form-control'}),
-            'is_participation': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super(GradeBookComponentsForm, self).__init__(*args, **kwargs)
         if user:
             self.fields['subject'].queryset = Subject.objects.filter(assign_teacher=user)
-        # Hide activity_type field if it's a participation component
         if self.instance and self.instance.is_participation:
             self.fields['activity_type'].widget = forms.HiddenInput()
 
@@ -29,13 +21,11 @@ class GradeBookComponentsForm(forms.ModelForm):
 class CopyGradeBookForm(forms.Form):
     subject = forms.ModelChoiceField(
         queryset=Subject.objects.none(),
-        label="Target Subject",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        label="Target Subject"
     )
     copy_from_subject = forms.ModelChoiceField(
         queryset=Subject.objects.none(),
-        label="Copy GradeBook from",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        label="Copy GradeBook from"
     )
 
     def __init__(self, *args, **kwargs):
@@ -52,22 +42,13 @@ class CopyGradeBookForm(forms.Form):
 class TermGradeBookComponentsForm(forms.ModelForm):
     subjects = forms.ModelMultipleChoiceField(
         queryset=Subject.objects.none(),
-        widget=forms.SelectMultiple(attrs={
-            'class': 'form-control selectpicker',  # Apply Bootstrap's selectpicker and btn-outline-secondary class
-            'data-live-search': 'true',  # Enable live search if needed
-            'data-actions-box': 'true',  # Enable select all and deselect all buttons
-            'data-style': 'btn-outline-secondary'
-        }),
+        widget=forms.CheckboxSelectMultiple,
         required=True
     )
 
     class Meta:
         model = TermGradeBookComponents
         fields = ['term', 'subjects', 'percentage']
-        widgets = {
-            'term': forms.Select(attrs={'class': 'form-control'}),
-            'percentage': forms.NumberInput(attrs={'class': 'form-control'}),
-        }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
@@ -93,3 +74,4 @@ class TermGradeBookComponentsForm(forms.ModelForm):
                 self.fields['subjects'].queryset = Subject.objects.filter(
                     assign_teacher=user
                 ).distinct()
+

@@ -66,21 +66,26 @@ def enrollStudent(request):
 def subjectEnrollmentList(request):
     user = request.user
     selected_semester_id = request.GET.get('semester', None)  # Get the selected semester from the query parameters
+    selected_subject_id = request.GET.get('subject', None)  # Get the selected subject from the query parameters
     
     if selected_semester_id:
         selected_semester = get_object_or_404(Semester, id=selected_semester_id)
     else:
         selected_semester = None
 
-    if user.profile.role.name.lower() == 'teacher':  # Assuming you have a 'role' field in the Profile model linked to CustomUser
-        # Filter enrollments based on the subjects assigned to the teacher and the selected semester
+    if user.profile.role.name.lower() == 'teacher':
         enrollments = SubjectEnrollment.objects.select_related('subject', 'semester', 'student').filter(subject__assign_teacher=user)
     else:
-        # Display all enrollments for the selected semester or all if none selected
         enrollments = SubjectEnrollment.objects.select_related('subject', 'semester', 'student')
     
     if selected_semester:
         enrollments = enrollments.filter(semester=selected_semester)
+    
+    if selected_subject_id:
+        selected_subject = get_object_or_404(Subject, id=selected_subject_id)
+        enrollments = enrollments.filter(subject=selected_subject)
+    else:
+        selected_subject = None
     
     subjects = {}
     for enrollment in enrollments:
@@ -89,11 +94,14 @@ def subjectEnrollmentList(request):
         subjects[enrollment.subject].append(enrollment)
     
     semesters = Semester.objects.all()  # Get all semesters for the dropdown
+    available_subjects = Subject.objects.filter(subjectenrollment__semester=selected_semester).distinct()  # Get available subjects for the dropdown
 
     return render(request, 'course/subjectEnrollment/enrolledStudentList.html', {
         'subjects': subjects,
         'semesters': semesters,
         'selected_semester': selected_semester,
+        'available_subjects': available_subjects,
+        'selected_subject': selected_subject,
     })
 
 
