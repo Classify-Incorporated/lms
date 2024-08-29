@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Registration List
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Registration List</h1>
+    <ul id="registration-list" class="list-group">
+        <!-- Registration IDs will be inserted here dynamically -->
+    </ul>
+    <p id="no-registrations" style="display: none;">No registrations found.</p>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('{% url "list_registration_ids" %}')
+            .then(response => response.json())
+            .then(data => {
+                const registrationList = document.getElementById('registration-list');
+                const noRegistrations = document.getElementById('no-registrations');
+
+                if (data.status === 'success' && data.data.length > 0) {
+                    data.data.forEach(registration_id => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'list-group-item';
+
+                        const link = document.createElement('a');
+                        link.href = `{% url 'detailRegistration' registration_id='__placeholder__' %}`.replace('__placeholder__', encodeURIComponent(registration_id));
+                        link.textContent = registration_id;
+
+                        listItem.appendChild(link);
+                        registrationList.appendChild(listItem);
+                    });
+                } else {
+                    noRegistrations.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching registration IDs:', error);
+                alert('Failed to load registration data. Please try again later.');
+            });
+    });
+</script>
+{% endblock %}
