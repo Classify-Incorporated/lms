@@ -2,6 +2,7 @@ from django import forms
 from .models import Module
 from django.core.exceptions import ValidationError
 from .models import SCORMPackage
+
 class moduleForm(forms.ModelForm):
     class Meta:
         model = Module
@@ -22,8 +23,4 @@ class moduleForm(forms.ModelForm):
 class SCORMPackageForm(forms.ModelForm):
     class Meta:
         model = SCORMPackage
-        fields = ['package_name', 'pptx_link']
-        widgets = {
-            'package_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'pptx_link': forms.TextInput(attrs={'class': 'form-control'}),
-        }
+        fields = ['package_name', 'file']

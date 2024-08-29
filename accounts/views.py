@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout as auth_logout, authenticate, login
 from .forms import CustomLoginForm, profileForm
-from .models import CustomUser, Profile
+from .models import Profile
 from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
 from django.utils import timezone
@@ -13,8 +13,7 @@ from datetime import timedelta
 import requests
 from bs4 import BeautifulSoup
 import requests
-from django.conf import settings
-from django.http import JsonResponse
+import os
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -106,7 +105,7 @@ def fetch_lms_articles():
 def fetch_facebook_posts():
 
     page_id = '370354416168614'
-    access_token = 'EAAWtZAc96AJsBO0CYVGN3jQBAwgZCOZBnRZC3v7z1tx5Xh3PdZCD10ZBTMZBNdDSdR0C0G5O00lIvyMhFttEHJAcxeaZCg2t93fuLZCJeTYYnSoZBgj86gLfZAtXK4lKGhDWB6XJ5myxsb9TY3u12fB4WGdcbdSLoDl2TTZAC09S0tSAi9KF8EChALmi7i57imoniGi4PE2IXt3n'
+    access_token = os.getenv('FACEBOOK_ACCESS_TOKEN')
     url = f"https://graph.facebook.com/v20.0/{page_id}/posts"
     params = {
         'access_token': access_token,

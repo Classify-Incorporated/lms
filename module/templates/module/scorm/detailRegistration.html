@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Registration Data
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Registration Data for {{ registration_id }}</h1>
+    <div id="registrationDataContainer">Loading registration data...</div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const registrationId = "{{ registration_id }}";
+        const url = `/view_registration_data/${encodeURIComponent(registrationId)}/`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const registration = data.data;
+                    const registrationDataContainer = document.getElementById('registrationDataContainer');
+                    registrationDataContainer.innerHTML = `
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Registration ID</th>
+                                <td>${registration.id}</td>
+                            </tr>
+                            <tr>
+                                <th>Course Title</th>
+                                <td>${registration.course.title}</td>
+                            </tr>
+                            <tr>
+                                <th>Learner Name</th>
+                                <td>${registration.learner.firstName} ${registration.learner.lastName}</td>
+                            </tr>
+                            <tr>
+                                <th>Completion Status</th>
+                                <td>${registration.registrationCompletion}</td>
+                            </tr>
+                            <tr>
+                                <th>Success Status</th>
+                                <td>${registration.registrationSuccess}</td>
+                            </tr>
+                            <tr>
+                                <th>Total Time Tracked (seconds)</th>
+                                <td>${registration.totalSecondsTracked}</td>
+                            </tr>
+                            <tr>
+                                <th>First Access Date</th>
+                                <td>${registration.firstAccessDate}</td>
+                            </tr>
+                            <tr>
+                                <th>Last Access Date</th>
+                                <td>${registration.lastAccessDate}</td>
+                            </tr>
+                            <tr>
+                                <th>Completed Date</th>
+                                <td>${registration.completedDate}</td>
+                            </tr>
+                        </table>
+                    `;
+                } else {
+                    document.getElementById('registrationDataContainer').textContent = 'Failed to load registration data.';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching registration data:', error);
+                document.getElementById('registrationDataContainer').textContent = 'Error loading registration data.';
+            });
+    });
+</script>
+{% endblock %}
