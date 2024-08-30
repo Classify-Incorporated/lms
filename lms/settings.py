@@ -211,3 +211,8 @@ SOCIALACCOUNT_ADAPTER = 'accounts.adapter.CustomSocialAccountAdapter'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 1209600 
+
+
+SCORMCLOUD_APP_ID = os.getenv('SCORM_APP_ID', '')
+SCORMCLOUD_SECRET_KEY = os.getenv('SCORM_SECRET_KEY', '')
+SCORMCLOUD_SERVICE_URL = 'https://cloud.scorm.com/api/v2'
