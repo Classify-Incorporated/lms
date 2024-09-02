@@ -257,25 +257,6 @@ def create_and_launch_scorm(request, scorm_id):
     
 
 @login_required
-def view_registration_data(request, registration_id):
-    scorm_client = ScormCloud()
-    registration_data = scorm_client.get_registration(registration_id)
-
-    if 'error' in registration_data:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Failed to retrieve registration data from SCORM Cloud.',
-            'error': registration_data['error']
-        }, status=500)
-
-    # Return the registration data as a JSON response
-    return JsonResponse({
-        'status': 'success',
-        'message': 'Registration data retrieved successfully.',
-        'data': registration_data
-    })
-
-@login_required
 def list_registration_ids(request):
     scorm_client = ScormCloud()
     registrations = scorm_client.list_registrations()
@@ -287,20 +268,26 @@ def list_registration_ids(request):
             'error': registrations['error']
         }, status=500)
 
-    # Extract registration_ids directly from the list
+    # Extract the necessary data from each registration
     try:
-        registration_ids = [registration['id'] for registration in registrations]  # Accessing list directly
+        registration_data = [
+            {
+                'learner_name': f"{registration['learner']['firstName']} {registration['learner']['lastName']}",
+                'course_title': registration['course']['title'],
+                'first_access_date': registration['firstAccessDate'],
+                'last_access_date': registration['lastAccessDate'],
+                'completed_date': registration.get('completedDate', 'N/A'),
+                'completion_status': registration['registrationCompletion'],
+            }
+            for registration in registrations
+        ]
     except KeyError as e:
-        print(f"KeyError encountered: {e}")
-        print(f"Registration data structure: {registrations}")
         return JsonResponse({
             'status': 'error',
-            'message': f'Failed to extract registration IDs: {str(e)}',
+            'message': f'Failed to extract registration data: {str(e)}',
             'data': registrations  # Return the entire response for debugging
         }, status=500)
     except TypeError as e:
-        print(f"TypeError encountered: {e}")
-        print(f"Registration data structure: {registrations}")
         return JsonResponse({
             'status': 'error',
             'message': f'Unexpected data format: {str(e)}',
@@ -309,14 +296,13 @@ def list_registration_ids(request):
 
     return JsonResponse({
         'status': 'success',
-        'message': 'List of registration IDs retrieved successfully.',
-        'data': registration_ids
+        'message': 'List of registration data retrieved successfully.',
+        'data': registration_data
     })
+
+
 
 @login_required
 def scormRegistration(request):
     return render(request, 'module/scorm/scormRegistration.html', {})
 
-@login_required
-def detailRegistration(request, registration_id):
-    return render(request, 'module/scorm/detailRegistration.html', {'registration_id': registration_id})
