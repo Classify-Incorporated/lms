@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  View {{ module.file_name }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ module.file_name }}</h1>
+    
+    <!-- Display PDF -->
+    {% if is_pdf %}
+    <div class="embed-responsive embed-responsive-16by9">
+        <iframe id="pdf-frame" src="{{ module.file.url }}" width="100%" height="600px"></iframe>
+    </div>
+    <div class="text-right mt-2">
+        <button class="btn btn-secondary" onclick="openFullscreen('pdf-frame')"><i class="fas fa-expand"></i></button>
+    </div>
+    {% endif %}
+
+    <!-- Display Image -->
+    {% if is_image %}
+    <div class="embed-responsive embed-responsive-16by9">
+        <img src="{{ module.file.url }}" class="img-fluid" alt="Image" style="width: 100%; height: 600px;">
+    </div>
+    {% endif %}
+
+    <!-- Display Video -->
+    {% if is_video %}
+    <div class="embed-responsive embed-responsive-16by9">
+        <video controls style="width: 100%; height: 600px;">
+            <source src="{{ module.file.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    {% endif %}
+
+    <!-- Display Unknown File Type -->
+    {% if is_unknown %}
+    <p>Unsupported file format. Unable to display the content.</p>
+    {% endif %}
+
+    <div class="text-right mt-3">
+        <a href="{% url 'subjectDetail' module.subject.id %}" class="btn btn-secondary">Back</a>
+    </div>
+</div>
+
+<script>
+function openFullscreen(id) {
+    var elem = document.getElementById(id);
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.mozRequestFullScreen) { // Firefox
+        elem.mozRequestFullScreen();
+    } else if (elem.webkitRequestFullscreen) { // Chrome, Safari and Opera
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) { // IE/Edge
+        elem.msRequestFullscreen();
+    }
+}
+</script>
+{% endblock %}

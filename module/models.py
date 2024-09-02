@@ -2,8 +2,14 @@ from django.db import models
 from subject.models import Subject
 import os
 import uuid
+from pptx import Presentation
+import fitz  
 from logs.models import SubjectLog
-from zipfile import ZipFile
+from django.conf import settings
+import requests
+from PIL import Image, ImageDraw
+import subprocess
+
 
 def get_upload_file(instance, filename):
     filename = f"{uuid.uuid4()}{os.path.splitext(filename)[1]}"
@@ -38,46 +44,26 @@ class SCORMPackage(models.Model):
     file = models.FileField(upload_to=get_scorm_upload_path, null=True, blank=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     is_scorm = models.BooleanField(default=False)
-    course_id = models.CharField(max_length=255, unique=True, null=True)  # Add this field
+    course_id = models.CharField(max_length=255, unique=True, null=True)
+    image_paths = models.JSONField(default=list, blank=True)  # Store paths to generated images
+    video_paths = models.JSONField(default=list, blank=True)  # Store paths to videos
+    pdf_pages = models.JSONField(default=list, blank=True)  # Store paths to PDF pages converted to images
 
     def __str__(self):
         return self.package_name
 
-    def validate_scorm_package(self):
-        # Ensure the file is a zip file
-        if not self.file.name.endswith('.zip'):
-            print("File is not a zip file.")
-            return False
+    def convert_pptx_to_images(self):
+        image_paths = []
+        output_dir = os.path.join(settings.MEDIA_ROOT, 'scorm_images', self.package_name)
+        os.makedirs(output_dir, exist_ok=True)
 
-        try:
-            # Open the zip file and check for imsmanifest.xml in the root
-            with ZipFile(self.file.path, 'r') as zip_file:
-                namelist = zip_file.namelist()
-                print("Files in zip:", namelist)  # Debugging: List all files in the zip
+        # Load the presentation
+        presentation = Presentation(self.file.path)
 
-                if 'imsmanifest.xml' in namelist:
-                    print("Found imsmanifest.xml")
-                    return True
-                else:
-                    print("imsmanifest.xml not found in the root directory of the zip file.")
-        except Exception as e:
-            print(f"Exception occurred during SCORM validation: {e}")
-            return False
+        # Convert each slide to an image
+        for i, slide in enumerate(presentation.slides):
+            image_path = os.path.join(output_dir, f'slide_{i + 1}.jpg')
+            slide.get_thumbnail().save(image_path, 'JPEG')
+            image_paths.append(image_path)
 
-        return False
-
-    def save(self, *args, **kwargs):
-        if not self.course_id:  # Generate a unique course_id if not set
-            self.course_id = f"{self.subject.id}-{uuid.uuid4()}"
-        
-        is_new = self.pk is None
-        super().save(*args, **kwargs)  # Save the file first to ensure it is available for validation
-
-        if is_new:
-            self.is_scorm = self.validate_scorm_package()
-            super().save(update_fields=['is_scorm'])  # Update after validation
-
-            SubjectLog.objects.create(
-                subject=self.subject,
-                message=f"A new SCORM package named '{self.package_name}' has been created for {self.subject.subject_name}. Valid SCORM: {self.is_scorm}"
-            )
+        return image_paths

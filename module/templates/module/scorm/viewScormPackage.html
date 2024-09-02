@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  View {{ scorm_package.package_name }}
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0">View {{ scorm_package.package_name }}</h1>
+        </div>
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+    </div>
+    <!-- /.container-fluid -->
+  </div>
+  <!-- /.content-header -->
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-body">
+          <h3>{{ scorm_package.package_name }}</h3>
+          <hr />
+          
+          <!-- Display the current image in an iframe-like structure -->
+          <div class="embed-responsive embed-responsive-16by9">
+            <img id="currentImage" src="{{ image_paths.0 }}" class="embed-responsive-item img-fluid" alt="Slide 1">
+          </div>
+
+          <div class="d-flex justify-content-between mt-3">
+            <button id="prevButton" class="btn btn-secondary" disabled>Previous</button>
+            <button id="nextButton" class="btn btn-primary">Next</button>
+          </div>
+
+          <div class="text-right mt-3">
+            <a href="{% url 'subjectDetail' scorm_package.subject.id %}" class="btn btn-secondary">Back</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- /.content -->
+</div>
+
+<script>
+  let imagePaths = {{ image_paths|safe }};
+  let currentIndex = 0;
+
+  document.getElementById('nextButton').addEventListener('click', function() {
+      if (currentIndex < imagePaths.length - 1) {
+          currentIndex++;
+          document.getElementById('currentImage').src = imagePaths[currentIndex];
+      }
+      updateButtons();
+  });
+
+  document.getElementById('prevButton').addEventListener('click', function() {
+      if (currentIndex > 0) {
+          currentIndex--;
+          document.getElementById('currentImage').src = imagePaths[currentIndex];
+      }
+      updateButtons();
+  });
+
+  function updateButtons() {
+      document.getElementById('prevButton').disabled = (currentIndex === 0);
+      document.getElementById('nextButton').disabled = (currentIndex === imagePaths.length - 1);
+  }
+</script>
+{% endblock %}

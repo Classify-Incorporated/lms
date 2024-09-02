@@ -149,6 +149,8 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
 
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
@@ -185,6 +187,11 @@ SOCIALACCOUNT_PROVIDERS = {
         'REDIRECT_URI': 'http://localhost:8000/accounts/microsoft/login/callback/',
     }
 }
+
+MS_TENANT_ID = os.getenv('MICROSOFT_TENANT')
+MS_CLIENT_ID = os.getenv('MICROSOFT_CLIENT_ID')
+MS_CLIENT_SECRET = os.getenv('MICROSOFT_SECRET')
+
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
