@@ -7,9 +7,7 @@
 {% block content %}
 <div class="container">
     <h1>Registration List</h1>
-    <ul id="registration-list" class="list-group">
-        <!-- Registration IDs will be inserted here dynamically -->
-    </ul>
+    <div id="registrationDataContainer">Loading registration data...</div>
     <p id="no-registrations" style="display: none;">No registrations found.</p>
 </div>
 
@@ -18,27 +16,44 @@
         fetch('{% url "list_registration_ids" %}')
             .then(response => response.json())
             .then(data => {
-                const registrationList = document.getElementById('registration-list');
+                const registrationDataContainer = document.getElementById('registrationDataContainer');
                 const noRegistrations = document.getElementById('no-registrations');
 
                 if (data.status === 'success' && data.data.length > 0) {
-                    data.data.forEach(registration_id => {
-                        const listItem = document.createElement('li');
-                        listItem.className = 'list-group-item';
+                    let tableRows = data.data.map(item => `
+                        <tr>
+                            <td>${item.learner_name}</td>
+                            <td>${item.course_title}</td>
+                            <td>${new Date(item.first_access_date).toLocaleString()}</td>
+                            <td>${new Date(item.last_access_date).toLocaleString()}</td>
+                            <td>${item.completed_date !== 'N/A' ? new Date(item.completed_date).toLocaleString() : 'N/A'}</td>
+                            <td>${item.completion_status}</td>
+                        </tr>
+                    `).join('');
 
-                        const link = document.createElement('a');
-                        link.href = `{% url 'detailRegistration' registration_id='__placeholder__' %}`.replace('__placeholder__', encodeURIComponent(registration_id));
-                        link.textContent = registration_id;
-
-                        listItem.appendChild(link);
-                        registrationList.appendChild(listItem);
-                    });
+                    registrationDataContainer.innerHTML = `
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Learner Name</th>
+                                    <th>Course Title</th>
+                                    <th>First Access Date</th>
+                                    <th>Last Access Date</th>
+                                    <th>Completed Date</th>
+                                    <th>Completion Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    `;
                 } else {
                     noRegistrations.style.display = 'block';
                 }
             })
             .catch(error => {
-                console.error('Error fetching registration IDs:', error);
+                console.error('Error fetching registration data:', error);
                 alert('Failed to load registration data. Please try again later.');
             });
     });
