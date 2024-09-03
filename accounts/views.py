@@ -203,6 +203,7 @@ def dashboard(request):
         'student_counts': student_counts,
         'active_users_per_day': active_users_per_day,
         'articles': articles,
+        'current_semester': current_semester,  # Pass the current semester to the template
     }
     return render(request, 'accounts/dashboard.html', context)
 

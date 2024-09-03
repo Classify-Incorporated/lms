@@ -24,3 +24,8 @@ class SCORMPackageForm(forms.ModelForm):
     class Meta:
         model = SCORMPackage
         fields = ['package_name', 'file']
+
+    def __init__(self, *args, **kwargs):
+        super(SCORMPackageForm, self).__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
