@@ -63,6 +63,7 @@ class StudentProgress(models.Model):
     first_accessed = models.DateTimeField(null=True, blank=True)  # First access date
     last_accessed = models.DateTimeField(auto_now=True)  # Last access date
     time_spent = models.IntegerField(default=0) 
+    last_page = models.IntegerField(default=1)
 
     def __str__(self):
         return f"{self.student.username} - {self.scorm_package or self.module} - {self.progress}%"

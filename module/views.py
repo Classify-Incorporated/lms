@@ -155,7 +155,7 @@ def viewScormPackage(request, id):
     progress, created = StudentProgress.objects.get_or_create(
         student=student,
         scorm_package=scorm_package,
-        defaults={'progress': 0}
+        defaults={'progress': 0, 'last_page': 1}
     )
 
     # Update the access times
@@ -164,6 +164,7 @@ def viewScormPackage(request, id):
     context = {
         'scorm_package': scorm_package,
         'progress': progress.progress,
+        'last_page': progress.last_page,
     }
 
     if scorm_package.file.name.endswith('.pdf'):
@@ -185,13 +186,15 @@ def update_progress(request):
         data = json.loads(request.body)
         scorm_package_id = data.get('scorm_package_id')
         progress_value = data.get('progress')
+        last_page = data.get('last_page', 1)  # Default to 1 if not provided
 
         scorm_package = SCORMPackage.objects.get(id=scorm_package_id)
         student = request.user
 
         progress_record, created = StudentProgress.objects.get_or_create(
             student=student,
-            scorm_package=scorm_package
+            scorm_package=scorm_package,
+            defaults={'last_page': last_page}  # Set last_page when creating
         )
 
         # Calculate the time spent since the last update
@@ -200,14 +203,14 @@ def update_progress(request):
             time_delta = now - progress_record.last_accessed
             progress_record.time_spent += int(time_delta.total_seconds())
 
-        # Update the progress
+        # Update the progress and last page
         progress_record.progress = progress_value
+        progress_record.last_page = last_page  # Ensure last_page is updated
         progress_record.last_accessed = now
         progress_record.save()
 
         return JsonResponse({'status': 'success', 'progress': progress_record.progress})
 
     return JsonResponse({'status': 'error'}, status=400)
-
 
 

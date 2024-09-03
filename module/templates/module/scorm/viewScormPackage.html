@@ -60,8 +60,9 @@ if (!pdfjsLib) {
 var url = '{{ scorm_package.file.url }}';
 console.log('Loading PDF from:', url);
 
+var lastPage = {{ last_page }};
 var pdfDoc = null,
-    pageNum = 1,
+    pageNum = lastPage,
     pageRendering = false,
     pageNumPending = null,
     scale = 1.5, // Start with a default scale
@@ -177,26 +178,27 @@ window.addEventListener('resize', function() {
 
 // Update progress by sending a POST request to the server
 function updateProgress(currentPage, totalPages) {
-    var progress = (currentPage / totalPages) * 100;
+  var progress = (currentPage / totalPages) * 100;
 
-    fetch("{% url 'update_progress' %}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify({
-            "scorm_package_id": "{{ scorm_package.id }}",
-            "progress": progress
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Progress updated successfully:", data);
-    })
-    .catch(error => {
-        console.error("Error updating progress:", error);
-    });
+  fetch("{% url 'update_progress' %}", {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({
+          "scorm_package_id": "{{ scorm_package.id }}",
+          "progress": progress,
+          "last_page": currentPage  // Include last_page data
+      })
+  })
+  .then(response => response.json())
+  .then(data => {
+      console.log("Progress updated successfully:", data);
+  })
+  .catch(error => {
+      console.error("Error updating progress:", error);
+  });
 }
 </script>
 {% endblock %}
