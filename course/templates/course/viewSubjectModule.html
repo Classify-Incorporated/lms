@@ -228,14 +228,17 @@
     
     // Function to open the Upload PPT modal and load the content dynamically
     function openUploadPPTModal(subjectId) {
-      fetch(`/uploadPackage/${subjectId}/`)
-        .then((response) => response.text())
-        .then((html) => {
-          document.getElementById('uploadPPTModalBody').innerHTML = html
-          document.getElementById('uploadPPTModal').classList.add('show')
-          document.getElementById('uploadPPTModalBackdrop').classList.add('show')
-        })
-    }
+      fetch(`/upload/${subjectId}/`)
+          .then((response) => response.text())
+          .then((html) => {
+              document.getElementById('uploadPPTModalBody').innerHTML = html;
+              document.getElementById('uploadPPTModal').classList.add('show');
+              document.getElementById('uploadPPTModalBackdrop').classList.add('show');
+          })
+          .catch((error) => {
+              console.error('Error loading the form:', error);
+          });
+  }
     
     // Script to close the Participation modal
     document.getElementById('closeParticipationModalBtn').addEventListener('click', function () {

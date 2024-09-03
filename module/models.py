@@ -2,26 +2,28 @@ from django.db import models
 from subject.models import Subject
 import os
 import uuid
-from pptx import Presentation
 import fitz  
 from logs.models import SubjectLog
 from django.conf import settings
-import requests
 from PIL import Image, ImageDraw
-import subprocess
+from pptx import Presentation
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from django.dispatch import receiver
+from django.core.files.base import ContentFile
+from aspose.slides.export import SaveFormat
+from aspose.slides import Presentation
+
 
 
 def get_upload_file(instance, filename):
     filename = f"{uuid.uuid4()}{os.path.splitext(filename)[1]}"
     return os.path.join('module', filename)
 
-
 def get_scorm_upload_path(instance, filename):
     filename = f"{uuid.uuid4()}{os.path.splitext(filename)[1]}"
     return os.path.join('scormPackages', filename)
 
-
-# Create your models here.
 class Module(models.Model):
     file_name = models.CharField(max_length=100)
     file = models.FileField(upload_to=get_upload_file, null=True, blank=True)
@@ -38,7 +40,7 @@ class Module(models.Model):
                 subject=self.subject,
                 message=f"A new module named '{self.file_name}' has been created for {self.subject.subject_name}."
             )
-    
+
 class SCORMPackage(models.Model):
     package_name = models.CharField(max_length=100)
     file = models.FileField(upload_to=get_scorm_upload_path, null=True, blank=True)
@@ -51,19 +53,31 @@ class SCORMPackage(models.Model):
 
     def __str__(self):
         return self.package_name
+    
+    def convert_ppt_to_pdf(self):
+        if self.file and self.file.name.endswith('.pptx'):
+            try:
+                pptx_path = self.file.path
+                pdf_path = os.path.splitext(pptx_path)[0] + '.pdf'
 
-    def convert_pptx_to_images(self):
-        image_paths = []
-        output_dir = os.path.join(settings.MEDIA_ROOT, 'scorm_images', self.package_name)
-        os.makedirs(output_dir, exist_ok=True)
+                # Load the presentation
+                presentation = Presentation(pptx_path)
+                
+                # Convert the presentation to PDF format
+                presentation.save(pdf_path, SaveFormat.PDF)
 
-        # Load the presentation
-        presentation = Presentation(self.file.path)
+                # Save the converted PDF back to the model
+                with open(pdf_path, 'rb') as pdf_file:
+                    self.file.save(os.path.basename(pdf_path), ContentFile(pdf_file.read()))
+                
+                os.remove(pdf_path)  # Optionally remove the PDF after saving
+            except Exception as e:
+                # Handle errors, such as logging them
+                print(f"Error converting PPTX to PDF: {e}")
+                # Optionally, add custom error handling logic here
 
-        # Convert each slide to an image
-        for i, slide in enumerate(presentation.slides):
-            image_path = os.path.join(output_dir, f'slide_{i + 1}.jpg')
-            slide.get_thumbnail().save(image_path, 'JPEG')
-            image_paths.append(image_path)
-
-        return image_paths
+# Signal to handle file conversion after save
+@receiver(models.signals.post_save, sender=SCORMPackage)
+def post_save_scorm_package(sender, instance, **kwargs):
+    if instance.file and instance.file.name.endswith('.pptx'):
+        instance.convert_ppt_to_pdf()

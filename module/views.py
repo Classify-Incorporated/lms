@@ -93,25 +93,18 @@ def uploadPackage(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)
 
     if request.method == 'POST':
+        print(request.POST)
         form = SCORMPackageForm(request.POST, request.FILES)
         if form.is_valid():
             package = form.save(commit=False)
             package.subject = subject
 
-            # Save the package to disk first
-            package.save()
+            package.save()  # This will trigger the post_save signal
 
-            # Handle the .zip file and extract images (if applicable)
             if package.file.name.endswith('.zip'):
                 package.image_paths = package.extract_images_from_zip()
                 package.save(update_fields=['image_paths'])
 
-            # Handle the .pptx file (using Aspose.Slides)
-            elif package.file.name.endswith('.pptx'):
-                package.image_paths = package.convert_pptx_to_images()
-                package.save(update_fields=['image_paths'])
-
-            # Handle the .pdf file
             elif package.file.name.endswith('.pdf'):
                 package.pdf_pages = package.convert_pdf_to_images(package.file.path)
                 package.save(update_fields=['pdf_pages'])
