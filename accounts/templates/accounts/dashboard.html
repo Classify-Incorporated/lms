@@ -5,7 +5,14 @@
 {% endblock %}
 {% block content %}
   <!-- Page Heading -->
-  <h1 class="h3 mb-4 text-gray-800">Dashboard</h1>
+  <!-- Page Heading -->
+  <h1 class="h3 mb-4 text-gray-800">
+    {% if current_semester %}
+      {{ current_semester.semester_name }} - School Year {{ current_semester.school_year }}
+    {% else %}
+      No Active Semester
+    {% endif %}
+  </h1>
 
   <!-- Content Row -->
   <div class="row">
@@ -15,7 +22,7 @@
         <div class="card-body">
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
-              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Number of Online Students</div>
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Number Of Students Enrolled</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_users_count }}</div>
             </div>
             <div class="col-auto">
@@ -32,7 +39,7 @@
         <div class="card-body">
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
-              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Subjects in Current Semester</div>
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Number Of Subjects For This Semester</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800">{{ subject_count }}</div>
             </div>
             <div class="col-auto">
@@ -45,24 +52,15 @@
 
     <!-- Assignments Card Example -->
     <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-info shadow h-100 py-2">
+      <div class="card border-left-warning shadow h-100 py-2">
         <div class="card-body">
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
-              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Assignments Overview</div>
-              <div class="row no-gutters align-items-center">
-                <div class="col-auto">
-                  <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">75%</div>
-                </div>
-                <div class="col">
-                  <div class="progress progress-sm mr-2">
-                    <div class="progress-bar bg-info" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                  </div>
-                </div>
-              </div>
+              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Students Excelling</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
             </div>
             <div class="col-auto">
-              <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+              <i class="fas fa-user-check fa-2x text-gray-300"></i>
             </div>
           </div>
         </div>
@@ -71,15 +69,24 @@
 
     <!-- Pending Requests Card Example -->
     <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card border-left-danger shadow h-100 py-2">
         <div class="card-body">
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
-              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Requests</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+              <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Students Failing</div>
+              <div class="row no-gutters align-items-center">
+                <div class="col-auto">
+                  <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">75%</div>
+                </div>
+                <div class="col">
+                  <div class="progress progress-sm mr-2">
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="col-auto">
-              <i class="fas fa-comments fa-2x text-gray-300"></i>
+              <i class="fas fa-user-times fa-2x text-gray-300"></i>
             </div>
           </div>
         </div>
