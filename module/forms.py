@@ -44,3 +44,4 @@ class SCORMPackageForm(forms.ModelForm):
                 raise ValidationError('File type not supported. Please upload a PDF, image, or video file.')
 
         return file
+
