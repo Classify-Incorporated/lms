@@ -9,6 +9,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 import os
+
 # Create your views here.
 
 #Module List
@@ -93,23 +94,13 @@ def uploadPackage(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)
 
     if request.method == 'POST':
-        print(request.POST)
         form = SCORMPackageForm(request.POST, request.FILES)
         if form.is_valid():
             package = form.save(commit=False)
             package.subject = subject
+            package.save()
 
-            package.save()  # This will trigger the post_save signal
-
-            if package.file.name.endswith('.zip'):
-                package.image_paths = package.extract_images_from_zip()
-                package.save(update_fields=['image_paths'])
-
-            elif package.file.name.endswith('.pdf'):
-                package.pdf_pages = package.convert_pdf_to_images(package.file.path)
-                package.save(update_fields=['pdf_pages'])
-
-            messages.success(request, f'{package.package_name} uploaded successfully and processed!')
+            messages.success(request, f'{package.package_name} uploaded successfully!')
             return redirect('subjectDetail', pk=subject.pk)
     else:
         form = SCORMPackageForm()
@@ -127,21 +118,8 @@ def updatePackage(request, id):
         form = SCORMPackageForm(request.POST, request.FILES, instance=package)
         if form.is_valid():
             updated_package = form.save(commit=False)
-
-            # Save the updated package locally first
             updated_package.save()
-
-            # Handle different file types
-            if updated_package.file.name.endswith('.pptx'):
-                updated_package.image_paths = updated_package.convert_pptx_to_images()
-            elif updated_package.file.name.endswith('.pdf'):
-                updated_package.pdf_pages = updated_package.convert_pdf_to_images()
-            elif updated_package.file.name.endswith(('.mp4', '.avi', '.mov')):
-                updated_package.video_paths = [updated_package.file.url]  # Store video URL for streaming
-
-            updated_package.save(update_fields=['image_paths', 'pdf_pages', 'video_paths'])
-
-            messages.success(request, f'{updated_package.package_name} updated successfully and processed!')
+            messages.success(request, f'{updated_package.package_name} updated successfully!')
             return redirect('subjectDetail', pk=subject_id)
         else:
             messages.error(request, 'There was an error updating the package. Please try again.')
@@ -151,49 +129,38 @@ def updatePackage(request, id):
     return render(request, 'module/scorm/updatePptx.html', {'form': form, 'package': package})
 
 
-
 @login_required
 @teacher_or_admin_required
 def deletePackage(request, id):
     package = get_object_or_404(SCORMPackage, pk=id)
     subject_id = package.subject.id
 
-    if package.image_paths:
-        for image_path in package.image_paths:
-            if os.path.exists(image_path):
-                os.remove(image_path)
+    if package.file:
+        if os.path.exists(package.file.path):
+            os.remove(package.file.path)
 
-    if package.pdf_pages:
-        for pdf_page in package.pdf_pages:
-            if os.path.exists(pdf_page):
-                os.remove(pdf_page)
-
-    if package.video_paths:
-        for video_path in package.video_paths:
-            video_full_path = os.path.join(settings.MEDIA_ROOT, video_path)
-            if os.path.exists(video_full_path):
-                os.remove(video_full_path)
-
-    # Delete the package locally
     package.delete()
     messages.success(request, 'Package deleted successfully!')
 
     return redirect('subjectDetail', pk=subject_id)
 
 
-
-
 @login_required
-def view_scorm_package(request, id):
+def viewScormPackage(request, id):
     scorm_package = get_object_or_404(SCORMPackage, pk=id)
-    
-    # Correcting the file paths by replacing backslashes with forward slashes
-    image_paths = [settings.MEDIA_URL + path.replace('\\', '/') for path in scorm_package.image_paths]
-    
-    return render(request, 'module/scorm/viewScormPackage.html', {
-        'scorm_package': scorm_package,
-        'image_paths': image_paths,
-    })
+    context = {'scorm_package': scorm_package}
+
+    # Determine the file type and prepare context accordingly
+    if scorm_package.file.name.endswith('.pdf'):
+        context['is_pdf'] = True
+    elif scorm_package.file.name.endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+        context['is_image'] = True
+    elif scorm_package.file.name.endswith(('.mp4', '.avi', '.mov', '.mkv')):
+        context['is_video'] = True
+    else:
+        context['is_unknown'] = True
+
+    return render(request, 'module/scorm/viewScormPackage.html', context)
 
     
 

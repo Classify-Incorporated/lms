@@ -1,77 +1,175 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  View {{ scorm_package.package_name }}
+  View {{ scorm_package.file_name }}
 {% endblock %}
 
 {% block content %}
-<div class="content-wrapper">
-  <!-- Content Header (Page header) -->
-  <div class="content-header">
-    <div class="container-fluid">
-      <div class="row mb-2">
-        <div class="col-sm-6">
-          <h1 class="m-0">View {{ scorm_package.package_name }}</h1>
-        </div>
-        <!-- /.col -->
-      </div>
-      <!-- /.row -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js"></script>
+
+<div class="container">
+    <h1>{{ scorm_package.file_name }}</h1>
+    
+    <!-- Display PDF -->
+    {% if is_pdf %}
+    <div class="embed-responsive embed-responsive-16by9">
+        <canvas id="pdf-canvas" style="width: auto; height: auto;"></canvas>
     </div>
-    <!-- /.container-fluid -->
-  </div>
-  <!-- /.content-header -->
-
-  <!-- Main content -->
-  <section class="content">
-    <div class="container-fluid">
-      <div class="card">
-        <div class="card-body">
-          <h3>{{ scorm_package.package_name }}</h3>
-          <hr />
-          
-          <!-- Display the current image in an iframe-like structure -->
-          <div class="embed-responsive embed-responsive-16by9">
-            <img id="currentImage" src="{{ image_paths.0 }}" class="embed-responsive-item img-fluid" alt="Slide 1">
-          </div>
-
-          <div class="d-flex justify-content-between mt-3">
-            <button id="prevButton" class="btn btn-secondary" disabled>Previous</button>
-            <button id="nextButton" class="btn btn-primary">Next</button>
-          </div>
-
-          <div class="text-right mt-3">
-            <a href="{% url 'subjectDetail' scorm_package.subject.id %}" class="btn btn-secondary">Back</a>
-          </div>
-        </div>
-      </div>
+    <div class="text-right mt-2">
+        <button id="prev-page" class="btn btn-secondary">Previous</button>
+        <button id="next-page" class="btn btn-secondary">Next</button>
+        <span>Page: <span id="page-num"></span> / <span id="page-count"></span></span>
     </div>
-  </section>
-  <!-- /.content -->
+    {% endif %}
+
+    <!-- Display Image -->
+    {% if is_image %}
+    <div class="embed-responsive embed-responsive-16by9">
+        <img src="{{ scorm_package.file.url }}" class="img-fluid" alt="Image" style="width: 100%; height: auto;">
+    </div>
+    {% endif %}
+
+    <!-- Display Video -->
+    {% if is_video %}
+    <div class="embed-responsive embed-responsive-16by9">
+        <video controls style="width: 100%; height: auto;">
+            <source src="{{ scorm_package.file.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    {% endif %}
+
+    <!-- Display Unknown File Type -->
+    {% if is_unknown %}
+    <p>Unsupported file format. Unable to display the content.</p>
+    {% endif %}
+
+    <div class="text-right mt-3">
+        <a href="{% url 'subjectDetail' scorm_package.subject.id %}" class="btn btn-secondary">Back</a>
+    </div>
 </div>
 
 <script>
-  let imagePaths = {{ image_paths|safe }};
-  let currentIndex = 0;
+// Ensure pdf.js is loaded
+if (!pdfjsLib) {
+    console.error('pdf.js library not loaded');
+}
 
-  document.getElementById('nextButton').addEventListener('click', function() {
-      if (currentIndex < imagePaths.length - 1) {
-          currentIndex++;
-          document.getElementById('currentImage').src = imagePaths[currentIndex];
-      }
-      updateButtons();
-  });
+// PDF.js setup
+var url = '{{ scorm_package.file.url }}';
+console.log('Loading PDF from:', url);
 
-  document.getElementById('prevButton').addEventListener('click', function() {
-      if (currentIndex > 0) {
-          currentIndex--;
-          document.getElementById('currentImage').src = imagePaths[currentIndex];
-      }
-      updateButtons();
-  });
+var pdfDoc = null,
+    pageNum = 1,
+    pageRendering = false,
+    pageNumPending = null,
+    scale = 1.5, // Start with a default scale
+    canvas = document.getElementById('pdf-canvas'),
+    ctx = null;
 
-  function updateButtons() {
-      document.getElementById('prevButton').disabled = (currentIndex === 0);
-      document.getElementById('nextButton').disabled = (currentIndex === imagePaths.length - 1);
+function initializeCanvas() {
+    canvas = document.getElementById('pdf-canvas');
+    if (canvas) {
+        ctx = canvas.getContext('2d');
+        if (!ctx) {
+            console.error('Failed to get canvas context');
+        }
+    } else {
+        console.error('Canvas element not found');
+    }
+}
+
+// Initialize the canvas context
+initializeCanvas();
+
+// Load the PDF
+pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+    pdfDoc = pdfDoc_;
+    console.log('PDF loaded successfully');
+
+    var pageCountElement = document.getElementById('page-count');
+    if (pageCountElement) {
+        pageCountElement.textContent = pdfDoc.numPages;
+    }
+
+    // Initial/first page rendering
+    renderPage(pageNum);
+}).catch(function(error) {
+    console.error('Error loading PDF:', error);
+});
+
+// Render the page
+function renderPage(num) {
+  if (!pdfDoc || !ctx) {
+      console.error('PDF document or canvas context not initialized');
+      return;
   }
+
+  pageRendering = true;
+
+  // Adjust the scale based on the screen size
+  const viewport = pdfDoc.getPage(num).then(function(page) {
+      const viewport = page.getViewport({ scale: scale });
+
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      const renderContext = {
+          canvasContext: ctx,
+          viewport: viewport
+      };
+
+      const renderTask = page.render(renderContext);
+
+      renderTask.promise.then(function() {
+          pageRendering = false;
+
+          if (pageNumPending !== null) {
+              renderPage(pageNumPending);
+              pageNumPending = null;
+          }
+
+          document.getElementById('page-num').textContent = num;
+      }).catch(function(error) {
+          console.error('Error during page render:', error);
+      });
+  }).catch(function(error) {
+      console.error('Error rendering page:', error);
+  });
+}
+
+// Handle page change
+function queueRenderPage(num) {
+    if (pageRendering) {
+        pageNumPending = num;
+    } else {
+        renderPage(num);
+    }
+}
+
+// Button events
+document.getElementById('prev-page').addEventListener('click', function() {
+    if (pageNum <= 1) {
+        return;
+    }
+    pageNum--;
+    queueRenderPage(pageNum);
+});
+
+document.getElementById('next-page').addEventListener('click', function() {
+    if (pageNum >= pdfDoc.numPages) {
+        return;
+    }
+    pageNum++;
+    queueRenderPage(pageNum);
+});
+
+// Adjust scale dynamically when the window is resized
+window.addEventListener('resize', function() {
+    scale = window.innerWidth / 1024;
+    initializeCanvas(); // Re-initialize the canvas on resize
+    renderPage(pageNum);
+});
 </script>
 {% endblock %}
