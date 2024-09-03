@@ -5,8 +5,9 @@ import uuid
 from logs.models import SubjectLog
 from django.dispatch import receiver
 from django.core.files.base import ContentFile
+from django.utils import timezone
 
-
+from django.conf import settings
 def get_upload_file(instance, filename):
     filename = f"{uuid.uuid4()}{os.path.splitext(filename)[1]}"
     return os.path.join('module', filename)
