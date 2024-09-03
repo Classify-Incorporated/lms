@@ -8,7 +8,7 @@
       <img src="{% static 'images/gsu_logo.png' %}" alt="Classify Logo" style="width: 60px; height: 60px; border-radius: 50%;" />
     </div>
     <div class="sidebar-brand-text mx-2">
-      GSU <br /><sup>Excels As One</sup>
+      Excels As One
     </div>
   </a>
   <!-- Divider -->
@@ -47,7 +47,7 @@
         {% if user|has_perm:'course.view_course' %}
           <a class="collapse-item" href="{% url 'SubjectList' %}">
             <i class="bx bx-book"></i>
-            <span>Courses</span>
+            <span>Subject</span>
           </a>
         {% endif %}
         <a class="collapse-item" href="{% url 'calendars' %}">
@@ -74,7 +74,7 @@
         {% if user|has_perm:'subject.view_subject' %}
           <a class="collapse-item" href="{% url 'subject' %}">
             <i class="bx bx-book"></i>
-            <span>Subject</span>
+            <span>Subject List</span>
           </a>
         {% endif %}
 
