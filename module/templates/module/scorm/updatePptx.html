@@ -4,9 +4,9 @@
   Update SCORM Package
 {% endblock %}
 {% block content %}
-<form method="post" action="{% url 'updateScormPackage' scorm_package.id %}" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Update</button>
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save</button>
 </form>
 {% endblock %}

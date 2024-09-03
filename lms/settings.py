@@ -149,6 +149,8 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
 
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
@@ -186,6 +188,12 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+MS_TENANT_ID = os.getenv('MICROSOFT_TENANT')
+MS_CLIENT_ID = os.getenv('MICROSOFT_CLIENT_ID')
+MS_CLIENT_SECRET = os.getenv('MICROSOFT_SECRET')
+
+CLOUDCONVERT_API_KEY = os.getenv('CLOUDCONVERT_API_KEY', '')
+
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
 # Additional allauth settings
@@ -216,3 +224,4 @@ SESSION_COOKIE_AGE = 1209600
 SCORMCLOUD_APP_ID = os.getenv('SCORM_APP_ID', '')
 SCORMCLOUD_SECRET_KEY = os.getenv('SCORM_SECRET_KEY', '')
 SCORMCLOUD_SERVICE_URL = 'https://cloud.scorm.com/api/v2'
+
