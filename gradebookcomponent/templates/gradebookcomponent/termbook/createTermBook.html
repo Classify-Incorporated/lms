@@ -1,4 +1,4 @@
-<form method="post"  action="{% url 'createTermGradeBookComponent' %}">
+<form method="post" action="{% url 'createTermGradeBookComponent' %}">
   {% csrf_token %}
   <div class="form-group">{{ form.term.label_tag }}
     {{ form.term }}</div>
@@ -8,4 +8,3 @@
     {{ form.percentage }}</div>
   <button type="submit" class="btn btn-primary">Submit</button>
 </form>
-
