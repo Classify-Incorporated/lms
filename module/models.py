@@ -62,17 +62,16 @@ class StudentProgress(models.Model):
     
     def save(self, *args, **kwargs):
         now = timezone.now()
-        
-        # If first_accessed is not set, set it now
+
         if not self.first_accessed:
             self.first_accessed = now
-        
-        # If there is a previous last_accessed time, calculate the time spent since the last access
+
         if self.last_accessed:
             time_delta = now - self.last_accessed
             self.time_spent += int(time_delta.total_seconds())
 
-        # Update the last_accessed time
         self.last_accessed = now
+
+        self.last_session_end = now
 
         super(StudentProgress, self).save(*args, **kwargs)
