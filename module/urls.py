@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
 
     createModule, updateModule, viewModule, deleteModule, moduleList,
-    uploadPackage, deletePackage,updatePackage,viewScormPackage,
+    uploadPackage, deletePackage,updatePackage,viewScormPackage,update_progress
 )
 
 urlpatterns = [
@@ -15,5 +15,7 @@ urlpatterns = [
     path('deletePackage/<int:id>/', deletePackage, name='deletePackage'),
     path('updatePackage/<int:id>/', updatePackage, name='updatePackage'),
     path('viewScormPackage/<int:id>/', viewScormPackage, name='viewScormPackage'),
+
+     path('update_progress/', update_progress, name='update_progress'),
 
 ]
