@@ -139,28 +139,28 @@
 
       // Function to send progress updates to the server
       function updateProgress(currentPage, totalPages) {
-          var progress = (currentPage / totalPages) * 100;
-
-          fetch("{% url 'update_progress' %}", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json",
-                  "X-CSRFToken": "{{ csrf_token }}"
-              },
-              body: JSON.stringify({
-                  "scorm_package_id": "{{ scorm_package.id }}",
-                  "progress": progress,
-                  "last_page": currentPage  // Send the current page as last_page
-              })
-          })
-          .then(response => response.json())
-          .then(data => {
-              console.log("Progress updated successfully:", data);
-          })
-          .catch(error => {
-              console.error("Error updating progress:", error);
-          });
-      }
+        var progress = (currentPage / totalPages) * 100;
+    
+        fetch("{% url 'update_progress' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                "scorm_package_id": "{{ scorm_package.id }}",
+                "progress": progress,
+                "last_page": currentPage  // Send the current page as last_page
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Progress updated successfully:", data);
+        })
+        .catch(error => {
+            console.error("Error updating progress:", error);
+        });
+    }
     });
   </script>
 

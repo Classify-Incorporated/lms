@@ -12,6 +12,8 @@ import os
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.utils import timezone
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 # Create your views here.
 
 #Module List
@@ -65,7 +67,23 @@ def updateModule(request, pk):
 @teacher_or_admin_required
 def viewModule(request, pk):
     module = get_object_or_404(Module, pk=pk)
-    context = {'module': module}
+    student = request.user
+
+    # Get or create a progress record for the student and module
+    progress, created = StudentProgress.objects.get_or_create(
+        student=student,
+        module=module,
+        defaults={'progress': 0, 'last_page': 1}
+    )
+
+    # Update the access times
+    progress.save()
+
+    context = {
+        'module': module,
+        'progress': progress.progress,
+        'last_page': progress.last_page,
+    }
 
     # Determine the file type and prepare context accordingly
     if module.file.name.endswith('.pdf'):
@@ -78,6 +96,51 @@ def viewModule(request, pk):
         context['is_unknown'] = True
 
     return render(request, 'module/viewModule.html', context)
+
+@login_required
+@csrf_exempt
+def module_progress(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        module_id = data.get('module_id')
+        progress_value = data.get('progress')
+        last_page = data.get('last_page', 1)  # Default to 1 if not provided
+
+        module = Module.objects.get(id=module_id)
+        student = request.user
+
+        # Retrieve the existing progress record or create a new one
+        progress_record, created = StudentProgress.objects.get_or_create(
+            student=student,
+            module=module,
+            defaults={'last_page': last_page}  # Set last_page when creating
+        )
+
+        # Print the current time spent before the update
+        print(f"Before update: Total time spent: {progress_record.time_spent} seconds")
+
+        # Calculate the time spent since the last update
+        now = timezone.now()
+        if progress_record.last_accessed:
+            time_delta = now - progress_record.last_accessed
+            added_time = int(time_delta.total_seconds())
+            progress_record.time_spent += added_time
+
+            # Print the actual time spent during this session
+            print(f"Time spent this session: {added_time} seconds")
+
+        # Update the progress and last page
+        progress_record.progress = progress_value
+        progress_record.last_page = last_page  # Ensure last_page is updated
+        progress_record.last_accessed = now
+        progress_record.save()
+
+        # Print the total time spent after the update
+        print(f"After update: Total time spent: {progress_record.time_spent} seconds")
+
+        return JsonResponse({'status': 'success', 'progress': progress_record.progress})
+
+    return JsonResponse({'status': 'error'}, status=400)
 
 #Delete Module
 @login_required
@@ -158,8 +221,10 @@ def viewScormPackage(request, id):
         defaults={'progress': 0, 'last_page': 1}
     )
 
-    # Update the access times
-    progress.save()
+    # Store the start time in session
+    request.session['start_time'] = timezone.now().isoformat()
+
+    print(f"View Scorm Package: Start Time Set in Session - {request.session['start_time']}")
 
     context = {
         'scorm_package': scorm_package,
@@ -197,16 +262,29 @@ def update_progress(request):
             defaults={'last_page': last_page}  # Set last_page when creating
         )
 
-        # Calculate the time spent since the last update
-        now = timezone.now()
-        if progress_record.last_accessed:
-            time_delta = now - progress_record.last_accessed
-            progress_record.time_spent += int(time_delta.total_seconds())
+        # Get start_time from the session
+        start_time_str = request.session.get('start_time')
+        if start_time_str:
+            start_time = timezone.datetime.fromisoformat(start_time_str)
+            now = timezone.now()
+            time_delta = now - start_time
+            session_time_spent = int(time_delta.total_seconds())
+
+            # Print the time spent before and after the update for debugging
+            print(f"Before update: Total time spent: {progress_record.time_spent} seconds")
+            print(f"Time spent this session: {session_time_spent} seconds")
+
+            progress_record.time_spent += session_time_spent
+
+            print(f"After update: Total time spent: {progress_record.time_spent} seconds")
+
+            # Clear the start_time from the session after updating
+            request.session['start_time'] = now.isoformat()
 
         # Update the progress and last page
         progress_record.progress = progress_value
         progress_record.last_page = last_page  # Ensure last_page is updated
-        progress_record.last_accessed = now
+        progress_record.last_accessed = timezone.now()
         progress_record.save()
 
         return JsonResponse({'status': 'success', 'progress': progress_record.progress})
@@ -214,3 +292,68 @@ def update_progress(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 
+def progressList(request):
+    student = request.user
+    # Retrieve distinct SCORM packages and modules
+    scorm_activities = StudentProgress.objects.filter(
+        student=student, scorm_package__isnull=False
+    ).select_related('scorm_package').distinct()
+
+    module_activities = StudentProgress.objects.filter(
+        student=student, module__isnull=False
+    ).select_related('module').distinct()
+
+    return render(request, 'module/progress/activityProgress.html', {
+        'scorm_activities': scorm_activities,
+        'module_activities': module_activities
+    })
+
+@login_required
+def detailScormProgress(request, scorm_package_id):
+    progress_list = StudentProgress.objects.filter(scorm_package_id=scorm_package_id)
+    scorm_package = get_object_or_404(SCORMPackage, id=scorm_package_id)
+    activity_name = scorm_package.package_name
+
+    for p in progress_list:
+        seconds = p.time_spent
+        if seconds is not None:
+            hours, remainder = divmod(seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            if hours > 0:
+                p.formatted_time_spent = f"{hours}h {minutes}m {seconds}s"
+            elif minutes > 0:
+                p.formatted_time_spent = f"{minutes}m {seconds}s"
+            else:
+                p.formatted_time_spent = f"{seconds}s"
+        else:
+            p.formatted_time_spent = "N/A"
+    
+    return render(request, 'module/progress/detailProgress.html', {
+        'progress_list': progress_list,
+        'activity_name': activity_name
+    })
+
+@login_required
+def detailModuleProgress(request, module_id):
+    progress_list = StudentProgress.objects.filter(module_id=module_id)
+    module = get_object_or_404(Module, id=module_id)
+    activity_name = module.file_name
+
+    for p in progress_list:
+        seconds = p.time_spent
+        if seconds is not None:
+            hours, remainder = divmod(seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            if hours > 0:
+                p.formatted_time_spent = f"{hours}h {minutes}m {seconds}s"
+            elif minutes > 0:
+                p.formatted_time_spent = f"{minutes}m {seconds}s"
+            else:
+                p.formatted_time_spent = f"{seconds}s"
+        else:
+            p.formatted_time_spent = "N/A"
+    
+    return render(request, 'module/progress/detailProgress.html', {
+        'progress_list': progress_list,
+        'activity_name': activity_name
+    })

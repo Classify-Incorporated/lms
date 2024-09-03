@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}
+  {{ activity_name }} - Progress Details
+{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-2 text-gray-800">{{ activity_name }} - Progress Details</h1>
+
+  <!-- DataTales Example -->
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Progress</th>
+              <th>Time Spent</th>
+              <th>First Access</th>
+              <th>Last Access</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for progress in progress_list %}
+            <tr>
+              <td>{{ progress.student }}</td>
+              <td>
+                <div class="progress" style="height: 25px;">
+                  <div class="progress-bar bg-success" role="progressbar" 
+                       style="width: {{ progress.progress }}%;" 
+                       aria-valuenow="{{ progress.progress }}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                    <span>{{ progress.progress }}%</span>
+                  </div>
+                </div>
+              </td>
+              <td>{{ progress.formatted_time_spent }}</td>
+              <td>{{ progress.first_accessed|date:"Y-m-d H:i:s" }}</td>
+              <td>{{ progress.last_accessed|date:"Y-m-d H:i:s" }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}
