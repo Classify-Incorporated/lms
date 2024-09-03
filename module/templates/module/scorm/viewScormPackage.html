@@ -5,200 +5,94 @@
 {% endblock %}
 
 {% block content %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
 
-<div class="container">
+  <div class="container" style="padding-top: 20px;">
     <h1>{{ scorm_package.file_name }}</h1>
-    
-    <!-- Display PDF -->
+
     {% if is_pdf %}
-    <div class="embed-responsive embed-responsive-16by9">
-        <canvas id="pdf-canvas" style="width: 100%; height: auto;"></canvas>
-    </div>
-    <div class="text-right mt-2">
+
+      <div id="pdf-container" style="min-height: 500px;">
+        <canvas id="pdf-canvas" style="width: 100%;"></canvas>
+      </div>
+      <div class="text-right mt-2">
+
         <button id="prev-page" class="btn btn-secondary">Previous</button>
         <button id="next-page" class="btn btn-secondary">Next</button>
         <span>Page: <span id="page-num"></span> / <span id="page-count"></span></span>
-    </div>
+      </div>
     {% endif %}
 
-    <!-- Display Image -->
     {% if is_image %}
-    <div class="embed-responsive embed-responsive-16by9">
-        <img src="{{ scorm_package.file.url }}" class="img-fluid" alt="Image" style="width: 100%; height: auto;">
-    </div>
+      <div>
+        <img src="{{ scorm_package.file.url }}" class="img-fluid" alt="Image" style="width: 100%;" />
+      </div>
     {% endif %}
 
-    <!-- Display Video -->
     {% if is_video %}
-    <div class="embed-responsive embed-responsive-16by9">
-        <video controls style="width: 100%; height: auto;">
-            <source src="{{ scorm_package.file.url }}" type="video/mp4">
-            Your browser does not support the video tag.
+      <div>
+        <video controls style="width: 100%;">
+          <source src="{{ scorm_package.file.url }}" type="video/mp4" />Your browser does not support the video tag.
         </video>
-    </div>
+      </div>
     {% endif %}
 
-    <!-- Display Unknown File Type -->
     {% if is_unknown %}
-    <p>Unsupported file format. Unable to display the content.</p>
+      <p>Unsupported file format. Unable to display the content.</p>
     {% endif %}
 
     <div class="text-right mt-3">
-        <a href="{% url 'subjectDetail' scorm_package.subject.id %}" class="btn btn-secondary">Back</a>
+      <a href="{% url 'subjectDetail' scorm_package.subject.id %}" class="btn btn-secondary">Back</a>
     </div>
-</div>
+  </div>
 
-<script>
-// Ensure pdf.js is loaded
-if (!pdfjsLib) {
-    console.error('pdf.js library not loaded');
-}
-
-// PDF.js setup
-var url = '{{ scorm_package.file.url }}';
-console.log('Loading PDF from:', url);
-
-var lastPage = {{ last_page }};
-var pdfDoc = null,
-    pageNum = lastPage,
-    pageRendering = false,
-    pageNumPending = null,
-    scale = 1.5, // Start with a default scale
-    canvas = document.getElementById('pdf-canvas'),
-    ctx = null;
-
-function initializeCanvas() {
-    canvas = document.getElementById('pdf-canvas');
-    if (canvas) {
-        ctx = canvas.getContext('2d');
-        if (!ctx) {
-            console.error('Failed to get canvas context');
-        }
-    } else {
-        console.error('Canvas element not found');
-    }
-}
-
-// Initialize the canvas context
-initializeCanvas();
-
-// Load the PDF
-pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
-    pdfDoc = pdfDoc_;
-    console.log('PDF loaded successfully');
-
-    var pageCountElement = document.getElementById('page-count');
-    if (pageCountElement) {
-        pageCountElement.textContent = pdfDoc.numPages;
-    }
-
-    // Initial/first page rendering
-    renderPage(pageNum);
-}).catch(function(error) {
-    console.error('Error loading PDF:', error);
-});
-
-// Render the page
-function renderPage(num) {
-  if (!pdfDoc || !ctx) {
-      console.error('PDF document or canvas context not initialized');
-      return;
-  }
-
-  pageRendering = true;
-
-  // Adjust the scale based on the screen size
-  pdfDoc.getPage(num).then(function(page) {
-      var viewport = page.getViewport({ scale: scale });
-
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      var renderContext = {
-          canvasContext: ctx,
-          viewport: viewport
-      };
-
-      var renderTask = page.render(renderContext);
-
-      renderTask.promise.then(function() {
-          pageRendering = false;
-
-          if (pageNumPending !== null) {
-              renderPage(pageNumPending);
-              pageNumPending = null;
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var url = '{{ scorm_package.file.url }}'
+      var pdfDoc = null
+      var pageNum = 1
+      var canvas = document.getElementById('pdf-canvas')
+      var ctx = canvas.getContext('2d')
+    
+      function renderPage(num) {
+        pdfDoc.getPage(num).then(function (page) {
+          var viewport = page.getViewport({ scale: 1.5 })
+          canvas.height = viewport.height
+          canvas.width = viewport.width
+    
+          var renderContext = {
+            canvasContext: ctx,
+            viewport: viewport
           }
-
-          document.getElementById('page-num').textContent = num;
-
-          // Update progress whenever the page is rendered
-          updateProgress(num, pdfDoc.numPages);
-      }).catch(function(error) {
-          console.error('Error during page render:', error);
-      });
-  }).catch(function(error) {
-      console.error('Error rendering page:', error);
-  });
-}
-
-// Handle page change
-function queueRenderPage(num) {
-    if (pageRendering) {
-        pageNumPending = num;
-    } else {
-        renderPage(num);
-    }
-}
-
-// Button events
-document.getElementById('prev-page').addEventListener('click', function() {
-    if (pageNum <= 1) {
-        return;
-    }
-    pageNum--;
-    queueRenderPage(pageNum);
-});
-
-document.getElementById('next-page').addEventListener('click', function() {
-    if (pageNum >= pdfDoc.numPages) {
-        return;
-    }
-    pageNum++;
-    queueRenderPage(pageNum);
-});
-
-// Adjust scale dynamically when the window is resized
-window.addEventListener('resize', function() {
-    scale = window.innerWidth / 1024;
-    initializeCanvas(); // Re-initialize the canvas on resize
-    renderPage(pageNum);
-});
-
-// Update progress by sending a POST request to the server
-function updateProgress(currentPage, totalPages) {
-  var progress = (currentPage / totalPages) * 100;
-
-  fetch("{% url 'update_progress' %}", {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": "{{ csrf_token }}"
-      },
-      body: JSON.stringify({
-          "scorm_package_id": "{{ scorm_package.id }}",
-          "progress": progress,
-          "last_page": currentPage  // Include last_page data
+    
+          page.render(renderContext)
+        })
+    
+        document.getElementById('page-num').textContent = num
+      }
+    
+      pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
+        pdfDoc = pdfDoc_
+        document.getElementById('page-count').textContent = pdfDoc.numPages
+        renderPage(pageNum)
       })
-  })
-  .then(response => response.json())
-  .then(data => {
-      console.log("Progress updated successfully:", data);
-  })
-  .catch(error => {
-      console.error("Error updating progress:", error);
-  });
-}
-</script>
+    
+      document.getElementById('prev-page').addEventListener('click', function () {
+        if (pageNum <= 1) {
+          return
+        }
+        pageNum--
+        renderPage(pageNum)
+      })
+    
+      document.getElementById('next-page').addEventListener('click', function () {
+        if (pageNum >= pdfDoc.numPages) {
+          return
+        }
+        pageNum++
+        renderPage(pageNum)
+      })
+    })
+  </script>
+
 {% endblock %}

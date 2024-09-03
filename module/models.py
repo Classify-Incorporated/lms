@@ -2,18 +2,9 @@ from django.db import models
 from subject.models import Subject
 import os
 import uuid
-import fitz  
 from logs.models import SubjectLog
-from django.conf import settings
-from PIL import Image, ImageDraw
-from pptx import Presentation
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from django.dispatch import receiver
 from django.core.files.base import ContentFile
-from aspose.slides.export import SaveFormat
-from aspose.slides import Presentation
-from django.utils import timezone
 
 
 def get_upload_file(instance, filename):
