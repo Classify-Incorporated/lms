@@ -13,7 +13,7 @@ from django.dispatch import receiver
 from django.core.files.base import ContentFile
 from aspose.slides.export import SaveFormat
 from aspose.slides import Presentation
-
+from django.utils import timezone
 
 
 def get_upload_file(instance, filename):
@@ -54,30 +54,32 @@ class SCORMPackage(models.Model):
     def __str__(self):
         return self.package_name
     
-    def convert_ppt_to_pdf(self):
-        if self.file and self.file.name.endswith('.pptx'):
-            try:
-                pptx_path = self.file.path
-                pdf_path = os.path.splitext(pptx_path)[0] + '.pdf'
+class StudentProgress(models.Model):
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    scorm_package = models.ForeignKey(SCORMPackage, on_delete=models.CASCADE, null=True, blank=True)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, null=True, blank=True)
+    progress = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # progress as a percentage
+    completed = models.BooleanField(default=False)
+    first_accessed = models.DateTimeField(null=True, blank=True)  # First access date
+    last_accessed = models.DateTimeField(auto_now=True)  # Last access date
+    time_spent = models.IntegerField(default=0) 
 
-                # Load the presentation
-                presentation = Presentation(pptx_path)
-                
-                # Convert the presentation to PDF format
-                presentation.save(pdf_path, SaveFormat.PDF)
+    def __str__(self):
+        return f"{self.student.username} - {self.scorm_package or self.module} - {self.progress}%"
+    
+    def save(self, *args, **kwargs):
+        now = timezone.now()
+        
+        # If first_accessed is not set, set it now
+        if not self.first_accessed:
+            self.first_accessed = now
+        
+        # If there is a previous last_accessed time, calculate the time spent since the last access
+        if self.last_accessed:
+            time_delta = now - self.last_accessed
+            self.time_spent += int(time_delta.total_seconds())
 
-                # Save the converted PDF back to the model
-                with open(pdf_path, 'rb') as pdf_file:
-                    self.file.save(os.path.basename(pdf_path), ContentFile(pdf_file.read()))
-                
-                os.remove(pdf_path)  # Optionally remove the PDF after saving
-            except Exception as e:
-                # Handle errors, such as logging them
-                print(f"Error converting PPTX to PDF: {e}")
-                # Optionally, add custom error handling logic here
+        # Update the last_accessed time
+        self.last_accessed = now
 
-# Signal to handle file conversion after save
-@receiver(models.signals.post_save, sender=SCORMPackage)
-def post_save_scorm_package(sender, instance, **kwargs):
-    if instance.file and instance.file.name.endswith('.pptx'):
-        instance.convert_ppt_to_pdf()
+        super(StudentProgress, self).save(*args, **kwargs)

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import moduleForm, SCORMPackageForm
-from .models import Module, SCORMPackage
+from .models import Module, SCORMPackage, StudentProgress
 from subject.models import Subject
 from roles.decorators import teacher_or_admin_required
 from django.contrib.auth.decorators import login_required
@@ -9,7 +9,9 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 import os
-
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.utils import timezone
 # Create your views here.
 
 #Module List
@@ -148,9 +150,22 @@ def deletePackage(request, id):
 @login_required
 def viewScormPackage(request, id):
     scorm_package = get_object_or_404(SCORMPackage, pk=id)
-    context = {'scorm_package': scorm_package}
+    student = request.user
 
-    # Determine the file type and prepare context accordingly
+    progress, created = StudentProgress.objects.get_or_create(
+        student=student,
+        scorm_package=scorm_package,
+        defaults={'progress': 0}
+    )
+
+    # Update the access times
+    progress.save()
+
+    context = {
+        'scorm_package': scorm_package,
+        'progress': progress.progress,
+    }
+
     if scorm_package.file.name.endswith('.pdf'):
         context['is_pdf'] = True
     elif scorm_package.file.name.endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
@@ -163,7 +178,36 @@ def viewScormPackage(request, id):
     return render(request, 'module/scorm/viewScormPackage.html', context)
 
     
+@login_required
+@csrf_exempt
+def update_progress(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        scorm_package_id = data.get('scorm_package_id')
+        progress_value = data.get('progress')
 
+        scorm_package = SCORMPackage.objects.get(id=scorm_package_id)
+        student = request.user
+
+        progress_record, created = StudentProgress.objects.get_or_create(
+            student=student,
+            scorm_package=scorm_package
+        )
+
+        # Calculate the time spent since the last update
+        now = timezone.now()
+        if progress_record.last_accessed:
+            time_delta = now - progress_record.last_accessed
+            progress_record.time_spent += int(time_delta.total_seconds())
+
+        # Update the progress
+        progress_record.progress = progress_value
+        progress_record.last_accessed = now
+        progress_record.save()
+
+        return JsonResponse({'status': 'success', 'progress': progress_record.progress})
+
+    return JsonResponse({'status': 'error'}, status=400)
 
 
 

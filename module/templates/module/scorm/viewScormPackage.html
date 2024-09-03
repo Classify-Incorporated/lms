@@ -14,7 +14,7 @@
     <!-- Display PDF -->
     {% if is_pdf %}
     <div class="embed-responsive embed-responsive-16by9">
-        <canvas id="pdf-canvas" style="width: auto; height: auto;"></canvas>
+        <canvas id="pdf-canvas" style="width: 100%; height: auto;"></canvas>
     </div>
     <div class="text-right mt-2">
         <button id="prev-page" class="btn btn-secondary">Previous</button>
@@ -109,18 +109,18 @@ function renderPage(num) {
   pageRendering = true;
 
   // Adjust the scale based on the screen size
-  const viewport = pdfDoc.getPage(num).then(function(page) {
-      const viewport = page.getViewport({ scale: scale });
+  pdfDoc.getPage(num).then(function(page) {
+      var viewport = page.getViewport({ scale: scale });
 
       canvas.height = viewport.height;
       canvas.width = viewport.width;
 
-      const renderContext = {
+      var renderContext = {
           canvasContext: ctx,
           viewport: viewport
       };
 
-      const renderTask = page.render(renderContext);
+      var renderTask = page.render(renderContext);
 
       renderTask.promise.then(function() {
           pageRendering = false;
@@ -131,6 +131,9 @@ function renderPage(num) {
           }
 
           document.getElementById('page-num').textContent = num;
+
+          // Update progress whenever the page is rendered
+          updateProgress(num, pdfDoc.numPages);
       }).catch(function(error) {
           console.error('Error during page render:', error);
       });
@@ -171,5 +174,29 @@ window.addEventListener('resize', function() {
     initializeCanvas(); // Re-initialize the canvas on resize
     renderPage(pageNum);
 });
+
+// Update progress by sending a POST request to the server
+function updateProgress(currentPage, totalPages) {
+    var progress = (currentPage / totalPages) * 100;
+
+    fetch("{% url 'update_progress' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({
+            "scorm_package_id": "{{ scorm_package.id }}",
+            "progress": progress
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Progress updated successfully:", data);
+    })
+    .catch(error => {
+        console.error("Error updating progress:", error);
+    });
+}
 </script>
 {% endblock %}
