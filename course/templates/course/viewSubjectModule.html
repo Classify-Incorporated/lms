@@ -131,7 +131,7 @@
                     {% if module.url %}
                       <span><a href="{{ module.url }}" target="_blank">{{ module.file_name }}</a></span>
                     {% else %}
-                      <span>{{ module.file_name }}</span>
+                      <span class="btn btn-sm bg-info text-white">{{ module.file_name }}</span>
                     {% endif %}
                     <div class="dropdown">
                       <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButtonModule{{ module.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
