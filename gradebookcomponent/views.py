@@ -701,7 +701,7 @@ def allowGradeVisibility(request, student_id):
 FAILING_THRESHOLD = Decimal(65)
 EXCELLING_THRESHOLD = Decimal(85)
 
-
+@login_required
 def failingStudentsPerSubjectView(request):
     current_semester = get_current_semester(request)
 
@@ -839,6 +839,7 @@ def failingStudentsPerSubjectView(request):
         'current_semester': current_semester.semester_name
     })
 
+@login_required
 def excellingStudentsPerSubjectView(request):
     current_semester = get_current_semester(request)
 

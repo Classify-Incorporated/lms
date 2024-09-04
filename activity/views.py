@@ -14,9 +14,11 @@ from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-
+from django.contrib.auth.decorators import permission_required
 # Add type of activity
+
 @method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('activity.add_activity', raise_exception=True), name='dispatch')
 class AddActivityView(View):
     def get(self, request, subject_id):
         subject = get_object_or_404(Subject, id=subject_id)
@@ -67,6 +69,7 @@ class AddActivityView(View):
 
 # Update activity
 @login_required
+@permission_required('activity.change_activity', raise_exception=True)
 def UpdateActivity(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)  
     if request.method == 'POST':  
@@ -81,6 +84,7 @@ def UpdateActivity(request, activity_id):
 
 # Add quiz type
 @method_decorator(login_required, name='dispatch')
+@method_decorator(permission_required('quiztype.add_quiztype', raise_exception=True), name='dispatch')
 class AddQuizTypeView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
@@ -507,7 +511,7 @@ def deleteActivityView(request, activity_id):
     activity.delete()
     return redirect('subjectList')
 
-
+@login_required
 def activityList(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     activities = Activity.objects.filter(subject=subject)
@@ -517,6 +521,7 @@ def activityList(request, subject_id):
         'activities': activities,
     })
 
+@login_required
 @require_POST
 def toggleShowScore(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)

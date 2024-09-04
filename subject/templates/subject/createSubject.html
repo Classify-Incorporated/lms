@@ -6,16 +6,26 @@
       <h5>Create Subject</h5>
     </div>
     <div class="custom-modal-body">
-      <form method="post" enctype="multipart/form-data" action="{% url 'createSubject' %}">
+      <form method="post" enctype="multipart/form-data" action="{% url 'createSubject' %}" id="subjectForm">
         {% csrf_token %}
-        <div class="form-group">{{ form.subject_name.label_tag }}
-          {{ form.subject_name }}</div>
-        <div class="form-group">{{ form.subject_short_name.label_tag }}
-          {{ form.subject_short_name }}</div>
-        <div class="form-group">{{ form.subject_photo.label_tag }}
-          {{ form.subject_photo }}</div>
-        <div class="form-group">{{ form.assign_teacher.label_tag }}
-          {{ form.assign_teacher }}</div>
+        <div class="form-group">
+          {{ form.subject_name.label_tag }}
+          {{ form.subject_name }}
+          <span class="error-message" id="subjectNameError"></span>
+        </div>
+        <div class="form-group">
+          {{ form.subject_short_name.label_tag }}
+          {{ form.subject_short_name }}
+          <span class="error-message" id="subjectShortNameError"></span>
+        </div>
+        <div class="form-group">
+          {{ form.subject_photo.label_tag }}
+          {{ form.subject_photo }}
+        </div>
+        <div class="form-group">
+          {{ form.assign_teacher.label_tag }}
+          {{ form.assign_teacher }}
+        </div>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
     </div>
@@ -24,3 +34,38 @@
   <!-- Custom Modal Backdrop -->
   <div id="customModalBackdrop" class="custom-modal-backdrop"></div>
 {% endblock %}
+
+<script>
+  document.getElementById("id_subject_name").addEventListener("input", function() {
+    const subjectName = this.value.trim();
+  
+    // Clear previous errors
+    document.getElementById("subjectNameError").textContent = "";
+  
+    // Send AJAX request to check for duplicate subject name
+    if (subjectName !== "") {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "{% url 'check_duplicate_subject' %}", true);
+      xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"); // Send the CSRF token with the request
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          const response = JSON.parse(xhr.responseText);
+          if (response.is_duplicate) {
+            document.getElementById("subjectNameError").textContent = "This subject name already exists. Please choose another.";
+          }
+        }
+      };
+      xhr.send("subject_name=" + encodeURIComponent(subjectName));
+    }
+  });
+  
+  document.getElementById("subjectForm").addEventListener("submit", function(event) {
+    const subjectNameError = document.getElementById("subjectNameError").textContent;
+  
+    // Prevent form submission if there are errors
+    if (subjectNameError !== "") {
+      event.preventDefault();
+    }
+  });
+  </script>
