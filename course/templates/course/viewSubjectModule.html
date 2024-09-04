@@ -35,11 +35,11 @@
             {% for activity in ongoing_activities %}
               <li class="list-group-item">
                 {% if activity.id in answered_activity_ids %}
-                  <a href="{% url 'studentActivityView' activity.id %}?semester={{ selected_semester_id }}">
+                  <a href="{% url 'studentActivityView' activity.id %}?semester={{ selected_semester_id }}" class="btn btn-sm bg-secondary text-white">
                     {{ activity.activity_name }} (Answered)
                   </a>
                 {% else %}
-                  <a href="{% url 'display_question' activity.id %}?semester={{ selected_semester_id }}">
+                  <a href="{% url 'display_question' activity.id %}?semester={{ selected_semester_id }}" class="btn btn-sm bg-secondary text-white">
                     {{ activity.activity_name }}
                   </a>
                 {% endif %}
@@ -54,9 +54,12 @@
           <div class="card-header">Upcoming Activities</div>
           <ul class="list-group list-group-flush">
             {% for activity in upcoming_activities %}
-              <li class="list-group-item">{{ activity.activity_name }}</li>
+              <li class="list-group-item" >
+                <div class="btn btn-sm bg-secondary text-white">
+                {{ activity.activity_name }}
+              </div></li>
             {% endfor %}
-          </ul>
+          </ul> 
         </div>
 
         <!-- Activities to be Graded -->
@@ -66,7 +69,7 @@
             {% if is_teacher %}
               {% for activity, count in activities_with_grading_needed %}
                 <li class="list-group-item">
-                  <a href="{% url 'grade_essays' activity.id %}?semester={{ selected_semester_id }}">{{ activity.activity_name }} - {{ count }} submissions to grade</a>
+                  <a href="{% url 'grade_essays' activity.id %}?semester={{ selected_semester_id }}" class="btn btn-sm bg-secondary text-white">{{ activity.activity_name }} - {{ count }} submissions to grade</a>
                 </li>
               {% endfor %}
             {% endif %}
@@ -83,14 +86,14 @@
                     {% url 'studentActivityView' activity.id %}
                   {% else %}
                     {% url 'teacherActivityView' activity.id %}
-                  {% endif %}">
+                  {% endif %}" class="btn btn-sm bg-secondary text-white">
                   {{ activity.activity_name }}
                 </a>
               </li>
             {% endfor %}
             {% if finished_activities|length > 2 %}
               <li class="list-group-item">
-                <a href="{% url 'subjectFinishedActivities' subject.id %}?semester={{ selected_semester_id }}">View More</a>
+                <a href="{% url 'subjectFinishedActivities' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-sm bg-primary text-white">View More</a>
               </li>
             {% endif %}
           </ul>
@@ -101,7 +104,7 @@
           <div class="card-header">Student Roster</div>
           <ul class="list-group list-group-flush">
             <li class="list-group-item">
-              <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}">View List</a>
+              <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-sm bg-primary text-white">View List</a>
             </li>
           </ul>
         </div>

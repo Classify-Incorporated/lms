@@ -6,10 +6,18 @@ from django.db.models import Sum
 from course.models import Semester
 from django.utils import timezone
 
+
 class GradeBookComponentsForm(forms.ModelForm):
     class Meta:
         model = GradeBookComponents
         fields = ['subject', 'activity_type', 'category_name', 'percentage', 'is_participation']
+        widgets = {
+            'subject': forms.Select(attrs={'class': 'form-control'}),
+            'activity_type': forms.Select(attrs={'class': 'form-control'}),
+            'category_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'percentage': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_participation': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
@@ -18,7 +26,7 @@ class GradeBookComponentsForm(forms.ModelForm):
             self.fields['subject'].queryset = Subject.objects.filter(assign_teacher=user)
         if self.instance and self.instance.is_participation:
             self.fields['activity_type'].widget = forms.HiddenInput()
-
+            
     def clean(self):
         cleaned_data = super().clean()
         subject = cleaned_data.get('subject')
@@ -43,11 +51,13 @@ class GradeBookComponentsForm(forms.ModelForm):
 class CopyGradeBookForm(forms.Form):
     subject = forms.ModelChoiceField(
         queryset=Subject.objects.none(),
-        label="Target Subject"
+        label="Target Subject",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     copy_from_subject = forms.ModelChoiceField(
         queryset=Subject.objects.none(),
-        label="Copy GradeBook from"
+        label="Copy GradeBook from",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     def __init__(self, *args, **kwargs):
@@ -60,11 +70,14 @@ class CopyGradeBookForm(forms.Form):
                 gradebook_components__isnull=False
             ).distinct()
 
-
 class TermGradeBookComponentsForm(forms.ModelForm):
     subjects = forms.ModelMultipleChoiceField(
         queryset=Subject.objects.none(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.SelectMultiple(attrs={
+            'class': 'form-control selectpicker',
+            'data-actions-box': 'true',
+            'data-live-search': 'true',  # optional: adds a search box
+        }),
         required=True
     )
 
@@ -74,6 +87,7 @@ class TermGradeBookComponentsForm(forms.ModelForm):
         widgets = {
             'term': forms.Select(attrs={'class': 'form-control'}),
             'percentage': forms.TextInput(attrs={'class': 'form-control'}),
+
         }
 
     def __init__(self, *args, **kwargs):
@@ -115,6 +129,7 @@ class TermGradeBookComponentsForm(forms.ModelForm):
                         assign_teacher=user
                     ).distinct()
 
+
     def clean(self):
         cleaned_data = super().clean()
         term = cleaned_data.get('term')
@@ -134,4 +149,5 @@ class TermGradeBookComponentsForm(forms.ModelForm):
                 )
 
         return cleaned_data
+
 

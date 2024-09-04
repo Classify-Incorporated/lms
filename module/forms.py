@@ -38,15 +38,11 @@ class moduleForm(forms.ModelForm):
         current_semester = kwargs.pop('current_semester', None)  # Get the current semester from the view
         super().__init__(*args, **kwargs)
 
-        # Check if current_semester was passed correctly and if it's valid
-        print(f"Current Semester: {current_semester}")
 
         # Filter terms based on the current semester
         if current_semester:
             self.fields['term'].queryset = Term.objects.filter(semester=current_semester)
-            print(f"Terms for current semester: {self.fields['term'].queryset}")
         else:
             self.fields['term'].queryset = Term.objects.none()  # If no semester is passed, no terms are shown
-            print("No current semester passed, no terms available.")
 
 
