@@ -35,7 +35,7 @@ class moduleForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        current_semester = kwargs.pop('current_semester', None)  # Get the current semester from the view
+        current_semester = kwargs.pop('current_semester', None)  
         super().__init__(*args, **kwargs)
 
 

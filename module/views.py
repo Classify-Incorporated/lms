@@ -11,17 +11,19 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.utils import timezone
 from course.models import Semester
+from django.contrib.auth.decorators import permission_required
 # Create your views here.
 
 #Module List
 @login_required
+@permission_required('module.view_module', raise_exception=True)
 def moduleList(request):
     modules = Module.objects.all()
     return render(request, 'module/module.html',{'modules': modules})
 
 #Create Module
 @login_required
-@teacher_or_admin_required
+@permission_required('module.add_module', raise_exception=True)
 def createModule(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     
@@ -49,7 +51,7 @@ def createModule(request, subject_id):
 
 #Modify Module
 @login_required
-@teacher_or_admin_required
+@permission_required('module.change_module', raise_exception=True)
 def updateModule(request, pk):
     module = get_object_or_404(Module, pk=pk)
     subject_id = module.subject.id
@@ -68,6 +70,7 @@ def updateModule(request, pk):
 
 #View Module
 @login_required
+@permission_required('module.view_module', raise_exception=True)
 def viewModule(request, pk):
     module = get_object_or_404(Module, pk=pk)
     student = request.user
@@ -140,6 +143,7 @@ def module_progress(request):
 #Delete Module
 @login_required
 @teacher_or_admin_required
+@permission_required('module.delete_module', raise_exception=True)
 def deleteModule(request, pk):
     module = get_object_or_404(Module, pk=pk)
     subject_id = module.subject.id
@@ -147,7 +151,7 @@ def deleteModule(request, pk):
     module.delete()
     return redirect('subjectDetail', pk=subject_id)
 
-
+@login_required
 def progressList(request):
     student = request.user
     

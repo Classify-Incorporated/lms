@@ -9,8 +9,11 @@ from allauth.socialaccount.models import SocialToken
 from django.contrib import messages
 from roles.models import Role
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import permission_required
+
 
 @login_required
+@permission_required('message.add_message', raise_exception=True)
 def send_message(request):
     if request.method == 'POST':
         subject_text = request.POST.get('subject') 
@@ -91,6 +94,7 @@ def inbox(request):
 
 
 @login_required
+@permission_required('message.view_message', raise_exception=True)
 def view_message(request, message_id):
     message = get_object_or_404(Message, id=message_id)
     # Get or create the read status entry
