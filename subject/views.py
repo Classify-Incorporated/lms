@@ -3,16 +3,20 @@ from .forms import subjectForm
 from .models import Subject
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-
+from django.utils import timezone
+from course.models import Semester
 # Create your views here.
 
 #Subject List
 @login_required
 def subjectList(request):
+    today = timezone.now().date()
+    current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
+
     if request.user.profile.role.name.lower() == 'teacher':
-        subjects = Subject.objects.filter(assign_teacher=request.user)
+        subjects = Subject.objects.filter(assign_teacher=request.user, subjectenrollment__semester=current_semester).distinct()
     else:
-        subjects = Subject.objects.all()
+        subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
 
     form = subjectForm()
     return render(request, 'subject/subject.html', {'subjects': subjects, 'form': form})

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  GradeBook - Excelling Students
+{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-2 text-gray-800">GradeBook</h1>
+  <h2>List of Excelling Students</h2>
+
+  <!-- Display the current semester name -->
+  <h3>Semester: {{ current_semester }}</h3>
+
+  {% for subject in excelling_students_summary %}
+    <h4>{{ subject.subject_name }}</h4>
+    <p>Excelling Students Count: {{ subject.excelling_students_count }}</p>
+
+    <ul>
+      {% for student in subject.excelling_students %}
+        <li>{{ student.student_name }} (ID: {{ student.student_id }}) - Term: {{ student.term }} - Grade: {{ student.grade }}</li>
+      {% endfor %}
+    </ul>
+  {% empty %}
+    <p>No excelling students found.</p>
+  {% endfor %}
+{% endblock %}

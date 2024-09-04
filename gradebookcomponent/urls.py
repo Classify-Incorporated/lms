@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
 viewGradeBookComponents, createGradeBookComponents, copyGradeBookComponents, updateGradeBookComponents, deleteGradeBookComponents,
 teacherActivityView, studentActivityView, studentTotalScore, studentTotalScoreForActivityType, createTermGradeBookComponent, updateTermBookComponent,
-deleteTermBookComponent, viewTermBookComponent, termBookList, studentTotalScoreApi, getSubjects, allowGradeVisibility, getSemesters
+deleteTermBookComponent, viewTermBookComponent, termBookList, studentTotalScoreApi, getSubjects, allowGradeVisibility, getSemesters,
+excellingStudentsPerSubjectView, failingStudentsPerSubjectView
 
 )
 
@@ -41,6 +42,8 @@ urlpatterns = [
     path('allowGradeVisibility/<int:student_id>/', allowGradeVisibility, name='allowGradeVisibility'),
 
 
-    
+    path('failingStudentsPerSubjectView/', failingStudentsPerSubjectView, name='failingStudentsPerSubjectView'),
+    path('excellingStudentsPerSubjectView/', excellingStudentsPerSubjectView, name='excellingStudentsPerSubjectView'),
+
 
 ]

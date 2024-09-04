@@ -17,10 +17,21 @@ from django.contrib.auth.decorators import login_required
 #View GradeBookComponents
 @login_required
 def viewGradeBookComponents(request):
-    if request.user.profile.role.name.lower() == 'teacher':
-        gradebookcomponents = GradeBookComponents.objects.filter(teacher=request.user)
+    today = timezone.now().date()
+    current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
+    
+    if current_semester:
+        if request.user.profile.role.name.lower() == 'teacher':
+            gradebookcomponents = GradeBookComponents.objects.filter(
+                teacher=request.user, 
+                subject__subjectenrollment__semester=current_semester
+            ).distinct()
+        else:
+            gradebookcomponents = GradeBookComponents.objects.filter(
+                subject__subjectenrollment__semester=current_semester
+            ).distinct()
     else:
-        gradebookcomponents = GradeBookComponents.objects.all()
+        gradebookcomponents = GradeBookComponents.objects.none()  # No current semester found
     
     return render(request, 'gradebookcomponent/gradebook/gradeBook.html', {'gradebookcomponents': gradebookcomponents})
 
@@ -156,9 +167,21 @@ def updateTermBookComponent(request, id):
 
 #view Termbook
 @login_required
-def viewTermBookComponent(request, id):
-    termbook = get_object_or_404(TermGradeBookComponents, id=id)
-    return render(request, 'gradebookcomponent/termbook/viewTermBook.html', {'termbook': termbook})
+def viewTermBookComponent(request, id=None):
+    semesters = Semester.objects.all() 
+    selected_semester = request.GET.get('semester')  
+
+    if selected_semester:
+        terms = TermGradeBookComponents.objects.filter(term__semester_id=selected_semester)
+    else:
+        terms = TermGradeBookComponents.objects.all()
+
+    context = {
+        'semesters': semesters,
+        'selected_semester': selected_semester,
+        'terms': terms,
+    }
+    return render(request, 'gradebookcomponent/termbook/viewTermBook.html', context)
 
 #delete TermBook
 @login_required
@@ -460,6 +483,7 @@ def studentTotalScoreApi(request):
 
     student_data = defaultdict(lambda: defaultdict(list))
     student_total_weighted_grade = defaultdict(lambda: defaultdict(Decimal))
+    failing_students = set()  
 
     for term in Term.objects.filter(semester=current_semester):
         for subject in subjects:
@@ -572,6 +596,10 @@ def studentTotalScoreApi(request):
                     'missed': any(score.get('missed', False) for score in scores['term_scores'])
                 })
 
+                # Check if the student is failing based on the criteria
+                if weighted_term_percentage < Decimal(40):
+                    failing_students.add(student)
+
     final_term_data = []
     for student_obj, subjects in student_data.items():
         student_subjects = []
@@ -588,10 +616,11 @@ def studentTotalScoreApi(request):
         final_term_data.append({
             'student': student_obj.get_full_name(),
             'student_id': student_id,
-            'subjects': student_subjects
+            'subjects': student_subjects,
+            'is_failing': student_obj in failing_students  # Add failing status
         })
 
-    return JsonResponse({'term_data': final_term_data})
+    return JsonResponse({'term_data': final_term_data, 'failing_students_count': len(failing_students)})
 
 @login_required
 def getSemesters(request):
@@ -668,3 +697,273 @@ def allowGradeVisibility(request, student_id):
     return JsonResponse({'status': 'failure'}, status=400)
 
 
+
+FAILING_THRESHOLD = Decimal(65)
+EXCELLING_THRESHOLD = Decimal(85)
+
+
+def failingStudentsPerSubjectView(request):
+    current_semester = get_current_semester(request)
+
+    if current_semester is None:
+        return render(request, 'gradebookcomponent/studentProgress/failingStudent.html', {
+            'failing_students_summary': [],
+            'current_semester': 'No current semester available'
+        })
+
+    user = request.user
+    is_teacher = user.profile.role.name.lower() == 'teacher'
+    is_student = user.profile.role.name.lower() == 'student'
+
+    # Filter students and subjects based on the user's role
+    if is_teacher:
+        students = CustomUser.objects.filter(profile__role__name__iexact='student')
+        subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
+    elif is_student:
+        students = CustomUser.objects.filter(id=user.id)
+        subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
+    else:
+        return render(request, 'error.html', {'error': 'Unauthorized access'})
+
+    subject_failing_students = defaultdict(dict)  # Use a dictionary to ensure unique students per subject
+
+    for term in Term.objects.filter(semester=current_semester):
+        for subject in subjects:
+            for student in students:
+                subject_enrollment = SubjectEnrollment.objects.filter(student=student, subject=subject, semester=current_semester).first()
+
+                if not subject_enrollment or not subject_enrollment.can_view_grade:
+                    continue
+
+                student_scores = defaultdict(lambda: {'term_scores': [], 'total_weighted_score': Decimal(0)})
+
+                # Calculate participation score
+                participation_component = GradeBookComponents.objects.filter(
+                    teacher=user if is_teacher else subject.assign_teacher,
+                    subject=subject,
+                    is_participation=True
+                ).first()
+
+                if participation_component:
+                    participation_score = StudentParticipationScore.objects.filter(
+                        student=student, subject=subject, term=term
+                    ).first()
+
+                    if participation_score:
+                        weighted_participation_score = (Decimal(participation_score.score) / Decimal(participation_score.max_score)) * Decimal(participation_component.percentage)
+                        student_scores[student]['total_weighted_score'] += weighted_participation_score
+
+                # Calculate activity scores
+                for activity_type in ActivityType.objects.all():
+                    activities = Activity.objects.filter(term=term, activity_type=activity_type, subject=subject)
+
+                    gradebook_component = GradeBookComponents.objects.filter(
+                        teacher=user if is_teacher else subject.assign_teacher,
+                        subject=subject,
+                        activity_type=activity_type
+                    ).first()
+
+                    if not gradebook_component:
+                        continue
+
+                    activity_percentage = Decimal(gradebook_component.percentage)
+                    student_total_score = Decimal(0)
+                    max_score_sum = Decimal(0)
+
+                    for activity in activities:
+                        student_questions = StudentQuestion.objects.filter(
+                            student=student,
+                            activity_question__activity=activity,
+                            status=True
+                        )
+
+                        if not student_questions.exists():
+                            max_score_sum += Decimal(activity.activityquestion_set.aggregate(total_max_score=Sum('score'))['total_max_score'] or Decimal(0))
+                            continue
+
+                        for student_question in student_questions:
+                            score = Decimal(student_question.score)
+                            max_score = Decimal(student_question.activity_question.score)
+
+                            student_total_score += score
+                            max_score_sum += max_score
+
+                    if max_score_sum > 0:
+                        weighted_score = (student_total_score / max_score_sum) * activity_percentage
+                        student_scores[student]['total_weighted_score'] += weighted_score
+
+                # Calculate the final weighted score considering the term percentage
+                try:
+                    term_gradebook_component = TermGradeBookComponents.objects.get(
+                        term=term,
+                        subjects=subject
+                    )
+                    term_percentage = Decimal(term_gradebook_component.percentage)
+                except TermGradeBookComponents.DoesNotExist:
+                    term_percentage = Decimal(0)
+
+                weighted_term_score = student_scores[student]['total_weighted_score'] * (term_percentage / Decimal(100))
+                
+                # Convert the weighted term score to a percentage
+                percentage_score = (weighted_term_score / term_percentage) * Decimal(100) if term_percentage > 0 else Decimal(0)
+
+                # Check if the student meets the failing threshold based on percentage
+                if percentage_score < FAILING_THRESHOLD:
+                    # Only update the student's record if it's either new or a lower score
+                    if student.id not in subject_failing_students[subject.subject_name] or \
+                            percentage_score < subject_failing_students[subject.subject_name][student.id]['grade']:
+                        subject_failing_students[subject.subject_name][student.id] = {
+                            'student_name': student.get_full_name(),
+                            'student_id': student.id,
+                            'grade': percentage_score,  # Store as Decimal for correct comparison
+                            'term': term.term_name
+                        }
+
+    failing_students_summary = [
+        {
+            'subject_name': subject_name,
+            'failing_students_count': len(students),
+            'failing_students': [
+                {
+                    'student_name': student['student_name'],
+                    'student_id': student['student_id'],
+                    'term': student['term'],
+                    'grade': f"{student['grade']:.2f}"  # Format for display
+                } for student in students.values()
+            ]
+        } for subject_name, students in subject_failing_students.items()
+    ]
+
+    return render(request, 'gradebookcomponent/studentProgress/failingStudent.html', {
+        'failing_students_summary': failing_students_summary,
+        'current_semester': current_semester.semester_name
+    })
+
+def excellingStudentsPerSubjectView(request):
+    current_semester = get_current_semester(request)
+
+    if current_semester is None:
+        return render(request, 'gradebookcomponent/studentProgress/excellingStudent.html', {
+            'excelling_students_summary': [],
+            'current_semester': 'No current semester available'
+        })
+
+    user = request.user
+    is_teacher = user.profile.role.name.lower() == 'teacher'
+    is_student = user.profile.role.name.lower() == 'student'
+
+    # Filter students and subjects based on the user's role
+    if is_teacher:
+        students = CustomUser.objects.filter(profile__role__name__iexact='student')
+        subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
+    elif is_student:
+        students = CustomUser.objects.filter(id=user.id)
+        subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
+    else:
+        return render(request, 'error.html', {'error': 'Unauthorized access'})
+
+    subject_excelling_students = defaultdict(list)
+    subject_excelling_count = defaultdict(int)
+
+    for term in Term.objects.filter(semester=current_semester):
+        for subject in subjects:
+            for student in students:
+                subject_enrollment = SubjectEnrollment.objects.filter(student=student, subject=subject, semester=current_semester).first()
+
+                if not subject_enrollment or not subject_enrollment.can_view_grade:
+                    continue
+
+                student_scores = defaultdict(lambda: {'term_scores': [], 'total_weighted_score': Decimal(0)})
+
+                # Calculate participation score
+                participation_component = GradeBookComponents.objects.filter(
+                    teacher=user if is_teacher else subject.assign_teacher,
+                    subject=subject,
+                    is_participation=True
+                ).first()
+
+                if participation_component:
+                    participation_score = StudentParticipationScore.objects.filter(
+                        student=student, subject=subject, term=term
+                    ).first()
+
+                    if participation_score:
+                        weighted_participation_score = (Decimal(participation_score.score) / Decimal(participation_score.max_score)) * Decimal(participation_component.percentage)
+                        student_scores[student]['total_weighted_score'] += weighted_participation_score
+
+                # Calculate activity scores
+                for activity_type in ActivityType.objects.all():
+                    activities = Activity.objects.filter(term=term, activity_type=activity_type, subject=subject)
+
+                    gradebook_component = GradeBookComponents.objects.filter(
+                        teacher=user if is_teacher else subject.assign_teacher,
+                        subject=subject,
+                        activity_type=activity_type
+                    ).first()
+
+                    if not gradebook_component:
+                        continue
+
+                    activity_percentage = Decimal(gradebook_component.percentage)
+                    student_total_score = Decimal(0)
+                    max_score_sum = Decimal(0)
+
+                    for activity in activities:
+                        student_questions = StudentQuestion.objects.filter(
+                            student=student,
+                            activity_question__activity=activity,
+                            status=True
+                        )
+
+                        if not student_questions.exists():
+                            max_score_sum += Decimal(activity.activityquestion_set.aggregate(total_max_score=Sum('score'))['total_max_score'] or Decimal(0))
+                            continue
+
+                        for student_question in student_questions:
+                            score = Decimal(student_question.score)
+                            max_score = Decimal(student_question.activity_question.score)
+
+                            student_total_score += score
+                            max_score_sum += max_score
+
+                    if max_score_sum > 0:
+                        weighted_score = (student_total_score / max_score_sum) * activity_percentage
+                        student_scores[student]['total_weighted_score'] += weighted_score
+
+                # Calculate the final weighted score considering the term percentage
+                try:
+                    term_gradebook_component = TermGradeBookComponents.objects.get(
+                        term=term,
+                        subjects=subject
+                    )
+                    term_percentage = Decimal(term_gradebook_component.percentage)
+                except TermGradeBookComponents.DoesNotExist:
+                    term_percentage = Decimal(0)
+
+                weighted_term_score = student_scores[student]['total_weighted_score'] * (term_percentage / Decimal(100))
+                
+                # Convert the weighted term score to a percentage
+                percentage_score = (weighted_term_score / term_percentage) * Decimal(100) if term_percentage > 0 else Decimal(0)
+
+                # Check if the student meets the excelling threshold based on percentage
+                if percentage_score >= EXCELLING_THRESHOLD:
+                    subject_excelling_students[subject.subject_name].append({
+                        'student_name': student.get_full_name(),
+                        'student_id': student.id,
+                        'term': term.term_name,
+                        'grade': f"{percentage_score:.2f}"
+                    })
+                    subject_excelling_count[subject.subject_name] += 1
+
+    excelling_students_summary = [
+        {
+            'subject_name': subject_name,
+            'excelling_students_count': count,
+            'excelling_students': students
+        } for subject_name, (count, students) in zip(subject_excelling_count.keys(), zip(subject_excelling_count.values(), subject_excelling_students.values()))
+    ]
+
+    return render(request, 'gradebookcomponent/studentProgress/excellingStudent.html', {
+        'excelling_students_summary': excelling_students_summary,
+        'current_semester': current_semester.semester_name
+    })
