@@ -1,7 +1,8 @@
 from django import forms
 from .models import Module
 from django.core.exceptions import ValidationError
-from .models import SCORMPackage
+from django.contrib.auth import get_user_model
+from course.models import Term
 
 class moduleForm(forms.ModelForm):
     class Meta:
@@ -10,40 +11,38 @@ class moduleForm(forms.ModelForm):
         widgets = {
             'file_name': forms.TextInput(attrs={'class': 'form-control'}),
             'file': forms.FileInput(attrs={'class': 'form-control'}),
+            'url': forms.URLInput(attrs={'class': 'form-control'}),
+            'term': forms.Select(attrs={'class': 'form-control'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'hide_lesson_for_student': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'hide_lesson_for_selected_users': forms.SelectMultiple(attrs={'class': 'form-control'}),
         }
 
-    def clean_file(self):
-        file = self.cleaned_data.get('file', False)
-        if file:
-            if file.size > 25 * 1024 * 1024:
-                raise ValidationError("The file is too large. The maximum file size allowed is 25MB.")
-        return file
-    
+    hide_lesson_for_selected_users = forms.ModelMultipleChoiceField(
+        queryset=get_user_model().objects.filter(profile__role__name__iexact='student'),  
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
+    )
+
+    start_date = forms.DateField(
+        required=False, 
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    end_date = forms.DateField(
+        required=False, 
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        current_semester = kwargs.pop('current_semester', None)  # Get the current semester from the view
+        super().__init__(*args, **kwargs)
 
 
-class SCORMPackageForm(forms.ModelForm):
-    class Meta:
-        model = SCORMPackage
-        fields = ['package_name', 'file']
-        widgets = {
-            'package_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'file': forms.FileInput(attrs={'class': 'form-control'}),
-        }
+        # Filter terms based on the current semester
+        if current_semester:
+            self.fields['term'].queryset = Term.objects.filter(semester=current_semester)
+        else:
+            self.fields['term'].queryset = Term.objects.none()  # If no semester is passed, no terms are shown
 
-    def clean_file(self):
-        file = self.cleaned_data.get('file')
-        if file:
-            file_type = file.content_type.split('/')[0]
-            if file.size > 25 * 1024 * 1024:
-                raise ValidationError('File size must be under 25MB.')
 
-            valid_mime_types = [
-                'application/pdf',
-                'image/jpeg',
-                'image/png',
-                'video/mp4',
-            ]
-            if file.content_type not in valid_mime_types:
-                raise ValidationError('File type not supported. Please upload a PDF, image, or video file.')
-
-        return file

@@ -154,7 +154,7 @@ def fetch_facebook_posts():
     else:
         return []
 
-
+@login_required
 def dashboard(request):
     sessions = Session.objects.filter(expire_date__gte=timezone.now())
     user_ids = []
