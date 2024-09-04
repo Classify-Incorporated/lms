@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  GradeBook - Failing Students
+{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-2 text-gray-800">GradeBook</h1>
+  <h2>List of Failing Students</h2>
+
+  <!-- Display the current semester name -->
+  <h3>Semester: {{ current_semester }}</h3>
+
+  {% for subject in failing_students_summary %}
+    <h4>{{ subject.subject_name }}</h4>
+    <p>Failing Students Count: {{ subject.failing_students_count }}</p>
+
+    <ul>
+      {% for student in subject.failing_students %}
+        <li>{{ student.student_name }} (ID: {{ student.student_id }}) - Grade: {{ student.grade }}</li>
+      {% endfor %}
+    </ul>
+  {% empty %}
+    <p>No failing students found.</p>
+  {% endfor %}
+{% endblock %}
