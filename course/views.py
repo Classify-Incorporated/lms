@@ -3,7 +3,7 @@ from .models import SubjectEnrollment, Semester, Term, Retake, StudentParticipat
 from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
-from module.models import Module, SCORMPackage
+from module.models import Module
 from activity.models import Activity ,StudentQuestion, ActivityQuestion
 from django.views import View
 import json
@@ -163,11 +163,15 @@ def subjectDetail(request, pk):
         )
         upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
 
-        modules = Module.objects.filter(subject=subject)
-        scorm_packages = SCORMPackage.objects.filter(subject=subject)
+        modules = Module.objects.filter(
+            subject=subject,
+            hide_lesson_for_student=False,  
+        ).exclude(hide_lesson_for_selected_users=user).filter(
+            Q(start_date__isnull=True) | Q(start_date__lte=timezone.localtime(timezone.now())),
+            Q(end_date__isnull=True) | Q(end_date__gte=timezone.localtime(timezone.now()))
+        )
     else:
         modules = Module.objects.filter(subject=subject)
-        scorm_packages = SCORMPackage.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject, term__in=terms)
         finished_activities = activities.filter(
             end_time__lte=timezone.localtime(timezone.now())
@@ -201,7 +205,6 @@ def subjectDetail(request, pk):
     return render(request, 'course/viewSubjectModule.html', {
         'subject': subject,
         'modules': modules,
-        'scorm_packages': scorm_packages,  # Add SCORM packages to the context
         'ongoing_activities': ongoing_activities,
         'upcoming_activities': upcoming_activities,
         'finished_activities': finished_activities,
