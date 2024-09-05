@@ -60,34 +60,32 @@ def copyGradeBookComponents(request):
         form = CopyGradeBookForm(request.POST, user=request.user)
         if form.is_valid():
             source_subject = form.cleaned_data['copy_from_subject']
-            target_subject = form.cleaned_data['subject']
+            target_subjects = form.cleaned_data['subject']
             
-            # Copy all GradeBookComponents from source subject to target subject
-            components_to_copy = GradeBookComponents.objects.filter(subject=source_subject, teacher=request.user)
-            for component in components_to_copy:
-                # Check if the component already exists in the target subject
-                if not GradeBookComponents.objects.filter(
-                    subject=target_subject,
-                    teacher=request.user,
-                    activity_type=component.activity_type,
-                    category_name=component.category_name
-                ).exists():
-                    GradeBookComponents.objects.create(
-                        teacher=request.user,
+            for target_subject in target_subjects:
+                components_to_copy = GradeBookComponents.objects.filter(subject=source_subject, teacher=request.user)
+                for component in components_to_copy:
+                    if not GradeBookComponents.objects.filter(
                         subject=target_subject,
+                        teacher=request.user,
                         activity_type=component.activity_type,
-                        category_name=component.category_name,
-                        percentage=component.percentage,
-                    )
+                        category_name=component.category_name
+                    ).exists():
+                        GradeBookComponents.objects.create(
+                            teacher=request.user,
+                            subject=target_subject,
+                            activity_type=component.activity_type,
+                            category_name=component.category_name,
+                            percentage=component.percentage,
+                        )
             messages.success(request, 'Gradebook copied successfully!')
             return redirect('viewGradeBookComponents')
         else:
-            messages.success(request, 'An error occured while creating gradebook!')    
+            messages.error(request, 'An error occurred while copying the gradebook!')    
     else:
         form = CopyGradeBookForm(user=request.user)
     
     return render(request, 'gradebookcomponent/gradebook/copyGradeBook.html', {'form': form})
-
 
 #Modify GradeBookComponents
 @login_required

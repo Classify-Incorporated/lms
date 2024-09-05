@@ -29,16 +29,3 @@ class TermGradeBookComponents(models.Model):
 
     def __str__(self):
         return f"{self.term.term_name} ({self.percentage}%)"
-    
-
-
-# class StudentGrade(models.Model):
-#     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE) 
-#     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-#     term = models.ForeignKey(Term, on_delete=models.CASCADE)
-#     grade = models.DecimalField(max_digits=5, decimal_places=2)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-
-#     def __str__(self):
-#         return f"{self.student.username} - {self.subject.subject_name} - {self.term.term_name} - {self.grade}"
