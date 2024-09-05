@@ -49,118 +49,30 @@
             <tbody id="messageTable" class="text-center">
               {% if message_status_list %}
                 {% for item in message_status_list %}
-                  <tr class="message-row {% if not item.read %}unread{% endif %}" data-id="{{ item.message.id }}">
+                  <tr class="message-row {% if not item.read and item.message.sender != request.user %}unread{% endif %}" data-id="{{ item.message.id }}">
                     <td>
                       <input type="checkbox" class="selectItem" />
                     </td>
-                    <td class="{% if not item.read %}font-weight-bolder{% endif %} text-left">{{ item.message.sender }}</td>
-                    <td class="{% if not item.read %}font-weight-bolder{% endif %} text-left">
-                      <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">{{ item.message.subject }} - {{ item.message.body|truncatewords:18 }}</a>
+                    <td class="text-left">{{ item.message.sender }}</td>
+                    <td class="text-left">
+                      <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">
+                        {{ item.message.subject }} - {{ item.message.body|truncatewords:18 }}
+                      </a>
                     </td>
                     <td>
-                      <span class="badge {% if item.read %}
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
+                      {% if item.message.sender != request.user %}
+                        <span class="badge {% if item.read %}
                           badge-success
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         {% else %}
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          
                           badge-warning
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         {% endif %}">
-                        {% if item.read %}
-                          Read
-                        {% else %}
-                          Unread
-                        {% endif %}
-                      </span>
+                          {% if item.read %}
+                            Read
+                          {% else %}
+                            Unread
+                          {% endif %}
+                        </span>
+                      {% endif %}
                     </td>
                   </tr>
                 {% endfor %}

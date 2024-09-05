@@ -12,6 +12,7 @@ import json
 from django.utils import timezone
 from course.models import Semester
 from django.contrib.auth.decorators import permission_required
+from django.http import HttpResponse
 # Create your views here.
 
 #Module List
@@ -29,9 +30,7 @@ def createModule(request, subject_id):
     
     now = timezone.localtime(timezone.now())
     current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
-
     if request.method == 'POST':
-        print(request.POST)
         form = moduleForm(request.POST, request.FILES, current_semester=current_semester)
         if form.is_valid():
             module = form.save(commit=False)
@@ -194,3 +193,18 @@ def detailModuleProgress(request, module_id):
         'progress_list': progress_list,
         'activity_name': activity_name
     })
+
+@login_required
+def download_module(request, module_id):
+    # Get the module object
+    module = get_object_or_404(Module, pk=module_id)
+
+    if not module.file:
+        return HttpResponse("No file available for download.", status=404)
+
+    # Open the file in binary mode
+    file_path = module.file.path  # Assuming your Module model has a file field or similar
+    with open(file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type="application/octet-stream")
+        response['Content-Disposition'] = f'attachment; filename="{module.file_name}"'
+        return response
