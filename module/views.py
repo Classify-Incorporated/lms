@@ -126,24 +126,42 @@ def module_progress(request):
             defaults={'last_page': last_page}  # Set last_page when creating
         )
 
-        # Calculate the time spent since the last update
         now = timezone.now()
-        if progress_record.last_accessed:
+
+        # Calculate the time spent since the last update, but only if the session was active
+        if progress_record.last_accessed and request.session.get('is_active', False):
             time_delta = now - progress_record.last_accessed
             added_time = int(time_delta.total_seconds())
             progress_record.time_spent += added_time
+            request.session['is_active'] = False  # Deactivate session
 
-
-        # Update the progress and last page
+        # Update progress, last page, and last access time
         progress_record.progress = progress_value
-        progress_record.last_page = last_page  # Ensure last_page is updated
+        progress_record.last_page = last_page
         progress_record.last_accessed = now
         progress_record.save()
-
 
         return JsonResponse({'status': 'success', 'progress': progress_record.progress})
 
     return JsonResponse({'status': 'error'}, status=400)
+
+def start_module_session(request):
+    """
+    This view will be triggered when a student opens a module.
+    It will mark the start of an active session.
+    """
+    if request.method == 'POST':
+        request.session['is_active'] = True  # Mark session as active
+        return JsonResponse({'status': 'session started'})
+
+def stop_module_session(request):
+    """
+    This view will be triggered when a student stops the module.
+    It will mark the end of an active session.
+    """
+    if request.method == 'POST':
+        request.session['is_active'] = False  # Mark session as inactive
+        return JsonResponse({'status': 'session stopped'})
 
 #Delete Module
 @login_required
