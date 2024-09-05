@@ -4,25 +4,40 @@
   GradeBook - Failing Students
 {% endblock %}
 {% block content %}
-  <h1 class="h3 mb-2 text-gray-800">GradeBook</h1>
-  <h2>List of Failing Students</h2>
+  <div class="container-fluid">
+    <h2 class="h3 mb-4 text-gray-800">List of Failing Students</h2>
 
-  <!-- Display the current semester name -->
-  <h3>Semester: {{ current_semester }}</h3>
+    <!-- Display the current semester name -->
+    <h5 class="mb-4"><strong>Semester:</strong> {{ current_semester }}</h5>
 
-  {% for subject in failing_students_summary %}
-    <h4>{{ subject.subject_name }}</h4>
-    <p>Failing Students Count: {{ subject.failing_students_count }}</p>
-
-    {% for term_name, students in subject.terms.items %}
-      <h5>Term: {{ term_name }}</h5>
-      <ul>
-        {% for student in students %}
-          <li>{{ student.student_name }} - Grade: {{ student.grade|floatformat:2 }}</li>
-        {% endfor %}
-      </ul>
-    {% endfor %}
-  {% empty %}
-    <p>No failing students found.</p>
-  {% endfor %}
+    <div class="row">
+      {% for subject in failing_students_summary %}
+        <div class="col-lg-6 mb-4">
+          <div class="card shadow h-100">
+            <div class="card-header py-3">
+              <h3 class="h5 text-primary">{{ subject.subject_name }}</h3>
+              <p class="mb-0">
+                Failing Students Count: <span class="badge badge-danger">{{ subject.failing_students_count }}</span>
+              </p>
+            </div>
+            <div class="card-body">
+              {% for term_name, students in subject.terms.items %}
+                <h6 class="font-weight-bold">{{ term_name }}</h6>
+                <ul class="list-unstyled">
+                  {% for student in students %}
+                    <li class="py-1 border-bottom">
+                      <strong>{{ student.student_name }}</strong> -
+                      <span class="text-danger">Grade: {{ student.grade|floatformat:2 }}</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-muted">No failing students found.</p>
+      {% endfor %}
+    </div>
+  </div>
 {% endblock %}
