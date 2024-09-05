@@ -193,15 +193,17 @@
     }
     
     // Function to open the Module modal and load the content dynamically
-    function openModuleModal(subjectId) {
-      fetch(`/createModule/${subjectId}/`)
-        .then((response) => response.text())
-        .then((html) => {
-          document.getElementById('moduleModalBody').innerHTML = html
-          document.getElementById('moduleModal').classList.add('show')
-          document.getElementById('moduleModalBackdrop').classList.add('show')
-        })
-    }
+function openModuleModal(subjectId) {
+    fetch(`/createModule/${subjectId}/`)
+      .then((response) => response.text())
+      .then((html) => {
+        document.getElementById('moduleModalBody').innerHTML = html;
+        document.getElementById('moduleModal').classList.add('show');
+        document.getElementById('moduleModalBackdrop').classList.add('show');
+        // Initialize selectpicker after the content is loaded
+        $('.selectpicker').selectpicker();
+      });
+  }
 
     // Script to close the Participation modal
     document.getElementById('closeParticipationModalBtn').addEventListener('click', function () {
