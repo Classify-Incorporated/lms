@@ -85,6 +85,13 @@
           </a>
         {% endif %}
 
+        {% if user|has_perm:'subject.view_subject' %}
+          <a class="collapse-item" href="{% url 'progressList' %}">
+            <i class="bx bx-book"></i>
+            <span>Activity Progress</span>
+          </a>
+        {% endif %}
+
       </div>
     </div>
   </li>
