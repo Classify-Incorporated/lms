@@ -55,18 +55,24 @@ def createModule(request, subject_id):
 def updateModule(request, pk):
     module = get_object_or_404(Module, pk=pk)
     subject_id = module.subject.id
+
+    # Get the current semester
+    now = timezone.localtime(timezone.now())
+    current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+
     if request.method == 'POST':
-        form = moduleForm(request.POST, instance=module)
+        form = moduleForm(request.POST, request.FILES, instance=module, current_semester=current_semester)
         if form.is_valid():
             form.save()
             messages.success(request, 'Module updated successfully!')
             return redirect('subjectDetail', pk=subject_id)
         else:
-            messages.error(request, 'There was an error updated the module. Please try again.')
+            messages.error(request, 'There was an error updating the module. Please try again.')
     else:
-        form = moduleForm(instance=module)
-    
-    return render(request, 'module/updateModule.html', {'form': form,'module':module })
+        form = moduleForm(instance=module, current_semester=current_semester)
+
+    return render(request, 'module/updateModule.html', {'form': form, 'module': module})
+
 
 #View Module
 @login_required

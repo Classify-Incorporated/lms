@@ -11,18 +11,18 @@ class moduleForm(forms.ModelForm):
         widgets = {
             'file_name': forms.TextInput(attrs={'class': 'form-control'}),
             'file': forms.FileInput(attrs={'class': 'form-control'}),
-            'url': forms.URLInput(attrs={'class': 'form-control'}),
+            'url': forms.URLInput(attrs={'class': 'form-control','placeholder':'Optional'}),
             'term': forms.Select(attrs={'class': 'form-control'}),
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'hide_lesson_for_student': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'hide_lesson_for_selected_users': forms.SelectMultiple(attrs={'class': 'form-control'}),
+            'hide_lesson_for_selected_users': forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box':'true'}),
         }
 
     hide_lesson_for_selected_users = forms.ModelMultipleChoiceField(
-        queryset=get_user_model().objects.filter(profile__role__name__iexact='student'),  
+        queryset=get_user_model().objects.filter(profile__role__name__iexact='student'),
         required=False,
-        widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
+        widget=forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box':'true','data-style':'btn-outline-secondary'}),
     )
 
     start_date = forms.DateField(
