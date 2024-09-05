@@ -4,14 +4,6 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from course.models import Term
 
-from django import forms
-from django.contrib.auth import get_user_model
-from .models import Module, Term
-
-from django import forms
-from django.contrib.auth import get_user_model
-from .models import Module, Term
-
 class moduleForm(forms.ModelForm):
     class Meta:
         model = Module
@@ -24,6 +16,7 @@ class moduleForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'hide_lesson_for_student': forms.CheckboxInput(attrs={'class': 'form-check-input'}),  # Added class 'form-check-input' for checkbox
+            'allow_download': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'hide_lesson_for_selected_users': forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box': 'true'}),
         }
 

@@ -25,6 +25,7 @@ class Module(models.Model):
     hide_lesson_for_selected_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
     start_date = models.DateField(null=True, blank=True)  
     end_date = models.DateField(null=True, blank=True) 
+    allow_download = models.BooleanField(default=False)
 
 
     def __str__(self):
