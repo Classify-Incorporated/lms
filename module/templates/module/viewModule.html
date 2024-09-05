@@ -63,6 +63,37 @@
       var fullscreenBtn = document.getElementById('fullscreen-btn');
       var pdfContainer = document.getElementById('pdf-container');
 
+      // Track when the student starts interacting with the module
+      function startModule() {
+        fetch("{% url 'start_module_session' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+          },
+        }).then(response => response.json())
+          .then(data => {
+            console.log(data.status);
+          });
+      }
+
+      // Track when the student stops interacting with the module
+      window.addEventListener('beforeunload', function() {
+        fetch("{% url 'stop_module_session' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+          },
+        }).then(response => response.json())
+          .then(data => {
+            console.log(data.status);
+          });
+      });
+
+      // Start the module session when the page loads
+      startModule();
+
       function renderPage(num) {
           pdfDoc.getPage(num).then(function (page) {
               var viewport = page.getViewport({ scale: 1.5 });
