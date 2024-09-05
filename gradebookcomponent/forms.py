@@ -3,9 +3,9 @@ from .models import GradeBookComponents, TermGradeBookComponents
 from subject.models import Subject
 from course.models import Term
 from django.db.models import Sum
-from course.models import Semester
+from course.models import Semester, SubjectEnrollment
 from django.utils import timezone
-
+from datetime import date
 
 class GradeBookComponentsForm(forms.ModelForm):
     class Meta:
@@ -22,11 +22,25 @@ class GradeBookComponentsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super(GradeBookComponentsForm, self).__init__(*args, **kwargs)
-        if user:
-            self.fields['subject'].queryset = Subject.objects.filter(assign_teacher=user)
+
+        # Get the current date
+        today = date.today()
+
+        # Find the current semester based on today's date
+        current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
+
+        if user and current_semester:
+            # Filter subjects by the current semester and teacher
+            self.fields['subject'].queryset = Subject.objects.filter(
+                assign_teacher=user,
+                id__in=SubjectEnrollment.objects.filter(
+                    semester=current_semester
+                ).values_list('subject_id', flat=True)
+            )
+        
         if self.instance and self.instance.is_participation:
             self.fields['activity_type'].widget = forms.HiddenInput()
-            
+
     def clean(self):
         cleaned_data = super().clean()
         subject = cleaned_data.get('subject')
@@ -49,10 +63,10 @@ class GradeBookComponentsForm(forms.ModelForm):
 
 
 class CopyGradeBookForm(forms.Form):
-    subject = forms.ModelChoiceField(
+    subject = forms.ModelMultipleChoiceField(
         queryset=Subject.objects.none(),
-        label="Target Subject",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        label="Target Subject(s)",
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
     )
     copy_from_subject = forms.ModelChoiceField(
         queryset=Subject.objects.none(),
@@ -63,12 +77,47 @@ class CopyGradeBookForm(forms.Form):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super(CopyGradeBookForm, self).__init__(*args, **kwargs)
-        if user:
-            self.fields['subject'].queryset = Subject.objects.filter(assign_teacher=user)
-            self.fields['copy_from_subject'].queryset = Subject.objects.filter(
-                assign_teacher=user,
-                gradebook_components__isnull=False
-            ).distinct()
+
+        # Get the current date
+        today = date.today()
+
+        # Find the current semester based on today's date
+        current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
+
+        if user and current_semester:
+            # Check if the user has a profile and a valid role (Teacher or teacher)
+            if hasattr(user, 'profile') and user.profile.role and user.profile.role.name.lower() == 'teacher':
+                # Filter subjects by the current semester and teacher
+                self.fields['subject'].queryset = Subject.objects.filter(
+                    assign_teacher=user,
+                    id__in=SubjectEnrollment.objects.filter(
+                        semester=current_semester
+                    ).values_list('subject_id', flat=True)
+                )
+                self.fields['copy_from_subject'].queryset = Subject.objects.filter(
+                    assign_teacher=user,
+                    id__in=SubjectEnrollment.objects.filter(
+                        semester=current_semester,
+                        subject__gradebook_components__isnull=False
+                    ).values_list('subject_id', flat=True)
+                ).distinct()
+            else:
+                # For admin or other users, display all subjects within the current semester
+                self.fields['subject'].queryset = Subject.objects.filter(
+                    id__in=SubjectEnrollment.objects.filter(
+                        semester=current_semester
+                    ).values_list('subject_id', flat=True)
+                )
+                self.fields['copy_from_subject'].queryset = Subject.objects.filter(
+                    id__in=SubjectEnrollment.objects.filter(
+                        semester=current_semester,
+                        subject__gradebook_components__isnull=False
+                    ).values_list('subject_id', flat=True)
+                ).distinct()
+        else:
+            # If no current semester is found, don't show any subjects
+            self.fields['subject'].queryset = Subject.objects.none()
+            self.fields['copy_from_subject'].queryset = Subject.objects.none()
 
 class TermGradeBookComponentsForm(forms.ModelForm):
     subjects = forms.ModelMultipleChoiceField(
