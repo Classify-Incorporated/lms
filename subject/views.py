@@ -15,16 +15,12 @@ from django.contrib.auth.decorators import permission_required
 @login_required
 @permission_required('subject.view_subject', raise_exception=True)
 def subjectList(request):
-    today = timezone.now().date()
-    current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
-
     if request.user.profile.role.name.lower() == 'teacher':
-        subjects = Subject.objects.filter(assign_teacher=request.user, subjectenrollment__semester=current_semester).distinct()
+        subjects = Subject.objects.filter(assign_teacher=request.user)
     else:
-        subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
+        subjects = Subject.objects.all()
 
     form = subjectForm()
-
     return render(request, 'subject/subject.html', {'subjects': subjects, 'form': form})
 
 #Create Subject
