@@ -162,6 +162,7 @@ def fetch_facebook_posts():
         return []
 
 
+@login_required
 def dashboard(request):
     sessions = Session.objects.filter(expire_date__gte=timezone.now())
     user_ids = []
@@ -178,9 +179,24 @@ def dashboard(request):
     today = timezone.now().date()
     current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
 
+    # Get the user's role
+    user = request.user
+    is_teacher = user.profile.role.name.lower() == 'teacher'
+    is_student = user.profile.role.name.lower() == 'student'
+
     if current_semester:
-        subject_count = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct().count()
-        student_counts = SubjectEnrollment.objects.filter(semester=current_semester) \
+        if is_teacher:
+            # For teachers, show only subjects they are assigned to
+            subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
+        elif is_student:
+            # For students, show only the subjects they are enrolled in
+            subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
+        else:
+            # For admin or other users, show all subjects
+            subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
+
+        # Count the number of students per subject
+        student_counts = SubjectEnrollment.objects.filter(subject__in=subjects, semester=current_semester) \
                                                   .values('subject__subject_name') \
                                                   .annotate(student_count=Count('student')) \
                                                   .order_by('-student_count')
@@ -189,39 +205,22 @@ def dashboard(request):
         failing_students_count = get_failing_students_count(current_semester, request.user)
         excelling_students_count = get_excelling_students_count(current_semester, request.user)
     else:
-        subject_count = 0
         student_counts = []
         failing_students_count = 0
         excelling_students_count = 0
 
-    start_date = today - timedelta(days=6)
-    active_users_per_day = []
-    for i in range(7):
-        day = start_date + timedelta(days=i)
-        sessions_on_day = sessions.filter(expire_date__date=day)
-        user_ids_on_day = set()
-        for session in sessions_on_day:
-            session_data = session.get_decoded()
-            user_id = session_data.get('_auth_user_id')
-            if user_id:
-                user_ids_on_day.add(user_id)
-        unique_users_on_day = get_user_model().objects.filter(id__in=user_ids_on_day).distinct().count()
-        active_users_per_day.append({'date': day, 'count': unique_users_on_day})
-
+    
     articles = fetch_facebook_posts()
 
     context = {
         'active_users_count': active_users_count,
-        'subject_count': subject_count,
         'student_counts': student_counts,
-        'active_users_per_day': active_users_per_day,
+        'failing_students_count': failing_students_count,
+        'excelling_students_count': excelling_students_count,
+        'current_semester': current_semester, 
         'articles': articles,
-        'current_semester': current_semester,  # Pass the current semester to the template
-        'failing_students_count': failing_students_count,  # Add failing students count to context
-        'excelling_students_count': excelling_students_count,  # Add excelling students count to context
     }
     return render(request, 'accounts/dashboard.html', context)
-
 
 def get_failing_students_count(current_semester, user):
     FAILING_THRESHOLD = Decimal(65)
