@@ -14,11 +14,14 @@
     <h4>{{ subject.subject_name }}</h4>
     <p>Failing Students Count: {{ subject.failing_students_count }}</p>
 
-    <ul>
-      {% for student in subject.failing_students %}
-        <li>{{ student.student_name }} (ID: {{ student.student_id }}) - Grade: {{ student.grade }}</li>
-      {% endfor %}
-    </ul>
+    {% for term_name, students in subject.terms.items %}
+      <h5>Term: {{ term_name }}</h5>
+      <ul>
+        {% for student in students %}
+          <li>{{ student.student_name }} - Grade: {{ student.grade|floatformat:2 }}</li>
+        {% endfor %}
+      </ul>
+    {% endfor %}
   {% empty %}
     <p>No failing students found.</p>
   {% endfor %}
