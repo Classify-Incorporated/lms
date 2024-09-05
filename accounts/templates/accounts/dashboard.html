@@ -50,47 +50,42 @@
       </div>
     </div>
 
-    <!-- Assignments Card Example -->
+    <!-- Failing Students Count -->
     <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-warning shadow h-100 py-2">
-        <div class="card-body">
-          <div class="row no-gutters align-items-center">
-            <div class="col mr-2">
-              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Students Excelling</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+      <a href="{% url 'failingStudentsPerSubject' %}" style="text-decoration: none;">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Failing Students</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ failing_students_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-times fa-2x text-gray-300"></i>
+                    </div>
+                </div>
             </div>
-            <div class="col-auto">
-              <i class="fas fa-user-check fa-2x text-gray-300"></i>
-            </div>
-          </div>
         </div>
-      </div>
+      </a>
     </div>
 
-    <!-- Pending Requests Card Example -->
+    <!-- Excelling Students Count -->
     <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-danger shadow h-100 py-2">
-        <div class="card-body">
-          <div class="row no-gutters align-items-center">
-            <div class="col mr-2">
-              <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Students Failing</div>
-              <div class="row no-gutters align-items-center">
-                <div class="col-auto">
-                  <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">75%</div>
+      <a href="{% url 'excellingStudentsPerSubject' %}" style="text-decoration: none;">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Excelling Students</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ excelling_students_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                    </div>
                 </div>
-                <div class="col">
-                  <div class="progress progress-sm mr-2">
-                    <div class="progress-bar bg-danger" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                  </div>
-                </div>
-              </div>
             </div>
-            <div class="col-auto">
-              <i class="fas fa-user-times fa-2x text-gray-300"></i>
-            </div>
-          </div>
         </div>
-      </div>
+      </a>
     </div>
   </div>
 

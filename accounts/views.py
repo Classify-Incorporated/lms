@@ -14,6 +14,13 @@ import requests
 from bs4 import BeautifulSoup
 import requests
 import os
+from .models import CustomUser
+from decimal import Decimal
+from collections import defaultdict
+from gradebookcomponent.models import GradeBookComponents, TermGradeBookComponents
+from course.models import Term,  StudentParticipationScore
+from activity.models import Activity, ActivityType, StudentQuestion
+from django.db.models import Sum
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -154,7 +161,7 @@ def fetch_facebook_posts():
     else:
         return []
 
-@login_required
+
 def dashboard(request):
     sessions = Session.objects.filter(expire_date__gte=timezone.now())
     user_ids = []
@@ -177,9 +184,15 @@ def dashboard(request):
                                                   .values('subject__subject_name') \
                                                   .annotate(student_count=Count('student')) \
                                                   .order_by('-student_count')
+
+        # Call the helper functions to get the counts
+        failing_students_count = get_failing_students_count(current_semester, request.user)
+        excelling_students_count = get_excelling_students_count(current_semester, request.user)
     else:
         subject_count = 0
         student_counts = []
+        failing_students_count = 0
+        excelling_students_count = 0
 
     start_date = today - timedelta(days=6)
     active_users_per_day = []
@@ -204,8 +217,224 @@ def dashboard(request):
         'active_users_per_day': active_users_per_day,
         'articles': articles,
         'current_semester': current_semester,  # Pass the current semester to the template
+        'failing_students_count': failing_students_count,  # Add failing students count to context
+        'excelling_students_count': excelling_students_count,  # Add excelling students count to context
     }
     return render(request, 'accounts/dashboard.html', context)
+
+
+def get_failing_students_count(current_semester, user):
+    FAILING_THRESHOLD = Decimal(65)
+
+    # Determine the user's role
+    is_teacher = user.profile.role.name.lower() == 'teacher'
+    is_student = user.profile.role.name.lower() == 'student'
+
+    # If the user is an admin (not a teacher or student), get all students and subjects
+    if is_teacher:
+        students = CustomUser.objects.filter(profile__role__name__iexact='student')
+        subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
+    elif is_student:
+        students = CustomUser.objects.filter(id=user.id)
+        subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
+    else:
+        # Admin or other non-teaching, non-student roles: fetch all students and subjects
+        students = CustomUser.objects.filter(profile__role__name__iexact='student')
+        subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
+
+    failing_students_set = set()  # To store unique student IDs
+
+    for term in Term.objects.filter(semester=current_semester):
+        for subject in subjects:
+            for student in students:
+                subject_enrollment = SubjectEnrollment.objects.filter(student=student, subject=subject, semester=current_semester).first()
+                if not subject_enrollment or not subject_enrollment.can_view_grade:
+                    continue
+
+                student_scores = defaultdict(lambda: {'total_weighted_score': Decimal(0)})
+
+                # Calculate participation score
+                participation_component = GradeBookComponents.objects.filter(
+                    teacher=user if is_teacher else subject.assign_teacher,
+                    subject=subject,
+                    is_participation=True
+                ).first()
+
+                if participation_component:
+                    participation_score = StudentParticipationScore.objects.filter(
+                        student=student, subject=subject, term=term
+                    ).first()
+
+                    if participation_score:
+                        weighted_participation_score = (Decimal(participation_score.score) / Decimal(participation_score.max_score)) * Decimal(participation_component.percentage)
+                        student_scores[student]['total_weighted_score'] += weighted_participation_score
+
+                # Calculate activity scores
+                for activity_type in ActivityType.objects.all():
+                    activities = Activity.objects.filter(term=term, activity_type=activity_type, subject=subject)
+
+                    gradebook_component = GradeBookComponents.objects.filter(
+                        teacher=user if is_teacher else subject.assign_teacher,
+                        subject=subject,
+                        activity_type=activity_type
+                    ).first()
+
+                    if not gradebook_component:
+                        continue
+
+                    activity_percentage = Decimal(gradebook_component.percentage)
+                    student_total_score = Decimal(0)
+                    max_score_sum = Decimal(0)
+
+                    for activity in activities:
+                        student_questions = StudentQuestion.objects.filter(
+                            student=student,
+                            activity_question__activity=activity,
+                            status=True
+                        )
+
+                        if not student_questions.exists():
+                            max_score_sum += Decimal(activity.activityquestion_set.aggregate(total_max_score=Sum('score'))['total_max_score'] or Decimal(0))
+                            continue
+
+                        for student_question in student_questions:
+                            score = Decimal(student_question.score)
+                            max_score = Decimal(student_question.activity_question.score)
+
+                            student_total_score += score
+                            max_score_sum += max_score
+
+                    if max_score_sum > 0:
+                        weighted_score = (student_total_score / max_score_sum) * activity_percentage
+                        student_scores[student]['total_weighted_score'] += weighted_score
+
+                # Calculate the final weighted score considering the term percentage
+                try:
+                    term_gradebook_component = TermGradeBookComponents.objects.get(
+                        term=term,
+                        subjects=subject
+                    )
+                    term_percentage = Decimal(term_gradebook_component.percentage)
+                except TermGradeBookComponents.DoesNotExist:
+                    term_percentage = Decimal(0)
+
+                weighted_term_score = student_scores[student]['total_weighted_score'] * (term_percentage / Decimal(100))
+
+                # Convert the weighted term score to a percentage
+                percentage_score = (weighted_term_score / term_percentage) * Decimal(100) if term_percentage > 0 else Decimal(0)
+
+                # Add to the set if below the failing threshold
+                if percentage_score < FAILING_THRESHOLD:
+                    failing_students_set.add(student.id)
+
+    return len(failing_students_set)
+
+def get_excelling_students_count(current_semester, user):
+    EXCELLING_THRESHOLD = Decimal(80)
+
+    # Determine the user's role
+    is_teacher = user.profile.role.name.lower() == 'teacher'
+    is_student = user.profile.role.name.lower() == 'student'
+
+    # If the user is an admin (not a teacher or student), get all students and subjects
+    if is_teacher:
+        students = CustomUser.objects.filter(profile__role__name__iexact='student')
+        subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
+    elif is_student:
+        students = CustomUser.objects.filter(id=user.id)
+        subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
+    else:
+        # Admin or other non-teaching, non-student roles: fetch all students and subjects
+        students = CustomUser.objects.filter(profile__role__name__iexact='student')
+        subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
+
+    excelling_students_set = set()  # To store unique student IDs
+
+    for term in Term.objects.filter(semester=current_semester):
+        for subject in subjects:
+            for student in students:
+                subject_enrollment = SubjectEnrollment.objects.filter(student=student, subject=subject, semester=current_semester).first()
+                if not subject_enrollment or not subject_enrollment.can_view_grade:
+                    continue
+
+                student_scores = defaultdict(lambda: {'total_weighted_score': Decimal(0)})
+
+                # Calculate participation score
+                participation_component = GradeBookComponents.objects.filter(
+                    teacher=user if is_teacher else subject.assign_teacher,
+                    subject=subject,
+                    is_participation=True
+                ).first()
+
+                if participation_component:
+                    participation_score = StudentParticipationScore.objects.filter(
+                        student=student, subject=subject, term=term
+                    ).first()
+
+                    if participation_score:
+                        weighted_participation_score = (Decimal(participation_score.score) / Decimal(participation_score.max_score)) * Decimal(participation_component.percentage)
+                        student_scores[student]['total_weighted_score'] += weighted_participation_score
+
+                # Calculate activity scores
+                for activity_type in ActivityType.objects.all():
+                    activities = Activity.objects.filter(term=term, activity_type=activity_type, subject=subject)
+
+                    gradebook_component = GradeBookComponents.objects.filter(
+                        teacher=user if is_teacher else subject.assign_teacher,
+                        subject=subject,
+                        activity_type=activity_type
+                    ).first()
+
+                    if not gradebook_component:
+                        continue
+
+                    activity_percentage = Decimal(gradebook_component.percentage)
+                    student_total_score = Decimal(0)
+                    max_score_sum = Decimal(0)
+
+                    for activity in activities:
+                        student_questions = StudentQuestion.objects.filter(
+                            student=student,
+                            activity_question__activity=activity,
+                            status=True
+                        )
+
+                        if not student_questions.exists():
+                            max_score_sum += Decimal(activity.activityquestion_set.aggregate(total_max_score=Sum('score'))['total_max_score'] or Decimal(0))
+                            continue
+
+                        for student_question in student_questions:
+                            score = Decimal(student_question.score)
+                            max_score = Decimal(student_question.activity_question.score)
+
+                            student_total_score += score
+                            max_score_sum += max_score
+
+                    if max_score_sum > 0:
+                        weighted_score = (student_total_score / max_score_sum) * activity_percentage
+                        student_scores[student]['total_weighted_score'] += weighted_score
+
+                # Calculate the final weighted score considering the term percentage
+                try:
+                    term_gradebook_component = TermGradeBookComponents.objects.get(
+                        term=term,
+                        subjects=subject
+                    )
+                    term_percentage = Decimal(term_gradebook_component.percentage)
+                except TermGradeBookComponents.DoesNotExist:
+                    term_percentage = Decimal(0)
+
+                weighted_term_score = student_scores[student]['total_weighted_score'] * (term_percentage / Decimal(100))
+
+                # Convert the weighted term score to a percentage
+                percentage_score = (weighted_term_score / term_percentage) * Decimal(100) if term_percentage > 0 else Decimal(0)
+
+                # Add to the set if above excelling threshold
+                if percentage_score >= EXCELLING_THRESHOLD:
+                    excelling_students_set.add(student.id)
+
+    return len(excelling_students_set)
+
 
 def activity_stream(request):
     return render(request, 'accounts/activity_stream.html')

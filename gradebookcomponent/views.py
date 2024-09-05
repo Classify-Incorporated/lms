@@ -9,7 +9,6 @@ from course.models import Semester, Term, StudentParticipationScore, SubjectEnro
 from subject.models import Subject
 from decimal import Decimal
 from django.http import JsonResponse
-from decimal import Decimal
 from collections import defaultdict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -699,7 +698,7 @@ def allowGradeVisibility(request, student_id):
 
 
 FAILING_THRESHOLD = Decimal(65)
-EXCELLING_THRESHOLD = Decimal(85)
+EXCELLING_THRESHOLD = Decimal(80)
 
 @login_required
 def failingStudentsPerSubjectView(request):
@@ -715,17 +714,21 @@ def failingStudentsPerSubjectView(request):
     is_teacher = user.profile.role.name.lower() == 'teacher'
     is_student = user.profile.role.name.lower() == 'student'
 
-    # Filter students and subjects based on the user's role
-    if is_teacher:
+    # Admin or other non-teacher/non-student users should see all students and subjects
+    if not is_teacher and not is_student:
+        students = CustomUser.objects.filter(profile__role__name__iexact='student')
+        subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
+    elif is_teacher:
         students = CustomUser.objects.filter(profile__role__name__iexact='student')
         subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
     elif is_student:
         students = CustomUser.objects.filter(id=user.id)
         subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
     else:
-        return render(request, 'error.html', {'error': 'Unauthorized access'})
+        return render(request, '404.html', {'error': 'Unauthorized access'})
 
-    subject_failing_students = defaultdict(dict)  # Use a dictionary to ensure unique students per subject
+    subject_failing_students = defaultdict(lambda: defaultdict(list))  # Group by subject and term
+    unique_failing_students = defaultdict(set)  # Set to track unique failing students per subject
 
     for term in Term.objects.filter(semester=current_semester):
         for subject in subjects:
@@ -735,7 +738,7 @@ def failingStudentsPerSubjectView(request):
                 if not subject_enrollment or not subject_enrollment.can_view_grade:
                     continue
 
-                student_scores = defaultdict(lambda: {'term_scores': [], 'total_weighted_score': Decimal(0)})
+                student_scores = defaultdict(lambda: {'total_weighted_score': Decimal(0)})
 
                 # Calculate participation score
                 participation_component = GradeBookComponents.objects.filter(
@@ -792,6 +795,10 @@ def failingStudentsPerSubjectView(request):
                         weighted_score = (student_total_score / max_score_sum) * activity_percentage
                         student_scores[student]['total_weighted_score'] += weighted_score
 
+                # If no participation or activity score exists, skip this student for this term
+                if student_scores[student]['total_weighted_score'] == 0:
+                    continue  # Skip this student for this term
+
                 # Calculate the final weighted score considering the term percentage
                 try:
                     term_gradebook_component = TermGradeBookComponents.objects.get(
@@ -809,29 +816,22 @@ def failingStudentsPerSubjectView(request):
 
                 # Check if the student meets the failing threshold based on percentage
                 if percentage_score < FAILING_THRESHOLD:
-                    # Only update the student's record if it's either new or a lower score
-                    if student.id not in subject_failing_students[subject.subject_name] or \
-                            percentage_score < subject_failing_students[subject.subject_name][student.id]['grade']:
-                        subject_failing_students[subject.subject_name][student.id] = {
-                            'student_name': student.get_full_name(),
-                            'student_id': student.id,
-                            'grade': percentage_score,  # Store as Decimal for correct comparison
-                            'term': term.term_name
-                        }
+                    # Track the student under the subject but only count them once per subject
+                    unique_failing_students[subject.subject_name].add(student.id)
+
+                    # Append the student details to the list of failing students under the term
+                    subject_failing_students[subject.subject_name][term.term_name].append({
+                        'student_name': student.get_full_name(),
+                        'student_id': student.id,
+                        'grade': percentage_score
+                    })
 
     failing_students_summary = [
         {
             'subject_name': subject_name,
-            'failing_students_count': len(students),
-            'failing_students': [
-                {
-                    'student_name': student['student_name'],
-                    'student_id': student['student_id'],
-                    'term': student['term'],
-                    'grade': f"{student['grade']:.2f}"  # Format for display
-                } for student in students.values()
-            ]
-        } for subject_name, students in subject_failing_students.items()
+            'failing_students_count': len(unique_failing_students[subject_name]),  # Unique count
+            'terms': dict(terms)  # Convert defaultdict to dict for easy iteration
+        } for subject_name, terms in subject_failing_students.items()
     ]
 
     return render(request, 'gradebookcomponent/studentProgress/failingStudent.html', {
@@ -853,18 +853,21 @@ def excellingStudentsPerSubjectView(request):
     is_teacher = user.profile.role.name.lower() == 'teacher'
     is_student = user.profile.role.name.lower() == 'student'
 
-    # Filter students and subjects based on the user's role
-    if is_teacher:
+    # Admin or other non-teacher/non-student users should see all students and subjects
+    if not is_teacher and not is_student:
+        students = CustomUser.objects.filter(profile__role__name__iexact='student')
+        subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
+    elif is_teacher:
         students = CustomUser.objects.filter(profile__role__name__iexact='student')
         subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
     elif is_student:
         students = CustomUser.objects.filter(id=user.id)
         subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
     else:
-        return render(request, 'error.html', {'error': 'Unauthorized access'})
+        return render(request, '404.html', {'error': 'Unauthorized access'})
 
-    subject_excelling_students = defaultdict(list)
-    subject_excelling_count = defaultdict(int)
+    subject_excelling_students = defaultdict(lambda: defaultdict(list))  # Group by subject and term
+    unique_excelling_students = defaultdict(set)  # Set to track unique excelling students per subject
 
     for term in Term.objects.filter(semester=current_semester):
         for subject in subjects:
@@ -874,7 +877,7 @@ def excellingStudentsPerSubjectView(request):
                 if not subject_enrollment or not subject_enrollment.can_view_grade:
                     continue
 
-                student_scores = defaultdict(lambda: {'term_scores': [], 'total_weighted_score': Decimal(0)})
+                student_scores = defaultdict(lambda: {'total_weighted_score': Decimal(0)})
 
                 # Calculate participation score
                 participation_component = GradeBookComponents.objects.filter(
@@ -948,20 +951,22 @@ def excellingStudentsPerSubjectView(request):
 
                 # Check if the student meets the excelling threshold based on percentage
                 if percentage_score >= EXCELLING_THRESHOLD:
-                    subject_excelling_students[subject.subject_name].append({
+                    # Track the student under the subject but only count them once per subject
+                    unique_excelling_students[subject.subject_name].add(student.id)
+
+                    # Append the student details to the list of excelling students under the term
+                    subject_excelling_students[subject.subject_name][term.term_name].append({
                         'student_name': student.get_full_name(),
                         'student_id': student.id,
-                        'term': term.term_name,
-                        'grade': f"{percentage_score:.2f}"
+                        'grade': percentage_score
                     })
-                    subject_excelling_count[subject.subject_name] += 1
 
     excelling_students_summary = [
         {
             'subject_name': subject_name,
-            'excelling_students_count': count,
-            'excelling_students': students
-        } for subject_name, (count, students) in zip(subject_excelling_count.keys(), zip(subject_excelling_count.values(), subject_excelling_students.values()))
+            'excelling_students_count': len(unique_excelling_students[subject_name]),  # Unique count
+            'terms': dict(terms)  # Convert defaultdict to dict for easy iteration
+        } for subject_name, terms in subject_excelling_students.items()
     ]
 
     return render(request, 'gradebookcomponent/studentProgress/excellingStudent.html', {

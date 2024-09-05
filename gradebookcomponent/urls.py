@@ -42,8 +42,8 @@ urlpatterns = [
     path('allowGradeVisibility/<int:student_id>/', allowGradeVisibility, name='allowGradeVisibility'),
 
 
-    path('failingStudentsPerSubjectView/', failingStudentsPerSubjectView, name='failingStudentsPerSubjectView'),
-    path('excellingStudentsPerSubjectView/', excellingStudentsPerSubjectView, name='excellingStudentsPerSubjectView'),
+    path('failingStudentsPerSubject/', failingStudentsPerSubjectView, name='failingStudentsPerSubject'),
+    path('excellingStudentsPerSubject/', excellingStudentsPerSubjectView, name='excellingStudentsPerSubject'),
 
 
 ]
