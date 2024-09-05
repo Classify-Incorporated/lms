@@ -195,6 +195,8 @@ def dashboard(request):
             # For admin or other users, show all subjects
             subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
 
+        subject_count = subjects.count()
+        
         # Count the number of students per subject
         student_counts = SubjectEnrollment.objects.filter(subject__in=subjects, semester=current_semester) \
                                                   .values('subject__subject_name') \
@@ -205,6 +207,7 @@ def dashboard(request):
         failing_students_count = get_failing_students_count(current_semester, request.user)
         excelling_students_count = get_excelling_students_count(current_semester, request.user)
     else:
+        subject_count = 0
         student_counts = []
         failing_students_count = 0
         excelling_students_count = 0
@@ -215,6 +218,7 @@ def dashboard(request):
     context = {
         'active_users_count': active_users_count,
         'student_counts': student_counts,
+        'subject_count': subject_count,
         'failing_students_count': failing_students_count,
         'excelling_students_count': excelling_students_count,
         'current_semester': current_semester, 
