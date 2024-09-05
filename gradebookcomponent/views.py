@@ -696,7 +696,7 @@ def allowGradeVisibility(request, student_id):
 
 
 FAILING_THRESHOLD = Decimal(65)
-EXCELLING_THRESHOLD = Decimal(80)
+EXCELLING_THRESHOLD = Decimal(85)
 
 @login_required
 def failingStudentsPerSubjectView(request):

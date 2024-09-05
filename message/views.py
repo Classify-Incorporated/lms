@@ -10,7 +10,7 @@ from django.contrib import messages
 from roles.models import Role
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import permission_required
-
+from course.models import Semester
 
 @login_required
 @permission_required('message.add_message', raise_exception=True)
@@ -68,9 +68,10 @@ def send_message(request):
 
 @login_required
 def inbox(request):
-    # Filter to only show messages that are not trashed
+    # Filter messages that are not trashed and are for the current user
     messages = Message.objects.filter(recipients=request.user, is_trashed=False)
     
+    # Build the message status list
     message_status_list = []
     for message in messages:
         read_status = MessageReadStatus.objects.filter(message=message, user=request.user).first()
@@ -79,11 +80,34 @@ def inbox(request):
             'read': read_status.read_at is not None if read_status else False
         })
 
-    subjects = Subject.objects.all()
+    # Get the current semester
+    today = timezone.now().date()
+    current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
+
+    # Initialize variables
+    subjects = Subject.objects.none()
+    instructors = CustomUser.objects.none()
+    students = CustomUser.objects.none()
+
+    # Get the user's role (Teacher or Student)
+    user = request.user
     instructor_role = Role.objects.get(name='Teacher')
     student_role = Role.objects.get(name='Student')
-    instructors = CustomUser.objects.filter(profile__role=instructor_role) if instructor_role else CustomUser.objects.none()
-    students = CustomUser.objects.filter(profile__role=student_role) if student_role else CustomUser.objects.none()
+
+    if current_semester:
+        if user.profile.role == instructor_role:
+            # If the user is a teacher, filter subjects where the teacher is assigned for the current semester
+            subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
+        elif user.profile.role == student_role:
+            # If the user is a student, filter subjects where the student is enrolled for the current semester
+            subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
+        else:
+            # If the user is an admin or another role, show all subjects for the current semester
+            subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
+
+        # Retrieve all instructors and students for the current semester
+        instructors = CustomUser.objects.filter(profile__role=instructor_role).distinct()
+        students = CustomUser.objects.filter(profile__role=student_role).distinct()
 
     return render(request, 'message/inbox.html', {
         'message_status_list': message_status_list,

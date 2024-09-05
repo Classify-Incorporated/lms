@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
 
     createModule, updateModule, viewModule, deleteModule, moduleList,
-    progressList, module_progress,  detailModuleProgress
+    progressList, module_progress,  detailModuleProgress, download_module
 )
 
 urlpatterns = [
@@ -14,5 +14,6 @@ urlpatterns = [
     path('module_progress/', module_progress, name='module_progress'),
     path('progressList/', progressList, name='progressList'),
     path('detailProgress/module/<int:module_id>/', detailModuleProgress, name='detailModuleProgress'),
+    path('download/<int:module_id>/', download_module, name='download'),
 
 ]
