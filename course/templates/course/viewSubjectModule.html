@@ -125,7 +125,7 @@
                 {% endif %}
             </div>
             <ul class="list-group list-group-flush">
-                {% for module in modules %}
+                {% for module in modules|dictsortreversed:"id" %}
                   <li class="list-group-item d-flex justify-content-between align-items-center">
                     <!-- Check if the module has a URL -->
                     {% if module.url %}
@@ -148,7 +148,7 @@
                 {% endfor %}
             </ul>
         </div>
-    </div>
+    </div>    
     </div>
 
     <div class="text-right mr-3">

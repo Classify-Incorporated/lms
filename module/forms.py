@@ -4,6 +4,14 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from course.models import Term
 
+from django import forms
+from django.contrib.auth import get_user_model
+from .models import Module, Term
+
+from django import forms
+from django.contrib.auth import get_user_model
+from .models import Module, Term
+
 class moduleForm(forms.ModelForm):
     class Meta:
         model = Module
@@ -15,14 +23,14 @@ class moduleForm(forms.ModelForm):
             'term': forms.Select(attrs={'class': 'form-control'}),
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'hide_lesson_for_student': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'hide_lesson_for_selected_users': forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box':'true'}),
+            'hide_lesson_for_student': forms.CheckboxInput(attrs={'class': 'form-check-input'}),  # Added class 'form-check-input' for checkbox
+            'hide_lesson_for_selected_users': forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box': 'true'}),
         }
 
     hide_lesson_for_selected_users = forms.ModelMultipleChoiceField(
         queryset=get_user_model().objects.filter(profile__role__name__iexact='student'),
         required=False,
-        widget=forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box':'true','data-style':'btn-outline-secondary'}),
+        widget=forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box': 'true', 'data-style': 'btn-outline-secondary'}),
     )
 
     start_date = forms.DateField(
@@ -35,14 +43,11 @@ class moduleForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        current_semester = kwargs.pop('current_semester', None)  
+        current_semester = kwargs.pop('current_semester', None)
         super().__init__(*args, **kwargs)
-
 
         # Filter terms based on the current semester
         if current_semester:
             self.fields['term'].queryset = Term.objects.filter(semester=current_semester)
         else:
             self.fields['term'].queryset = Term.objects.none()  # If no semester is passed, no terms are shown
-
-
