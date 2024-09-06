@@ -104,6 +104,13 @@ def subjectEnrollmentList(request):
         'selected_subject': selected_subject,
     })
 
+@login_required
+def dropStudentFromSubject(request, enrollment_id):
+    enrollment = get_object_or_404(SubjectEnrollment, id=enrollment_id)
+    enrollment.delete()
+    messages.success(request, f"{enrollment.student.get_full_name()} has been dropped from {enrollment.subject.subject_name}.")
+    return redirect('subjectEnrollmentList')
+
 
 # Display the module based on the subject
 @login_required
@@ -315,6 +322,7 @@ def subjectList(request):
     else:
         selected_semester = current_semester
 
+    # Handle subject filtering based on roles
     if profile.role.name.lower() == 'student':
         subjects = Subject.objects.filter(
             subjectenrollment__student=user,
@@ -323,6 +331,11 @@ def subjectList(request):
     elif profile.role.name.lower() == 'teacher':
         subjects = Subject.objects.filter(
             assign_teacher=user,
+            subjectenrollment__semester=selected_semester
+        ).distinct()
+    else:
+        # For admin, registrar, or other roles, display all subjects for the selected semester
+        subjects = Subject.objects.filter(
             subjectenrollment__semester=selected_semester
         ).distinct()
 
@@ -336,6 +349,7 @@ def subjectList(request):
         'selected_semester': selected_semester, 
         'current_semester': current_semester,
     })
+
 
 
 # Display semester list

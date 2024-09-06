@@ -46,7 +46,7 @@
         <div class="card">
           <div class="card-header" id="heading{{ forloop.counter }}">
             <h5 class="mb-0">
-              <button class="btn btn-link text-light bg-primary"  type="button" data-toggle="collapse" data-target="#collapse{{ forloop.counter }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter }}">
+              <button class="btn btn-link text-light bg-primary" style='width:30%' type="button" data-toggle="collapse" data-target="#collapse{{ forloop.counter }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter }}">
                 {{ subject.subject_name }}
               </button>
             </h5>
@@ -61,6 +61,7 @@
                     <th scope="col">Student Name</th>
                     <th scope="col">Semester</th>
                     <th scope="col">Enrollment Date</th>
+                    <th scope="col">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -70,6 +71,12 @@
                       <td>{{ enrollment.student.get_full_name }}</td>
                       <td>{{ enrollment.semester.semester_name }} - {{ enrollment.semester.school_year }}</td>
                       <td>{{ enrollment.enrollment_date }}</td>
+                      <td>
+                        <a href="{% url 'dropStudentFromSubject' enrollment.id %}" class="btn btn-primary btn-sm"
+                          onclick="return confirm('Are you sure you want to drop {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">
+                          Dropped
+                        </a>
+                      </td>
                     </tr>
                   {% endfor %}
                 </tbody>
