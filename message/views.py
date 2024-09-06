@@ -11,6 +11,8 @@ from roles.models import Role
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import permission_required
 from course.models import Semester
+from django.db.models import Q
+
 
 @login_required
 @permission_required('message.add_message', raise_exception=True)
@@ -183,11 +185,15 @@ def sent(request):
 
 @login_required
 def trash(request):
-    # Filter messages where the logged-in user is a recipient and the message is trashed
-    messages = Message.objects.filter(recipients=request.user, is_trashed=True)
+    # Filter messages where the logged-in user is either a recipient or the sender, and the message is trashed
+    trashed_messages = Message.objects.filter(
+        is_trashed=True
+    ).filter(
+        Q(recipients=request.user) | Q(sender=request.user)
+    ).distinct()
 
     message_status_list = []
-    for message in messages:
+    for message in trashed_messages:
         message_status_list.append({
             'message': message,
             'status': 'Trashed'
@@ -216,12 +222,16 @@ def trash_messages(request):
             # Debugging statement to check if message_ids are being passed correctly
             print("Trashing messages with IDs:", message_ids)
             
-            # Update the messages to set is_trashed=True
-            update_count = Message.objects.filter(id__in=message_ids, recipients=request.user).update(is_trashed=True)
-            
+            # Update the messages where the logged-in user is a recipient to set is_trashed=True
+            received_update_count = Message.objects.filter(id__in=message_ids, recipients=request.user).update(is_trashed=True)
+
+            # Update the messages where the logged-in user is the sender to set is_trashed=True
+            sent_update_count = Message.objects.filter(id__in=message_ids, sender=request.user).update(is_trashed=True)
+
             # Debugging statement to check if the update was successful
-            print("Number of messages updated:", update_count)
-            
+            print(f"Number of received messages updated: {received_update_count}")
+            print(f"Number of sent messages updated: {sent_update_count}")
+
             return JsonResponse({'status': 'success'})
         else:
             return JsonResponse({'status': 'error', 'message': 'No message IDs provided'}, status=400)
@@ -234,8 +244,13 @@ def untrash_messages(request):
         message_ids = request.POST.getlist('message_ids[]')
         if message_ids:
             # Update the is_trashed field to False where the logged-in user is a recipient
-            Message.objects.filter(id__in=message_ids, recipients=request.user).update(is_trashed=False)
+            received_update_count = Message.objects.filter(id__in=message_ids, recipients=request.user).update(is_trashed=False)
+
+            # Update the is_trashed field to False where the logged-in user is the sender
+            sent_update_count = Message.objects.filter(id__in=message_ids, sender=request.user).update(is_trashed=False)
+
             return JsonResponse({'status': 'success'})
         else:
             return JsonResponse({'status': 'error', 'message': 'No message IDs provided'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+

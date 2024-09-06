@@ -35,7 +35,7 @@
     </a>
   </li>
 
-{% if not user.is_superuser %}
+
   <li class="nav-item">
     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
       <i class="bx bx-chalkboard"></i>
@@ -95,8 +95,6 @@
       </div>
     </div>
   </li>
-
-  {% endif %}
 
   {% if user|has_perm:'course.view_subjectenrollment' %}
     <li class="nav-item {% if request.resolver_match.url_name == 'subjectEnrollmentList' %}active{% endif %}">
