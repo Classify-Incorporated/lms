@@ -21,6 +21,7 @@ from gradebookcomponent.models import GradeBookComponents, TermGradeBookComponen
 from course.models import Term,  StudentParticipationScore
 from activity.models import Activity, ActivityType, StudentQuestion
 from django.db.models import Sum
+from django.contrib.auth.decorators import permission_required
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -42,21 +43,25 @@ def admin_login_view(request):
     return render(request, 'accounts/login.html', {'form': form})
 
 @login_required
+@permission_required('accounts.view_profile', raise_exception=True)
 def student(request):
     profiles = Profile.objects.filter(role__name__iexact='student')
     return render(request, 'accounts/student.html', {'profiles': profiles})
 
 @login_required
+@permission_required('accounts.view_profile', raise_exception=True)
 def staff_list(request):
     staff = Profile.objects.exclude(role__name__iexact='student').exclude(role__name__iexact='admin')
     return render(request, 'accounts/staffList.html', {'staff': staff})
 
 @login_required
+@permission_required('accounts.view_profile', raise_exception=True)
 def viewProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     return render(request, 'accounts/viewStudentProfile.html',{'profile': profile})
 
 @login_required
+@permission_required('accounts.change_profile', raise_exception=True)
 def updateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     if request.method == 'POST':
@@ -69,6 +74,7 @@ def updateProfile(request, pk):
     return render(request, 'accounts/updateStudentProfile.html', {'form': form,'profile': profile})
 
 @login_required
+@permission_required('accounts.delete_profile', raise_exception=True)
 def activateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     profile.active = True
@@ -76,38 +82,13 @@ def activateProfile(request, pk):
     return redirect('viewProfile', pk=profile.pk)
 
 @login_required
+@permission_required('accounts.delete_profile', raise_exception=True)
 def deactivateProfile(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     profile.active = False
     profile.save()
     return redirect('viewProfile', pk=profile.pk)
 
-def fetch_lms_articles():
-    url = "https://www.techlearning.com/news"  # Example URL
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
-
-    articles = []
-    for item in soup.select('.listingResult.small'):
-        title_element = item.select_one('h3')
-        description_element = item.select_one('p')
-        link_element = item.select_one('a')
-        thumbnail_element = item.select_one('img')
-
-        if title_element and description_element and link_element:
-            title = title_element.get_text(strip=True)
-            description = description_element.get_text(strip=True)
-            link = link_element['href']
-            thumbnail = thumbnail_element['src'] if thumbnail_element else 'default_thumbnail.jpg'
-
-            articles.append({
-                'title': title,
-                'description': description,
-                'url': link,
-                'thumbnail_url': thumbnail,
-            })
-
-    return articles
 
 def fetch_facebook_posts():
 
@@ -225,6 +206,7 @@ def dashboard(request):
         'articles': articles,
     }
     return render(request, 'accounts/dashboard.html', context)
+
 
 def get_failing_students_count(current_semester, user):
     FAILING_THRESHOLD = Decimal(65)

@@ -295,9 +295,8 @@ class SaveAllQuestionsView(View):
 
         # Clear the questions from the session
         request.session.pop('questions', None)
-        print("Questions saved and session cleared.")
         
-        return redirect('SubjectList')
+        return redirect('subjectDetail', pk=activity.subject.id)
     
 # Display questions the student will answer
 @method_decorator(login_required, name='dispatch')

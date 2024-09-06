@@ -18,6 +18,7 @@ from django.http import HttpResponse
 from module.forms import moduleForm
 from django.contrib import messages
 from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import permission_required
 
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
@@ -46,6 +47,7 @@ class enrollStudentView(View):
 
 # Enrollled Student
 @login_required
+@permission_required('course.add_subjectenrollment', raise_exception=True)
 def enrollStudent(request):
     student_role = Role.objects.get(name__iexact='student')
     profiles = Profile.objects.filter(role=student_role)
@@ -63,6 +65,7 @@ def enrollStudent(request):
 
 #enrolled Student List
 @login_required
+@permission_required('course.view_subjectenrollment', raise_exception=True)
 def subjectEnrollmentList(request):
     user = request.user
     selected_semester_id = request.GET.get('semester', None)  # Get the selected semester from the query parameters
@@ -105,6 +108,7 @@ def subjectEnrollmentList(request):
     })
 
 @login_required
+@permission_required('course.delete_subjectenrollment', raise_exception=True)
 def dropStudentFromSubject(request, enrollment_id):
     enrollment = get_object_or_404(SubjectEnrollment, id=enrollment_id)
     enrollment.delete()
@@ -354,6 +358,7 @@ def subjectList(request):
 
 # Display semester list
 @login_required
+@permission_required('course.view_semester', raise_exception=True)
 def semesterList(request):
     semesters = Semester.objects.all()
     form = semesterForm()
@@ -363,6 +368,7 @@ def semesterList(request):
 
 # Create Semester
 @login_required
+@permission_required('course.add_semester', raise_exception=True)
 def createSemester(request):
     if request.method == 'POST':
         form = semesterForm(request.POST)
@@ -380,6 +386,7 @@ def createSemester(request):
 
 # Update Semester
 @login_required
+@permission_required('course.change_semester', raise_exception=True)
 def updateSemester(request, pk):
     semester = get_object_or_404(Semester, pk=pk)
     if request.method == 'POST':
@@ -398,6 +405,7 @@ def updateSemester(request, pk):
 
 # Display term list
 @login_required
+@permission_required('course.view_term', raise_exception=True)
 def termList(request):
     terms = Term.objects.all()
     form = termForm()
@@ -408,6 +416,7 @@ def termList(request):
 
 # Create Semester
 @login_required
+@permission_required('course.add_term', raise_exception=True)
 def createTerm(request):
     if request.method == 'POST':
         form = termForm(request.POST)
@@ -425,6 +434,7 @@ def createTerm(request):
 
 # Update Semester
 @login_required
+@permission_required('course.change_term', raise_exception=True)
 def updateTerm(request, pk):
     term = get_object_or_404(Term, pk=pk)
     if request.method == 'POST':
