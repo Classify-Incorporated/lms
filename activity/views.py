@@ -7,7 +7,7 @@ from course.models import Term, Semester
 from django.db.models import Sum, Max
 from django.utils import timezone
 from django.core.files.storage import default_storage
-from .forms import ActivityForm
+from .forms import ActivityForm, activityTypeForm
 import re
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -16,6 +16,52 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import permission_required
 # Add type of activity
+
+@login_required
+def activityTypeList(request):
+    activity_types = ActivityType.objects.all()
+    form = activityTypeForm()  
+    return render(request, 'activity/activityType/activityTypeList.html', {'activity_types': activity_types, 'form': form})
+
+@login_required
+def createActivityType(request):
+    if request.method == 'POST':
+        form = activityTypeForm(request.POST) 
+        if form.is_valid(): 
+            form.save() 
+            messages.success(request, 'Activity type created successfully!')
+            return redirect('activityTypeList')  
+        else:
+            messages.error(request, 'There was an error creating the activity type. Please try again.')
+    else:
+        form = activityTypeForm() 
+
+    return render(request, 'activity/activityType/createActivityType.html', {'form': form})
+
+@login_required
+def updateActivityType(request, id):
+    activityType = get_object_or_404(ActivityType, pk=id)
+    if request.method == 'POST':
+        form = activityTypeForm(request.POST, request.FILES, instance=activityType)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Subject updated successfully!')
+            return redirect('subject')
+        else:
+            messages.error(request, 'There was an error updated the subject. Please try again.')
+    else:
+        form = activityTypeForm(instance=activityType)
+    
+    return render(request, 'activity/activityType/updateActivityType.html', {'form': form, 'activityType': activityType})
+
+
+@login_required
+def deleteActivityType(request, id):
+    activity_type = get_object_or_404(ActivityType, id=id)
+    activity_type.delete()
+    messages.success(request, 'Activity type deleted successfully!')
+    return redirect('activityTypeList')
+
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(permission_required('activity.add_activity', raise_exception=True), name='dispatch')
