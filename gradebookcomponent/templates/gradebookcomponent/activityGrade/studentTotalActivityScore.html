@@ -8,49 +8,45 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <div class="container my-4">
-    <div class="card">
-        <div class="card-body">
-            <h1 class="mb-4">Student Grades</h1>
+    <h1 class="mb-4">Student Grades</h1>
 
-            <!-- Semester and Subject Filters -->
-            <form method="get" class="form-inline mb-4">
-                <div class="form-group mr-2">
-                    <label for="semester" class="mr-2">Select Semester:</label>
-                    <select id="semester" name="semester" class="form-control">
-                        <option value="" disabled>Select a Semester</option>
-                        <!-- The semesters will be populated here by JavaScript -->
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="subject" class="mr-2">Select Subject:</label>
-                    <select id="subject" name="subject" class="form-control">
-                        <option value="all" selected>All Subjects</option>
-                    </select>
-                </div>
-            </form>
-
-            <div class="table-responsive">
-                <table id="scores-table" class="table table-bordered table-hover">
-                    <thead>
-                        <tr id="term-headers">
-                            <th>Subject</th>
-                            <th>Student Name</th>
-                            <!-- Term headers will be dynamically populated here -->
-                            <th>Total Term Weighted Score</th>
-                            {% if is_teacher %}
-                                <th>
-                                    Allow View <br>
-                                    <input type="checkbox" id="checkAll" onclick="toggleAllCheckboxes(this)">
-                                </th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
+    <!-- Semester and Subject Filters -->
+    <form method="get" class="form-inline mb-4">
+        <div class="form-group mr-2">
+            <label for="semester" class="mr-2">Select Semester:</label>
+            <select id="semester" name="semester" class="form-control">
+                <option value="" disabled>Select a Semester</option>
+                <!-- The semesters will be populated here by JavaScript -->
+            </select>
         </div>
+
+        <div class="form-group">
+            <label for="subject" class="mr-2">Select Subject:</label>
+            <select id="subject" name="subject" class="form-control">
+                <option value="all" selected>All Subjects</option>
+            </select>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table id="scores-table" class="table table-bordered table-hover">
+            <thead>
+                <tr id="term-headers">
+                    <th>Subject</th>
+                    <th>Student Name</th>
+                    <!-- Term headers will be dynamically populated here -->
+                    <th>Total Term Weighted Score</th>
+                    {% if is_teacher %}
+                        <th>
+                            Allow View <br>
+                            <input type="checkbox" id="checkAll" onclick="toggleAllCheckboxes(this)">
+                        </th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -121,9 +117,6 @@
                             scoresTableBody.append(studentRow);
                         });
                     });
-
-                    // Reinitialize DataTables after populating the table
-                    $('#scores-table').DataTable();
                 } else {
                     const noDataRow = $('<tr>');
                     noDataRow.append('<td colspan="8" class="text-center">No data found</td>');
