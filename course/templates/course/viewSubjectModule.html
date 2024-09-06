@@ -141,7 +141,9 @@
                           <a class="dropdown-item" href="{% url 'updateModule' module.id %}"><i class="fas fa-edit"></i> Update</a>
                           <a class="dropdown-item text-danger" href="javascript:void(0);" onclick="if(confirm('Are you sure you want to delete this module?')) { window.location.href='{% url 'deleteModule' module.id %}'; }"><i class="fas fa-trash"></i> Delete</a>
                           {% endif %}
+                          {% if module.allow_download %}
                             <a class="dropdown-item" href="{% url 'download' module.id %}"><i class="fas fa-download"></i> Download</a>
+                          {% endif %}
                         </div>
                     </div>
                   </li>
