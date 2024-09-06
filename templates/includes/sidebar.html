@@ -125,22 +125,29 @@
         {% endif %}
 
         {% if user|has_perm:'course.view_semester' %}
+          <a class="collapse-item" href="{% url 'activityTypeList' %}">
+            <i class="bx bx-bar-chart-alt-2"></i>
+            <span>Activity Type</span>
+          </a>
+        {% endif %}
+
+        {% if user|has_perm:'course.view_semester' %}
           <a class="collapse-item" href="{% url 'semesterList' %}">
-            <i class="bx bx-calendar"></i>
+            <i class="bx bx-clipboard"></i>
             <span>Semester</span>
           </a>
         {% endif %}
 
         {% if user|has_perm:'course.view_semester' %}
           <a class="collapse-item" href="{% url 'student' %}">
-            <i class="bx bx-calendar"></i>
+            <i class="bx bx-group"></i>
             <span>Student List</span>
           </a>
         {% endif %}
 
         {% if user|has_perm:'course.view_semester' %}
           <a class="collapse-item" href="{% url 'staff_list' %}">
-            <i class="bx bx-calendar"></i>
+            <i class="bx bx-user"></i>
             <span>Staff List</span>
           </a>
         {% endif %}
@@ -155,8 +162,8 @@
 
         {% if user|has_perm:'subject.view_subject'  %}
           <a class="collapse-item" href="{% url 'termBookList' %}">
-            <i class="bx bx-calendar-event"></i>
-            Term Percentage
+            <i class="bx bx-chart"></i>
+            <span>Term Percentage</span>
           </a>
         {% endif %}
 
