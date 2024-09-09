@@ -30,6 +30,7 @@ def createModule(request, subject_id):
     
     now = timezone.localtime(timezone.now())
     current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+    
     if request.method == 'POST':
         form = moduleForm(request.POST, request.FILES, current_semester=current_semester)
         if form.is_valid():
@@ -37,7 +38,7 @@ def createModule(request, subject_id):
             module.subject = subject
             module.save()
             
-            form.save_m2m()  
+            form.save_m2m()  # Save many-to-many data for selected users
 
             messages.success(request, 'Module created successfully!')
             return redirect('subjectDetail', pk=subject_id)
@@ -55,7 +56,6 @@ def updateModule(request, pk):
     module = get_object_or_404(Module, pk=pk)
     subject_id = module.subject.id
 
-    # Get the current semester
     now = timezone.localtime(timezone.now())
     current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
 

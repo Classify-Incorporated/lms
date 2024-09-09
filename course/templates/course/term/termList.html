@@ -17,6 +17,8 @@
           <thead>
             <tr>
               <th>Term</th>
+              <th>Start Date</th>
+              <th>End Date</th>
               <th>Semester</th>
               <th>Action</th>
             </tr>
@@ -25,6 +27,8 @@
             {% for term in terms %}
               <tr>
                 <td>{{ term.term_name }}</td>
+                <td>{{ term.start_date }}</td>
+                <td>{{ term.end_date }}</td>
                 <td>{{ term.semester }}</td>
                 <td>
                   <div class="dropdown">

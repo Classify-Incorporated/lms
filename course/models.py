@@ -46,9 +46,12 @@ class Semester(models.Model):
 class Term(models.Model):
     term_name = models.CharField(max_length=50)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.term_name} - {self.semester}"
+        return f"{self.term_name} - {self.start_date} - {self.end_date}"
 
 class StudentParticipationScore(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)

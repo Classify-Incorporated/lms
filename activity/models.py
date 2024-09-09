@@ -40,6 +40,8 @@ class Activity(models.Model):
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     show_score = models.BooleanField(default=False)
+    remedial = models.BooleanField(default=False) 
+    remedial_student = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'profile__role__name__iexact': 'Student'})
 
     def __str__(self):
         return self.activity_name

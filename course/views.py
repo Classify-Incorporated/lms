@@ -162,7 +162,10 @@ def subjectDetail(request, pk):
 
         answered_activity_ids = set(completed_activities).union(answered_essays, answered_documents)
         
-        activities = Activity.objects.filter(subject=subject, term__in=terms)
+        activities = Activity.objects.filter(
+            Q(subject=subject) & Q(term__in=terms) & 
+            (Q(remedial=False) | Q(remedial=True, studentactivity__student=user))
+        ).distinct()
         
         finished_activities = activities.filter(
             end_time__lte=timezone.localtime(timezone.now()), 
@@ -174,13 +177,13 @@ def subjectDetail(request, pk):
         )
         upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
 
-        modules = Module.objects.filter(
-            subject=subject,
-            hide_lesson_for_student=False,  
-        ).exclude(hide_lesson_for_selected_users=user).filter(
-            Q(start_date__isnull=True) | Q(start_date__lte=timezone.localtime(timezone.now())),
-            Q(end_date__isnull=True) | Q(end_date__gte=timezone.localtime(timezone.now()))
-        )
+        # Adjusted module visibility logic
+        modules = Module.objects.filter(subject=subject)
+        visible_modules = []
+
+        for module in modules:
+            if not module.display_lesson_for_selected_users.exists() or user in module.display_lesson_for_selected_users.all():
+                visible_modules.append(module)
     else:
         modules = Module.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject, term__in=terms)
@@ -228,6 +231,7 @@ def subjectDetail(request, pk):
         'answered_activity_ids': answered_activity_ids,
         'form': form,
     })
+
 
 # get all the finished activities
 @login_required
@@ -407,7 +411,10 @@ def updateSemester(request, pk):
 @login_required
 @permission_required('course.view_term', raise_exception=True)
 def termList(request):
-    terms = Term.objects.all()
+    if request.user.is_superuser:
+        terms = Term.objects.all() 
+    else:
+        terms = Term.objects.filter(created_by=request.user)
     form = termForm()
     return render(request, 'course/term/termList.html', {
         'terms': terms,
@@ -421,7 +428,9 @@ def createTerm(request):
     if request.method == 'POST':
         form = termForm(request.POST)
         if form.is_valid():
-            form.save()
+            term = form.save(commit=False)
+            term.created_by = request.user  
+            term.save()
             messages.success(request, 'Term created successfully!')
             return redirect('termList')
         else:
@@ -437,6 +446,11 @@ def createTerm(request):
 @permission_required('course.change_term', raise_exception=True)
 def updateTerm(request, pk):
     term = get_object_or_404(Term, pk=pk)
+
+    if term.created_by != request.user:
+        messages.error(request, 'You do not have permission to edit this term.')
+        return redirect('termList')
+
     if request.method == 'POST':
         form = termForm(request.POST, instance=term)
         if form.is_valid():
@@ -447,8 +461,10 @@ def updateTerm(request, pk):
             messages.error(request, 'There was an error updating the term. Please try again.')
     else:
         form = termForm(instance=term)
+        
     return render(request, 'course/term/updateterm.html', {
-        'form': form,'term': term
+        'form': form, 
+        'term': term
     })
 
 # Participation Scores

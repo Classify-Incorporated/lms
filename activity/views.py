@@ -69,17 +69,23 @@ class AddActivityView(View):
     def get(self, request, subject_id):
         subject = get_object_or_404(Subject, id=subject_id)
 
-        # Get the current semester
         now = timezone.localtime(timezone.now())
         current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
 
-        # Filter terms by the current semester
-        terms = Term.objects.filter(semester=current_semester)
+        terms = Term.objects.filter(
+            semester=current_semester,
+            created_by=request.user,
+            start_date__lte=now,
+            end_date__gte=now
+        )
+
+        students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
 
         return render(request, 'activity/activities/createActivity.html', {
             'subject': subject,
             'activity_types': ActivityType.objects.all(),
             'terms': terms,
+            'students': students  # Pass students to the template
         })
 
     def post(self, request, subject_id):
@@ -89,6 +95,8 @@ class AddActivityView(View):
         term_id = request.POST.get('term')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
+        remedial = request.POST.get('remedial') == 'on' # Get remedial checkbox value
+        remedial_students_ids = request.POST.getlist('remedial_students', None)  # Get selected students for remedial
 
         activity_type = get_object_or_404(ActivityType, id=activity_type_id)
         term = get_object_or_404(Term, id=term_id)
@@ -96,20 +104,29 @@ class AddActivityView(View):
         # Validation: Check if the activity name is unique for the semester and assigned teacher
         if Activity.objects.filter(activity_name=activity_name, term=term, subject__assign_teacher=subject.assign_teacher).exists():
             messages.error(request, 'An activity with this name already exists.')
-            return self.get(request, subject_id) 
-        
+            return self.get(request, subject_id)
+
+        # Create the activity with the remedial option
         activity = Activity.objects.create(
             activity_name=activity_name,
             activity_type=activity_type,
             subject=subject,
             term=term,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
+            remedial=bool(remedial)
         )
 
-        students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
-        for student in students:
-            StudentActivity.objects.create(student=student, activity=activity, term=term)
+        if remedial and remedial_students_ids:
+        # If it's remedial, assign the activity only to the selected students
+            for student_id in remedial_students_ids:
+                student = CustomUser.objects.get(id=student_id)
+                StudentActivity.objects.create(student=student, activity=activity, term=term)
+        else:
+            # If not remedial, assign the activity to all students
+            students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
+            for student in students:
+                StudentActivity.objects.create(student=student, activity=activity, term=term)
 
         return redirect('add_quiz_type', activity_id=activity.id)
 
@@ -282,16 +299,26 @@ class SaveAllQuestionsView(View):
                     print(f"Saved choice for Question {i}: {choice_text}")
 
             # Fetch students enrolled in the subject associated with the activity
-            students = CustomUser.objects.filter(
-                profile__role__name__iexact='Student',
-                subjectenrollment__subject=activity.subject
-            ).distinct()
-            
-            for student in students:
-                student_question = StudentQuestion.objects.create(
-                    student=student, 
+            if activity.remedial:
+                # Fetch only the students assigned to the remedial activity
+                students = StudentActivity.objects.filter(activity=activity).values_list('student', flat=True)
+                print(f"Creating questions for remedial students only: {students}")
+            else:
+                # If not remedial, fetch all students enrolled in the subject
+                students = CustomUser.objects.filter(
+                    profile__role__name__iexact='Student',
+                    subjectenrollment__subject=activity.subject
+                ).distinct().values_list('id', flat=True)
+                print(f"Creating questions for all students: {students}")
+
+            # Now assign the questions only to the filtered students
+            for student_id in students:
+                student = CustomUser.objects.get(id=student_id)
+                StudentQuestion.objects.create(
+                    student=student,
                     activity_question=question
                 )
+                print(f"Created StudentQuestion for {student.get_full_name()}")
 
         # Clear the questions from the session
         request.session.pop('questions', None)

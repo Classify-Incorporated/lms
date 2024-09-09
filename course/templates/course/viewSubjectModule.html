@@ -186,7 +186,7 @@
   <script>
     // Function to open the Participation modal and load the content dynamically
     function openParticipationModal(subjectId) {
-      fetch(`/selectParticipation/${subjectId}/`)
+      fetch(`/participationScoresView/${subjectId}/`)
         .then((response) => response.text())
         .then((html) => {
           document.getElementById('participationModalBody').innerHTML = html

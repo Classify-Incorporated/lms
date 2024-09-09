@@ -9,16 +9,26 @@ from django.http import JsonResponse
 from .models import Subject
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import permission_required
+from datetime import date
+from course.models import Semester, SubjectEnrollment
 # Create your views here.
 
 #Subject List
 @login_required
 @permission_required('subject.view_subject', raise_exception=True)
 def subjectList(request):
-    if request.user.profile.role.name.lower() == 'teacher':
-        subjects = Subject.objects.filter(assign_teacher=request.user)
+    # Get the current date
+    today = date.today()
+
+    current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
+
+    if current_semester:
+        if request.user.profile.role.name.lower() == 'teacher':
+            subjects = Subject.objects.filter(assign_teacher=request.user, id__in=SubjectEnrollment.objects.filter(semester=current_semester).values_list('subject_id', flat=True))
+        else:
+            subjects = Subject.objects.filter(id__in=SubjectEnrollment.objects.filter(semester=current_semester).values_list('subject_id', flat=True))
     else:
-        subjects = Subject.objects.all()
+        subjects = Subject.objects.none()
 
     form = subjectForm()
     return render(request, 'subject/subject.html', {'subjects': subjects, 'form': form})
