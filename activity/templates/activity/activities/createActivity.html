@@ -29,6 +29,22 @@
         {% endfor %}
       </select>
     </div>
+
+    <div class="form-group">
+      <label for="remedial">Remedial Activity:</label>
+      <input type="checkbox" id="remedial" name="remedial" class="form-check-input" />
+    </div>
+
+    <div class="form-group" id="remedial_students_field" style="display: none;">
+        <label for="remedial_students">Select Students:</label>
+        <select id="remedial_students" name="remedial_students" class="form-control" multiple>
+            {% for student in students %}
+                <option value="{{ student.id }}">{{ student.get_full_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    
     <div class="form-group">
       <label for="start_time">Start Time:</label>
       <input type="datetime-local" id="start_time" name="start_time" class="form-control" required />
@@ -41,5 +57,17 @@
     <button type="submit" class="btn btn-primary">Next</button>
     <a href="{% url 'subjectDetail' subject.id%}" class="btn btn-secondary">Back</a>
   </div>
+
   </form>
+
+  <script>
+    document.getElementById('remedial').addEventListener('change', function() {
+        var remedialStudentField = document.getElementById('remedial_students_field');
+        if (this.checked) {
+            remedialStudentField.style.display = 'block';
+        } else {
+            remedialStudentField.style.display = 'none';
+        }
+    });
+</script>
 {% endblock %}

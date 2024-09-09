@@ -13,26 +13,16 @@ class moduleForm(forms.ModelForm):
             'file': forms.FileInput(attrs={'class': 'form-control'}),
             'url': forms.URLInput(attrs={'class': 'form-control','placeholder':'Optional'}),
             'term': forms.Select(attrs={'class': 'form-control'}),
-            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'hide_lesson_for_student': forms.CheckboxInput(attrs={'class': 'form-check-input'}),  # Added class 'form-check-input' for checkbox
+            'display_lesson_for_selected_users': forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box': 'true'}),
             'allow_download': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'hide_lesson_for_selected_users': forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box': 'true'}),
         }
 
-    hide_lesson_for_selected_users = forms.ModelMultipleChoiceField(
+    display_lesson_for_selected_users = forms.ModelMultipleChoiceField(
         queryset=get_user_model().objects.filter(profile__role__name__iexact='student'),
         required=False,
-        widget=forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box': 'true', 'data-style': 'btn-outline-secondary'}),
-    )
-
-    start_date = forms.DateField(
-        required=False, 
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
-    )
-    end_date = forms.DateField(
-        required=False, 
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+        widget=forms.SelectMultiple(
+            attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box': 'true'}
+        ),
     )
 
     def __init__(self, *args, **kwargs):
@@ -43,4 +33,4 @@ class moduleForm(forms.ModelForm):
         if current_semester:
             self.fields['term'].queryset = Term.objects.filter(semester=current_semester)
         else:
-            self.fields['term'].queryset = Term.objects.none()  # If no semester is passed, no terms are shown
+            self.fields['term'].queryset = Term.objects.none()

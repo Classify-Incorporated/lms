@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import GradeBookComponentsForm, CopyGradeBookForm, TermGradeBookComponentsForm
-from .models import GradeBookComponents, TermGradeBookComponents
+from .forms import GradeBookComponentsForm, CopyGradeBookForm, TermGradeBookComponentsForm, SubGradeBookForm
+from .models import GradeBookComponents, TermGradeBookComponents, SubGradeBook
 from activity.models import StudentQuestion, Activity, ActivityQuestion, ActivityType
 from accounts.models import CustomUser
 from django.db.models import Sum, Max
@@ -112,6 +112,48 @@ def deleteGradeBookComponents(request, pk):
     messages.success(request, 'Gradebook deleted successfully!')
     return redirect('viewGradeBookComponents')
 
+@login_required
+def subGradebook(request):
+    subgradebook = SubGradeBook.objects.all()
+    return render(request, 'gradebookcomponent/subgradebook/subGradebook.html',{'subgradebook':subgradebook})
+
+
+@login_required
+def createSubGradeBook(request):
+    if request.method == 'POST':
+        sub_gradebook = SubGradeBookForm(request.POST, user=request.user)
+        if sub_gradebook.is_valid():
+            sub_gradebook.save()
+            messages.success(request, 'Sub Gradebook created successfully!')
+            return redirect('subGradebook')
+        else:
+            messages.error(request, 'An error occurred while creating the sub gradebook!')
+    else:
+        # Pass the user to the form for GET requests as well
+        sub_gradebook = SubGradeBookForm(user=request.user)
+
+    return render(request, 'gradebookcomponent/subgradebook/createSubGradeBook.html', {'sub_gradebook': sub_gradebook})
+
+def updateSubGradebook(request, id):
+    sub_gradebook = get_object_or_404(SubGradeBook, id=id)
+    if request.method == 'POST':
+        form = SubGradeBookForm(request.POST, instance=sub_gradebook)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Sub Gradebook updated successfully!')
+            return redirect('subGradebook')
+        else:
+            messages.error(request, 'An error occurred while updating the sub gradebook!')
+    else:
+        form = SubGradeBookForm(instance=sub_gradebook)
+    return render(request, 'gradebookcomponent/subgradebook/updateSubGradeBook.html', {'form': form, 'sub_gradebook': sub_gradebook})
+
+def deleteSubGradebook(request, id):
+    sub_gradebook = get_object_or_404(SubGradeBook, id=id)
+    sub_gradebook.delete()
+    messages.success(request, 'Sub Gradebook deleted successfully!')
+    return redirect('subGradebook')
+
 #View TermGradeBook List
 @login_required
 def termBookList(request):
@@ -127,15 +169,15 @@ def createTermGradeBookComponent(request):
     if request.method == 'POST':
         form = TermGradeBookComponentsForm(request.POST, user=request.user)
         if form.is_valid():
-            instance = form.save(commit=False)  # Save the main model instance without committing
-            instance.teacher = request.user 
+            instance = form.save(commit=False)
+            instance.teacher = request.user  
             instance.save() 
             
-            form.save_m2m()  
-            messages.success(request, 'Termbook deleted successfully!')
+            form.save_m2m() 
+            messages.success(request, 'Termbook created successfully!')
             return redirect('termBookList')
         else:
-            messages.success(request, 'An error occured while creating termbook!')
+            messages.error(request, 'An error occurred while creating the termbook!')
     else:
         form = TermGradeBookComponentsForm(user=request.user)
 
@@ -643,7 +685,6 @@ def getSubjects(request):
 
     if not semester_id:
         return JsonResponse({'error': 'Semester ID not provided.'}, status=400)
-
     try:
         selected_semester = Semester.objects.get(id=semester_id)
     except Semester.DoesNotExist:
@@ -695,7 +736,7 @@ def allowGradeVisibility(request, student_id):
 
 
 
-FAILING_THRESHOLD = Decimal(65)
+FAILING_THRESHOLD = Decimal(75)
 EXCELLING_THRESHOLD = Decimal(85)
 
 @login_required

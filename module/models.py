@@ -21,10 +21,7 @@ class Module(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     url = models.URLField(max_length=200, null=True, blank=True)
     term = models.ForeignKey(Term, on_delete=models.SET_NULL, null=True, blank=True) 
-    hide_lesson_for_student = models.BooleanField(default=False) 
-    hide_lesson_for_selected_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
-    start_date = models.DateField(null=True, blank=True)  
-    end_date = models.DateField(null=True, blank=True) 
+    display_lesson_for_selected_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='modules_visible') 
     allow_download = models.BooleanField(default=False)
 
 

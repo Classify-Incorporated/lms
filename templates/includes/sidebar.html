@@ -80,14 +80,35 @@
 
         {% if user|has_perm:'subject.view_subject' %}
           <a class="collapse-item" href="{% url 'viewGradeBookComponents' %}">
-            <i class="bx bx-book"></i>
+            <i class="bx bx-chart"></i>
             <span>Subject Percentage</span>
           </a>
         {% endif %}
 
         {% if user|has_perm:'subject.view_subject' %}
+          <a class="collapse-item" href="{% url 'subGradebook' %}">
+            <i class="bx bx-chart"></i>
+            <span>Subject Sub Percentage</span>
+          </a>
+        {% endif %}
+
+        {% if user|has_perm:'course.view_term' %}
+          <a class="collapse-item" href="{% url 'termList' %}">
+            <i class="bx bx-calendar-event"></i>
+            Term
+          </a>
+        {% endif %}
+
+        {% if user|has_perm:'subject.view_subject'  %}
+          <a class="collapse-item" href="{% url 'termBookList' %}">
+            <i class="bx bx-chart"></i>
+            <span>Term Percentage</span>
+          </a>
+        {% endif %}
+
+        {% if user|has_perm:'subject.view_subject' %}
           <a class="collapse-item" href="{% url 'progressList' %}">
-            <i class="bx bx-book"></i>
+            <i class="bx bx-bar-chart"></i>
             <span>Activity Progress</span>
           </a>
         {% endif %}
@@ -151,20 +172,6 @@
           </a>
         {% endif %}
 
-
-        {% if user|has_perm:'course.view_term' %}
-          <a class="collapse-item" href="{% url 'termList' %}">
-            <i class="bx bx-calendar-event"></i>
-            Term
-          </a>
-        {% endif %}
-
-        {% if user|has_perm:'subject.view_subject'  %}
-          <a class="collapse-item" href="{% url 'termBookList' %}">
-            <i class="bx bx-chart"></i>
-            <span>Term Percentage</span>
-          </a>
-        {% endif %}
 
       </div>
     </div>
