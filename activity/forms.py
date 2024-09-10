@@ -1,6 +1,7 @@
 from django import forms
 from .models import Activity, ActivityType
 from accounts.models import CustomUser
+from module.models import Module
 
 class ActivityForm(forms.ModelForm):
     class Meta:
@@ -11,6 +12,7 @@ class ActivityForm(forms.ModelForm):
             'activity_type': forms.Select(attrs={'class': 'form-control'}),
             'subject': forms.Select(attrs={'class': 'form-control'}),
             'term': forms.Select(attrs={'class': 'form-control'}),
+            'module': forms.Select(attrs={'class': 'form-control'}),
             'start_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'end_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'show_score': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -21,6 +23,7 @@ class ActivityForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
         self.fields['remedial_students'].queryset = CustomUser.objects.filter(profile__role__name__iexact='Student')
+        self.fields['module'].queryset = Module.objects.all()
 
         if not self.instance.remedial:
             self.fields['remedial_students'].widget.attrs['style'] = 'display:none;'

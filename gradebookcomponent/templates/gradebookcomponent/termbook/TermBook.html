@@ -27,12 +27,10 @@
               <tr>
                 <td>
                   {% if termbook.subjects.exists %}
-                    {% for subject in termbook.subjects.all|slice:':3' %}
+                    <!-- List all subjects related to the TermGradeBookComponent in a single cell -->
+                    {% for subject in termbook.subjects.all %}
                       {{ subject.subject_name }}{% if not forloop.last %}, {% endif %}
                     {% endfor %}
-                    {% if termbook.subjects.count > 3 %}
-                      and {{ termbook.subjects.count|add:'-3' }} more...
-                    {% endif %}
                   {% else %}
                     No subjects assigned.
                   {% endif %}

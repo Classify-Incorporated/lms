@@ -52,35 +52,7 @@
             </div>
 
         </div>
-
-        <div class="form-group">
-            <label for="subject" class="mr-2">Select Subject:</label>
-            <select id="subject" name="subject" class="form-control">
-                <option value="all" selected>All Subjects</option>
-            </select>
-        </div>
     </form>
-
-    <div class="table-responsive">
-        <table id="scores-table" class="table table-bordered table-hover">
-            <thead>
-                <tr id="term-headers">
-                    <th>Subject</th>
-                    <th>Student Name</th>
-                    <!-- Term headers will be dynamically populated here -->
-                    <th>Total Term Weighted Score</th>
-                    {% if is_teacher %}
-                        <th>
-                            Allow View <br>
-                            <input type="checkbox" id="checkAll" onclick="toggleAllCheckboxes(this)">
-                        </th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
 </div>
 
 <script>

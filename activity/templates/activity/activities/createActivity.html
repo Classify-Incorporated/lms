@@ -31,6 +31,15 @@
     </div>
 
     <div class="form-group">
+      <label for="module">Select Module:</label>
+      <select id="module" name="module" class="form-control" required>
+          {% for module in modules %}
+              <option value="{{ module.id }}">{{ module.file_name }}</option>
+          {% endfor %}
+      </select>
+  </div>
+
+    <div class="form-group">
       <label for="remedial">Remedial Activity:</label>
       <input type="checkbox" id="remedial" name="remedial" class="form-check-input" />
     </div>

@@ -3,6 +3,7 @@ from django.views import View
 from .models import Activity, ActivityType, StudentActivity, ActivityQuestion, QuizType, QuestionChoice, StudentQuestion, get_upload_path  
 from subject.models import Subject
 from accounts.models import CustomUser
+from module.models import Module
 from course.models import Term, Semester
 from django.db.models import Sum, Max
 from django.utils import timezone
@@ -15,6 +16,8 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import permission_required
+import csv
+from io import TextIOWrapper
 # Add type of activity
 
 @login_required
@@ -80,12 +83,14 @@ class AddActivityView(View):
         )
 
         students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
+        modules = Module.objects.filter(subject=subject) 
 
         return render(request, 'activity/activities/createActivity.html', {
             'subject': subject,
             'activity_types': ActivityType.objects.all(),
             'terms': terms,
-            'students': students  # Pass students to the template
+            'students': students,
+            'modules': modules,
         })
 
     def post(self, request, subject_id):
@@ -93,6 +98,7 @@ class AddActivityView(View):
         activity_name = request.POST.get('activity_name')
         activity_type_id = request.POST.get('activity_type')
         term_id = request.POST.get('term')
+        module_id = request.POST.get('module')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
         remedial = request.POST.get('remedial') == 'on'  # Get remedial checkbox value
@@ -100,6 +106,7 @@ class AddActivityView(View):
 
         activity_type = get_object_or_404(ActivityType, id=activity_type_id)
         term = get_object_or_404(Term, id=term_id)
+        module = get_object_or_404(Module, id=module_id)
 
         # Validation: Check if the activity name is unique for the semester and assigned teacher
         if Activity.objects.filter(activity_name=activity_name, term=term, subject__assign_teacher=subject.assign_teacher).exists():
@@ -112,6 +119,7 @@ class AddActivityView(View):
             activity_type=activity_type,
             subject=subject,
             term=term,
+            module=module,
             start_time=start_time,
             end_time=end_time,
             remedial=remedial
@@ -179,7 +187,7 @@ class AddQuestionView(View):
             return render(request, 'course/participation/addParticipation.html', {
                 'activity': activity,
                 'quiz_type': quiz_type,
-                'students': students  # Display students and scores
+                'students': students 
             })
         
         return render(request, 'activity/question/createQuestion.html', {
@@ -193,10 +201,10 @@ class AddQuestionView(View):
 
         # Handle participation quiz type
         if quiz_type.name == 'Participation':
-            max_score = float(request.POST.get('max_score', 100))  # Get max score for participation
+            max_score = float(request.POST.get('max_score', 100))  
             students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct()
 
-            participation_data = []  # Collect participation data for session storage
+            participation_data = []  
 
             for student in students:
                 score = float(request.POST.get(f'score_{student.id}', 0))
@@ -219,6 +227,47 @@ class AddQuestionView(View):
                 'quiz_type': quiz_type.name,
                 'participation_data': participation_data  # Store the participation data here
             })
+            request.session['questions'] = questions
+            request.session.modified = True
+            return redirect('add_quiz_type', activity_id=activity.id)
+        
+        # Handle Multiple Choice CSV Import
+        if quiz_type.name == 'Multiple Choice' and 'csv_file' in request.FILES:
+            csv_file = request.FILES['csv_file']
+
+            # Read and process the CSV file
+            csv_data = TextIOWrapper(csv_file.file, encoding='utf-8')
+            reader = csv.reader(csv_data)
+            
+            questions = request.session.get('questions', {})
+            if str(activity_id) not in questions:
+                questions[str(activity_id)] = []
+
+            for row in reader:
+                if len(row) >= 2:  # Assuming first column is question, remaining columns are choices
+                    question_text = row[0]
+                    points = float(row[1].strip().replace('"', ''))  # Strip quotes and convert to float
+                    choices = [choice.strip().replace('"', '') for choice in row[2:-1]]  # Strip quotes from choices
+                    correct_answer_text = row[-1].strip().replace('"', '')
+
+                    # Assuming first choice is the correct answer
+                    if correct_answer_text in choices:
+                        correct_answer = correct_answer_text
+                    else:
+                        messages.error(request, f"Correct answer '{correct_answer_text}' not found in choices for question: {question_text}")
+                        return redirect('add_quiz_type', activity_id=activity.id)
+
+
+                    question = {
+                        'question_text': question_text.strip().replace('"', ''),
+                        'correct_answer': correct_answer,
+                        'quiz_type': quiz_type.name,
+                        'score': points,  # Default score for each question
+                        'choices': choices
+                    }
+                    questions[str(activity_id)].append(question)
+
+            # Save questions in session
             request.session['questions'] = questions
             request.session.modified = True
             return redirect('add_quiz_type', activity_id=activity.id)
@@ -669,3 +718,10 @@ def deleteActivity(request, activity_id):
     activity.delete() 
     messages.success(request, 'Activity deleted successfully!')
     return redirect('activityList', subject_id=subject_id)
+
+
+@login_required
+def participation_scores(request, activity_id):
+    students = CustomUser.objects.filter(subjectenrollment__subject__activity=activity_id).distinct()
+    student_data = [{'id': student.id, 'name': student.get_full_name()} for student in students]
+    return JsonResponse({'students': student_data})
