@@ -36,6 +36,7 @@ urlpatterns = [
     path('', include('message.urls')),
     path('', include('gradebookcomponent.urls')),
     path('', include('logs.urls')),
+    path('summernote/', include('django_summernote.urls')),
 ]
 
 if settings.DEBUG:

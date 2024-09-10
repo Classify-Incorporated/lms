@@ -1,4 +1,6 @@
-/* settings.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Open+Sans:wght@300;400;600&display=swap');
+
+/* Modal Right Positioning */
 .modal.right .modal-dialog {
     position: absolute;
     top: 0;
@@ -23,11 +25,13 @@
     opacity: 0.5;
 }
 
+/* General Styling for Dark Mode */
 .dark-mode {
     background-color: #343a40;
     color: #ffffff;
 }
 
+/* Navbar in Dark Mode */
 .dark-mode .navbar {
     background-color: #343a40;
     color: #ffffff;
@@ -57,6 +61,7 @@
     color: #ffffff;
 }
 
+/* Sidebar in Dark Mode */
 .dark-mode .sidebar {
     background-color: #343a40;
     color: #ffffff;
@@ -68,11 +73,13 @@
     color: #ffffff;
 }
 
+/* Content Wrapper in Dark Mode */
 .dark-mode .content-wrapper {
     background-color: #343a40;
     color: #ffffff;
 }
 
+/* Cards in Dark Mode */
 .dark-mode .card {
     background-color: #454d55;
     color: #ffffff;
@@ -83,15 +90,12 @@
     color: #ffffff;
 }
 
-.dark-mode .viewMessageLink {
-    color: #ffffff !important;
-}
-
 .dark-mode .card-header {
     background-color: #454d55;
     color: #ffffff;
 }
 
+/* Tables in Dark Mode */
 .dark-mode .table {
     background-color: #454d55;
     color: #ffffff;
@@ -103,16 +107,14 @@
     color: #ffffff;
 }
 
+/* Text in Dark Mode */
 .dark-mode p,
 .dark-mode h1,
 .dark-mode h2,
 .dark-mode h3,
 .dark-mode h4,
 .dark-mode h5,
-.dark-mode h6 {
-    color: #ffffff;
-}
-
+.dark-mode h6,
 .dark-mode .text-gray-800,
 .dark-mode .text-gray-600,
 .dark-mode .text-gray-500,
@@ -120,6 +122,7 @@
     color: #ffffff !important;
 }
 
+/* Modals in Dark Mode */
 .dark-mode .modal-content {
     background-color: #343a40;
     color: #ffffff;
@@ -136,6 +139,7 @@
     color: #ffffff;
 }
 
+/* Custom Modal in Dark Mode */
 .dark-mode .custom-modal {
     background-color: #343a40;
     color: #ffffff;
@@ -151,6 +155,7 @@
     color: #ffffff;
 }
 
+/* Form Controls in Dark Mode */
 .dark-mode .custom-modal .form-control {
     background-color: #454d55;
     color: #ffffff;
@@ -161,6 +166,7 @@
     border-color: #007bff;
 }
 
+/* Button Colors in Dark Mode */
 .dark-mode .custom-modal .close-btn {
     color: #ffffff;
 }
@@ -170,6 +176,7 @@
     color: #ffffff;
 }
 
+/* Footer in Dark Mode */
 .dark-mode .sticky-footer {
     background-color: #343a40;
     color: #ffffff;
@@ -179,7 +186,7 @@
     color: #7473DF;
 }
 
-/* Additional styles for fixed header and footer */
+/* Fixed Header and Footer */
 .fixed-top {
     position: fixed;
     top: 0;
@@ -198,149 +205,131 @@
     border-bottom: none !important;
 }
 
+/* Dropdown Adjustments */
 .dropdown-legacy {
     margin-top: -1rem;
 }
 
-/* Small text classes */
+/* Small Text */
 .text-sm {
     font-size: 0.875rem !important;
 }
 
-/* Specific classes for small text in different elements */
-.text-sm .navbar {
-    font-size: 0.875rem !important;
-}
-
-.text-sm .brand-link {
-    font-size: 0.875rem !important;
-}
-
+.text-sm .navbar,
+.text-sm .brand-link,
 .text-sm .nav-sidebar {
     font-size: 0.875rem !important;
 }
 
-/* Add additional CSS rules for other elements as needed */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap');
-
-/* Apply Montserrat for headings, buttons, and important elements */
+/* Typography */
 h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 700; /* Stronger weight for a bold look */
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
 }
 
-/* Apply Roboto for body text */
 body, p, .list-group-item, .alert {
-  font-family: 'Roboto', sans-serif;
-  font-weight: 400; /* Normal weight for readability */
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 400;
 }
 
-/* Custom Pastel Color Palette */
+/* Pastel Color Palette */
 :root {
-    --primary: #a8d5e2; /* Soft blue */
-    --primary-hover: #88c1cf; /* Slightly darker soft blue for hover */
-    --secondary: #b0b0b0; /* Neutral light gray */
-    --secondary-hover: #9a9a9a; /* Slightly darker light gray for hover */
-    --success: #b2e0a8; /* Pastel green */
-    --success-hover: #9edb91; /* Slightly darker pastel green for hover */
-    --info: #a8c7e2; /* Pastel blue */
-    --info-hover: #92b3db; /* Slightly darker pastel blue for hover */
-    --warning: #f7e3af; /* Soft yellow */
-    --warning-hover: #f5d895; /* Slightly darker soft yellow for hover */
-    --danger: #f4b8b4; /* Soft red */
-    --danger-hover: #f09d98; /* Slightly darker soft red for hover */
-    
-    /* Text Colors */
-    --primary-text: #2c3e50; /* Dark text for better visibility */
+    --primary: #a8d5e2;
+    --primary-hover: #88c1cf;
+    --secondary: #b0b0b0;
+    --secondary-hover: #9a9a9a;
+    --success: #b2e0a8;
+    --success-hover: #9edb91;
+    --info: #a8c7e2;
+    --info-hover: #92b3db;
+    --warning: #f7e3af;
+    --warning-hover: #f5d895;
+    --danger: #f4b8b4;
+    --danger-hover: #f09d98;
+    --primary-text: #2c3e50;
     --light-text: #ffffff;
 }
 
-/* General Button Styling */
+/* Button Styling */
 .btn-primary {
     background-color: var(--primary) !important;
     border-color: var(--primary) !important;
     color: var(--primary-text) !important;
-    font-family: 'Montserrat', sans-serif; /* Use Montserrat for buttons */
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn-secondary {
     background-color: var(--secondary) !important;
     border-color: var(--secondary) !important;
     color: var(--primary-text) !important;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn-success {
     background-color: var(--success) !important;
     border-color: var(--success) !important;
     color: var(--primary-text) !important;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn-info {
     background-color: var(--info) !important;
     border-color: var(--info) !important;
     color: var(--primary-text) !important;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn-warning {
     background-color: var(--warning) !important;
     border-color: var(--warning) !important;
     color: var(--primary-text) !important;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn-danger {
     background-color: var(--danger) !important;
     border-color: var(--danger) !important;
     color: var(--primary-text) !important;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
-/* Hover Effect for All Buttons */
+/* Button Hover Effects */
 .btn-primary:hover {
     background-color: var(--primary-hover) !important;
     border-color: var(--primary-hover) !important;
-    color: var(--primary-text) !important;
 }
 
 .btn-secondary:hover {
     background-color: var(--secondary-hover) !important;
     border-color: var(--secondary-hover) !important;
-    color: var(--primary-text) !important;
 }
 
 .btn-success:hover {
     background-color: var(--success-hover) !important;
     border-color: var(--success-hover) !important;
-    color: var(--primary-text) !important;
 }
 
 .btn-info:hover {
     background-color: var(--info-hover) !important;
     border-color: var(--info-hover) !important;
-    color: var(--primary-text) !important;
 }
 
 .btn-warning:hover {
     background-color: var(--warning-hover) !important;
     border-color: var(--warning-hover) !important;
-    color: var(--primary-text) !important;
 }
 
 .btn-danger:hover {
     background-color: var(--danger-hover) !important;
     border-color: var(--danger-hover) !important;
-    color: var(--primary-text) !important;
 }
 
-/* Customizing Small Buttons */
+/* Small Button Customization */
 .btn-sm.bg-secondary {
     background-color: var(--secondary) !important;
     border-color: var(--secondary) !important;
     color: var(--light-text) !important;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn-sm.bg-secondary:hover {
@@ -353,7 +342,7 @@ body, p, .list-group-item, .alert {
     background-color: var(--primary) !important;
     border-color: var(--primary) !important;
     color: var(--light-text) !important;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn-sm.bg-primary:hover {
@@ -366,7 +355,7 @@ body, p, .list-group-item, .alert {
     background-color: var(--info) !important;
     border-color: var(--info) !important;
     color: var(--light-text) !important;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn-sm.bg-info:hover {
@@ -375,11 +364,11 @@ body, p, .list-group-item, .alert {
     color: var(--light-text) !important;
 }
 
-/* Specific Button Customization for your HTML */
+/* Link Buttons */
 .btn-link.text-light.bg-primary {
     background-color: var(--primary) !important;
     color: var(--primary-text) !important;
-    text-decoration: none !important; /* Removes underline on link buttons */
+    text-decoration: none !important;
 }
 
 .btn-link.text-light.bg-primary:hover {
@@ -391,36 +380,46 @@ body, p, .list-group-item, .alert {
 .alert-primary {
     background-color: var(--primary) !important;
     color: var(--primary-text) !important;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 }
 
 .alert-success {
     background-color: var(--success) !important;
     color: var(--primary-text) !important;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 }
 
 .alert-info {
     background-color: var(--info) !important;
-    color: var (--primary-text) !important;
-    font-family: 'Roboto', sans-serif;
+    color: var(--primary-text) !important;
+    font-family: 'Open Sans', sans-serif;
 }
 
 .alert-warning {
     background-color: var(--warning) !important;
     color: var(--primary-text) !important;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 }
 
 .alert-danger {
     background-color: var(--danger) !important;
     color: var(--primary-text) !important;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 }
 
-/* Dark Mode */
+/* Dark Mode for List Items */
 .dark-mode .list-group-item {
-    background-color: #343a40; /* Dark background for list items */
-    border-color: #555555;     /* Border for better contrast */
+    background-color: #343a40;
+    border-color: #555555;
+    color: #ffffff;
 }
-  
+
+/* Dark Mode Button Styling */
+.dark-mode .btn-primary,
+.dark-mode .btn-secondary,
+.dark-mode .btn-success,
+.dark-mode .btn-info,
+.dark-mode .btn-warning,
+.dark-mode .btn-danger {
+    color: #ffffff;
+}
