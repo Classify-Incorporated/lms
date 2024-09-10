@@ -4,7 +4,7 @@ from .views import (
     SubmitAnswersView, GradeEssayView, SaveAllQuestionsView,ActivityDetailView,DeleteTempQuestionView,
     UpdateQuestionView, toggleShowScore,
     activityCompletedView, deleteActivityView, UpdateActivity, activityList, deleteActivity,
-    activityTypeList, createActivityType, updateActivityType, deleteActivityType
+    activityTypeList, createActivityType, updateActivityType, deleteActivityType, participation_scores
 )
 
 urlpatterns = [
@@ -33,5 +33,7 @@ urlpatterns = [
     path('createActivityType/', createActivityType, name='createActivityType'),
     path('updateActivityType/<int:id>/', updateActivityType, name='updateActivityType'),
     path('deleteActivityType/<int:id>/', deleteActivityType, name='deleteActivityType'),
+
+    path('participation_scores/<int:activity_id>/', participation_scores, name='participation_scores'),
     
 ]

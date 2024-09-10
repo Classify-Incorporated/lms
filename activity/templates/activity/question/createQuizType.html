@@ -151,7 +151,8 @@
               </select>
             </div>
           `)
-        } else if (quizTypeName == 'Matching') {
+        } 
+        if (quizTypeName == 'Matching') {
           quizTypeFields.append(`
             <div id="matching_pairs">
               <div class="form-group">
@@ -164,14 +165,16 @@
             </div>
             <button type="button" class="btn btn-secondary mb-2" onclick="addMatchingPair()">Add Pair</button>
           `)
-        } else if (quizTypeName == 'Calculated Numeric' || quizTypeName == 'Fill in the Blank') {
+        } 
+        if (quizTypeName == 'Calculated Numeric' || quizTypeName == 'Fill in the Blank') {
           quizTypeFields.append(`
             <div class="form-group">
               <label for="correct_answer">Correct Answer:</label>
               <input type="text" id="correct_answer" name="correct_answer" class="form-control" required>
             </div>
           `)
-        } else if (quizTypeName == 'Document') {
+        } 
+        if (quizTypeName == 'Document') {
           quizTypeFields.append(`
             <div class="form-group">
               <label for="document_file">Upload Document:</label>
@@ -203,15 +206,15 @@
           fetch(`/participation_scores/{{ activity.id }}`).then((response) => {
             return response.json();
           }).then((data) => {
-            const studentsTable = document.getElementById('participation-students');
-            data.students.forEach((student) => {
-              const row = document.createElement('tr');
-              row.innerHTML = `
-                <td>${student.name}</td>
-                <td><input type="number" name="score_${student.id}" class="form-control" required></td>
-              `;
-              studentsTable.appendChild(row);
-            });
+              const studentsTable = document.getElementById('participation-students');
+              data.students.forEach((student) => {
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+                      <td>${student.name}</td>
+                      <td><input type="number" name="score_${student.id}" class="form-control" required></td>
+                  `;
+                  studentsTable.appendChild(row);
+              });
           });
         }
       })

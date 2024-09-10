@@ -718,3 +718,10 @@ def deleteActivity(request, activity_id):
     activity.delete() 
     messages.success(request, 'Activity deleted successfully!')
     return redirect('activityList', subject_id=subject_id)
+
+
+@login_required
+def participation_scores(request, activity_id):
+    students = CustomUser.objects.filter(subjectenrollment__subject__activity=activity_id).distinct()
+    student_data = [{'id': student.id, 'name': student.get_full_name()} for student in students]
+    return JsonResponse({'students': student_data})
