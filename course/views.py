@@ -424,6 +424,47 @@ def updateSemester(request, pk):
         'form': form, 'semester': semester
     })
 
+@login_required
+def previousSemestersView(request):
+    user = request.user
+    profile = get_object_or_404(Profile, user=user)
+
+    # Get only finished semesters
+    current_date = timezone.localtime(timezone.now()).date()
+    finished_semesters = Semester.objects.filter(end_date__lt=current_date).order_by('-end_date')
+
+    selected_semester_id = request.GET.get('semester', None)
+
+    if selected_semester_id:
+        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
+    else:
+        selected_semester = finished_semesters.first() 
+
+    if profile.role.name.lower() == 'student':
+        subjects = Subject.objects.filter(
+            subjectenrollment__student=user,
+            subjectenrollment__semester=selected_semester
+        ).distinct()
+    elif profile.role.name.lower() == 'teacher':
+        subjects = Subject.objects.filter(
+            assign_teacher=user,
+            subjectenrollment__semester=selected_semester
+        ).distinct()
+    else:
+        subjects = Subject.objects.filter(
+            subjectenrollment__semester=selected_semester
+        ).distinct()
+
+    if not selected_semester:
+        subjects = Subject.objects.none()
+
+    return render(request, 'course/archivedSemester.html', {
+        'subjects': subjects,
+        'semesters': finished_semesters,  # Only show finished semesters
+        'selected_semester_id': selected_semester_id,
+        'selected_semester': selected_semester,
+    })
+
 # Display term list
 @login_required
 @permission_required('course.view_term', raise_exception=True)
@@ -502,46 +543,3 @@ def selectParticipation(request, subject_id):
     return render(request, 'course/participation/selectParticipation.html', {'form': form})
 
 
-@login_required
-def participationScoresView(request, subject_id, term_id, max_score):
-    subject = get_object_or_404(Subject, id=subject_id)
-    term = get_object_or_404(Term, id=term_id)
-    students = CustomUser.objects.filter(subjectenrollment__subject=subject).distinct()
-
-    if request.method == 'POST':
-        for student in students:
-            score_value = request.POST.get(f'score_{student.id}', '0')
-            score, created = StudentParticipationScore.objects.get_or_create(
-                student=student, 
-                subject=subject, 
-                term=term
-            )
-            score.score = score_value
-            score.max_score = max_score
-            messages.success(request, 'Participation scores saved successfully!')
-            score.save()
-
-        return redirect('subjectDetail', pk=subject.id)
-
-    participation_scores = StudentParticipationScore.objects.filter(subject=subject, term=term)
-
-    return render(request, 'course/participation/createParticipation.html', {
-        'subject': subject,
-        'term': term,
-        'students': students,
-        'participation_scores': participation_scores,
-        'max_score': max_score,
-    })
-
-
-@login_required
-def participation_scores(request, activity_id):
-    activity = get_object_or_404(Activity, id=activity_id)
-    students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct()
-
-    student_list = [{
-        'id': student.id,
-        'name': student.get_full_name()
-    } for student in students]
-
-    return JsonResponse({'students': student_list})

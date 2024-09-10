@@ -5,6 +5,7 @@ from course.models import Term
 import uuid
 import os
 from logs.models import SubjectLog
+from module.models import Module
 
 def get_upload_path(instance, filename):
     filename = f"{uuid.uuid4()}{os.path.splitext(filename)[1]}"
@@ -38,6 +39,7 @@ class Activity(models.Model):
     activity_type = models.ForeignKey(ActivityType, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     term = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     show_score = models.BooleanField(default=False)
@@ -48,7 +50,7 @@ class Activity(models.Model):
         return self.activity_name
     
     def save(self, *args, **kwargs):
-        is_new = self.pk is None  # Check if the object is new (not yet saved)
+        is_new = self.pk is None 
         super().save(*args, **kwargs)
         if is_new:
             SubjectLog.objects.create(

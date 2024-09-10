@@ -28,6 +28,13 @@
           <form id="quizTypeForm" method="post" action="" enctype="multipart/form-data">
             {% csrf_token %}
             <div id="quiz-type-fields"></div>
+
+            <!-- CSV file input, visible only for Multiple Choice -->
+            <div class="form-group" id="csv-file-upload" style="display: none;">
+              <label for="csv_file">Import Questions from CSV:</label>
+              <input type="file" id="csv_file" name="csv_file" accept=".csv" class="form-control" />
+          </div>
+
             <button type="submit" class="btn btn-primary">Add</button>
           </form>
         </div>
@@ -65,7 +72,7 @@
       </tbody>
   </table>
 
-  <form method="post" action="{% url 'save_all_questions' activity.id %}">
+  <form method="post" action="{% url 'save_all_questions' activity.id %}" enctype="multipart/form-data">
     {% csrf_token %}
     <button type="submit" class="btn btn-success">Save All Questions</button>
     <a href="{% url 'SubjectList' %}" class="btn btn-secondary">Back</a>
@@ -100,7 +107,7 @@
               <textarea id="question_text" name="question_text" class="form-control" required></textarea>
             </div>
             <div class="form-group">
-              <label for="score">Points:</label>
+              <label for="score">Equivalent Points:</label>
               <input type="number" id="score" name="score" class="form-control" required>
             </div>
           `);
@@ -118,8 +125,23 @@
               </div>
             </div>
             <button type="button" class="btn btn-secondary mb-2" onclick="addChoice()">Add Choice</button>
-          `)
-        } else if (quizTypeName == 'True/False') {
+          `);
+          // Show the CSV file upload field
+          document.getElementById('csv-file-upload').style.display = 'block';
+
+          // Disable manual question/choice input when CSV is selected
+          document.getElementById('csv_file').addEventListener('change', function () {
+            if (this.files.length > 0) {
+              $('#quiz-type-fields').find('input, textarea').prop('disabled', true);  // Disable manual inputs
+            } else {
+              $('#quiz-type-fields').find('input, textarea').prop('disabled', false);  // Enable manual inputs
+            }
+          });
+
+        } else {
+          document.getElementById('csv-file-upload').style.display = 'none';  // Hide CSV input for other types
+        }
+          if (quizTypeName == 'True/False') {
           quizTypeFields.append(`
             <div class="form-group">
               <label for="correct_answer">Correct Answer:</label>

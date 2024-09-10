@@ -13,7 +13,7 @@ class semesterForm(forms.ModelForm):
         model = Semester
         fields = ['semester_name', 'start_date', 'end_date', 'school_year']
         widgets = {
-            'semester_name': forms.Select(attrs={'class': 'form-control'}), 
+            'semester_name': forms.TextInput(attrs={'class': 'form-control'}), 
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }

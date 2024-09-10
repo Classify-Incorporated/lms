@@ -128,13 +128,11 @@
     </li>
   {% endif %}
 
-  {% if user|has_perm:'roles.view_role' %}
   <li class="nav-item">
     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
       <i class="bx bx-cog"></i>
       <span>Settings</span>
     </a>
-  {% endif %}
 
     <div id="collapseOne" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
       <div class="bg-white py-2 collapse-inner rounded">
@@ -173,7 +171,12 @@
           </a>
         {% endif %}
 
-
+        {% if user|has_perm:'course.view_semester' %}
+        <a class="collapse-item" href="{% url 'previousSemestersView' %}">
+          <i class="bx bx-calendar"></i>
+          <span>Archived Semester</span>
+        </a>
+        {% endif %}
       </div>
     </div>
   </li>
