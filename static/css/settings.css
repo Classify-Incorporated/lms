@@ -221,3 +221,206 @@
 }
 
 /* Add additional CSS rules for other elements as needed */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap');
+
+/* Apply Montserrat for headings, buttons, and important elements */
+h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700; /* Stronger weight for a bold look */
+}
+
+/* Apply Roboto for body text */
+body, p, .list-group-item, .alert {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400; /* Normal weight for readability */
+}
+
+/* Custom Pastel Color Palette */
+:root {
+    --primary: #a8d5e2; /* Soft blue */
+    --primary-hover: #88c1cf; /* Slightly darker soft blue for hover */
+    --secondary: #b0b0b0; /* Neutral light gray */
+    --secondary-hover: #9a9a9a; /* Slightly darker light gray for hover */
+    --success: #b2e0a8; /* Pastel green */
+    --success-hover: #9edb91; /* Slightly darker pastel green for hover */
+    --info: #a8c7e2; /* Pastel blue */
+    --info-hover: #92b3db; /* Slightly darker pastel blue for hover */
+    --warning: #f7e3af; /* Soft yellow */
+    --warning-hover: #f5d895; /* Slightly darker soft yellow for hover */
+    --danger: #f4b8b4; /* Soft red */
+    --danger-hover: #f09d98; /* Slightly darker soft red for hover */
+    
+    /* Text Colors */
+    --primary-text: #2c3e50; /* Dark text for better visibility */
+    --light-text: #ffffff;
+}
+
+/* General Button Styling */
+.btn-primary {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Montserrat', sans-serif; /* Use Montserrat for buttons */
+}
+
+.btn-secondary {
+    background-color: var(--secondary) !important;
+    border-color: var(--secondary) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.btn-success {
+    background-color: var(--success) !important;
+    border-color: var(--success) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.btn-info {
+    background-color: var(--info) !important;
+    border-color: var(--info) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.btn-warning {
+    background-color: var(--warning) !important;
+    border-color: var(--warning) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.btn-danger {
+    background-color: var(--danger) !important;
+    border-color: var(--danger) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Hover Effect for All Buttons */
+.btn-primary:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--secondary-hover) !important;
+    border-color: var(--secondary-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.btn-success:hover {
+    background-color: var(--success-hover) !important;
+    border-color: var(--success-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.btn-info:hover {
+    background-color: var(--info-hover) !important;
+    border-color: var(--info-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.btn-warning:hover {
+    background-color: var(--warning-hover) !important;
+    border-color: var(--warning-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-hover) !important;
+    border-color: var(--danger-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+/* Customizing Small Buttons */
+.btn-sm.bg-secondary {
+    background-color: var(--secondary) !important;
+    border-color: var(--secondary) !important;
+    color: var(--light-text) !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.btn-sm.bg-secondary:hover {
+    background-color: var(--secondary-hover) !important;
+    border-color: var(--secondary-hover) !important;
+    color: var(--light-text) !important;
+}
+
+.btn-sm.bg-primary {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: var(--light-text) !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.btn-sm.bg-primary:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+    color: var(--light-text) !important;
+}
+
+.btn-sm.bg-info {
+    background-color: var(--info) !important;
+    border-color: var(--info) !important;
+    color: var(--light-text) !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.btn-sm.bg-info:hover {
+    background-color: var(--info-hover) !important;
+    border-color: var(--info-hover) !important;
+    color: var(--light-text) !important;
+}
+
+/* Specific Button Customization for your HTML */
+.btn-link.text-light.bg-primary {
+    background-color: var(--primary) !important;
+    color: var(--primary-text) !important;
+    text-decoration: none !important; /* Removes underline on link buttons */
+}
+
+.btn-link.text-light.bg-primary:hover {
+    background-color: var(--primary-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+/* Alerts */
+.alert-primary {
+    background-color: var(--primary) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Roboto', sans-serif;
+}
+
+.alert-success {
+    background-color: var(--success) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Roboto', sans-serif;
+}
+
+.alert-info {
+    background-color: var(--info) !important;
+    color: var (--primary-text) !important;
+    font-family: 'Roboto', sans-serif;
+}
+
+.alert-warning {
+    background-color: var(--warning) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Roboto', sans-serif;
+}
+
+.alert-danger {
+    background-color: var(--danger) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Dark Mode */
+.dark-mode .list-group-item {
+    background-color: #343a40; /* Dark background for list items */
+    border-color: #555555;     /* Border for better contrast */
+}
+  

@@ -30,7 +30,7 @@
       {% for subject in subjects %}
         <div class="col-md-4 col-lg-3 mb-4">
           <a href="{% url 'subjectDetail' subject.id %}?semester={{ selected_semester_id }}" class="text-decoration-none">
-            <div class="card shadow-sm h-100 border-0">
+            <div class="card shadow-sm h-100 border-0 {% if dark_mode %} bg-dark text-white {% else %} bg-light {% endif %}">
               {% if subject.subject_photo %}
                 <img src="{{ subject.subject_photo.url }}" class="card-img-top" style="height: 180px; object-fit: cover;" alt="{{ subject.subject_name }}">
               {% else %}
@@ -38,13 +38,15 @@
               {% endif %}
               <div class="card-body d-flex flex-column justify-content-between">
                 <div>
-                  <h5 class="card-title text-dark font-weight-bold">{{ subject.subject_name }}</h5>
+                  <h5 class="card-title font-weight-bold {% if dark_mode %} text-white {% else %} text-dark {% endif %}">{{ subject.subject_name }}</h5>
                 </div>
                 <div>
                   {% if subject.assign_teacher %}
-                    <p class="card-text mb-0 text-dark">Teacher: <span class="font-italic">{{ subject.assign_teacher.get_full_name }}</span></p>
+                    <p class="card-text mb-0 {% if dark_mode %} text-white {% else %} text-dark {% endif %}">
+                      Teacher: <span class="font-italic">{{ subject.assign_teacher.get_full_name }}</span>
+                    </p>
                   {% else %}
-                    <p class="card-text text-muted mb-0">No teacher assigned</p>
+                    <p class="card-text {% if dark_mode %} text-muted {% else %} text-dark {% endif %} mb-0">No teacher assigned</p>
                   {% endif %}
                 </div>
               </div>
