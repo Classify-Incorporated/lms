@@ -2,8 +2,8 @@ from django.urls import path
 from .views import (
 
     enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,
-    createTerm,termList,updateTerm,subjectFinishedActivities, participationScoresView, selectParticipation,
-    enrollStudentView, subjectEnrollmentList, dropStudentFromSubject
+    createTerm,termList,updateTerm,subjectFinishedActivities, selectParticipation,
+    enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, 
 )
 
 urlpatterns = [
@@ -30,6 +30,5 @@ urlpatterns = [
     path('termList/', termList, name='termList'),
 
     # Participation Scores
-    path('participationScore/<int:subject_id>/term/<int:term_id>/max_score/<int:max_score>/', participationScoresView, name='participationScore'),
     path('selectParticipation/<int:subject_id>/', selectParticipation, name='selectParticipation'),
 ]

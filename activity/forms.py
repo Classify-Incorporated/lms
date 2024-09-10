@@ -15,15 +15,15 @@ class ActivityForm(forms.ModelForm):
             'end_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'show_score': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'remedial': forms.CheckboxInput(attrs={'class': 'form-check-input'}), 
-            'remedial_student': forms.Select(attrs={'class': 'form-control'}),  
+            'remedial_students': forms.SelectMultiple(attrs={'class': 'form-control'}),  
         }
 
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
-        self.fields['remedial_student'].queryset = CustomUser.objects.filter(profile__role__name__iexact='Student')
+        self.fields['remedial_students'].queryset = CustomUser.objects.filter(profile__role__name__iexact='Student')
 
         if not self.instance.remedial:
-            self.fields['remedial_student'].widget.attrs['style'] = 'display:none;'
+            self.fields['remedial_students'].widget.attrs['style'] = 'display:none;'
 
 class activityTypeForm(forms.ModelForm):
     class Meta:

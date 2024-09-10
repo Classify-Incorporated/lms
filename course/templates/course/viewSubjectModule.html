@@ -19,7 +19,6 @@
           <div class="col-12 mb-3">
             <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
             <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
-            <a href="javascript:void(0);" onclick="openParticipationModal('{{ subject.id }}')" class="btn btn-secondary">Add Participation</a>
           </div>
         </div>
       {% endif %}
@@ -173,7 +172,7 @@
   <!-- Custom Modal for Adding Module -->
   <div id="moduleModal" class="custom-modal">
     <div class="custom-modal-header d-flex justify-content-between align-items-center">
-      <h5>Add Module</h5>
+      <h5>Add Lesson</h5>
       <button class="close-btn" id="closeModuleModalBtn"></button>
     </div>
     <div class="custom-modal-body" id="moduleModalBody">

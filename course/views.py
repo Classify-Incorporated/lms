@@ -19,6 +19,7 @@ from module.forms import moduleForm
 from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import permission_required
+from django.http import JsonResponse
 
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
@@ -174,8 +175,16 @@ def subjectDetail(request, pk):
         ongoing_activities = activities.filter(
             start_time__lte=timezone.localtime(timezone.now()), 
             end_time__gte=timezone.localtime(timezone.now())
+        ).exclude(
+            id__in=StudentQuestion.objects.filter(
+                is_participation=True
+            ).values_list('activity_id', flat=True)
         )
-        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
+        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now())).exclude(
+            id__in=StudentQuestion.objects.filter(
+                is_participation=True
+            ).values_list('activity_id', flat=True)  # Exclude participation activities
+        )
 
         # Adjusted module visibility logic
         modules = Module.objects.filter(subject=subject)
@@ -193,8 +202,16 @@ def subjectDetail(request, pk):
         ongoing_activities = activities.filter(
             start_time__lte=timezone.localtime(timezone.now()), 
             end_time__gte=timezone.localtime(timezone.now())
+        ).exclude(
+            id__in=StudentQuestion.objects.filter(
+                is_participation=True
+            ).values_list('activity_id', flat=True)  # Exclude participation activities
         )
-        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
+        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now())).exclude(
+            id__in=StudentQuestion.objects.filter(
+                is_participation=True
+            ).values_list('activity_id', flat=True)  # Exclude participation activities
+        )
 
     activities_with_grading_needed = []
     ungraded_items_count = 0
@@ -515,3 +532,16 @@ def participationScoresView(request, subject_id, term_id, max_score):
         'participation_scores': participation_scores,
         'max_score': max_score,
     })
+
+
+@login_required
+def participation_scores(request, activity_id):
+    activity = get_object_or_404(Activity, id=activity_id)
+    students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct()
+
+    student_list = [{
+        'id': student.id,
+        'name': student.get_full_name()
+    } for student in students]
+
+    return JsonResponse({'students': student_list})

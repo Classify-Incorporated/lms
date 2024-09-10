@@ -95,7 +95,7 @@ class AddActivityView(View):
         term_id = request.POST.get('term')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
-        remedial = request.POST.get('remedial') == 'on' # Get remedial checkbox value
+        remedial = request.POST.get('remedial') == 'on'  # Get remedial checkbox value
         remedial_students_ids = request.POST.getlist('remedial_students', None)  # Get selected students for remedial
 
         activity_type = get_object_or_404(ActivityType, id=activity_type_id)
@@ -114,16 +114,20 @@ class AddActivityView(View):
             term=term,
             start_time=start_time,
             end_time=end_time,
-            remedial=bool(remedial)
+            remedial=remedial
         )
 
         if remedial and remedial_students_ids:
-        # If it's remedial, assign the activity only to the selected students
+            # Add the remedial students to the activity (as multiple students can be added)
+            remedial_students = CustomUser.objects.filter(id__in=remedial_students_ids)
+            activity.remedial_students.set(remedial_students)
+
+        # Assign the activity to all students or specific remedial students
+        if remedial and remedial_students_ids:
             for student_id in remedial_students_ids:
                 student = CustomUser.objects.get(id=student_id)
                 StudentActivity.objects.create(student=student, activity=activity, term=term)
         else:
-            # If not remedial, assign the activity to all students
             students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
             for student in students:
                 StudentActivity.objects.create(student=student, activity=activity, term=term)
@@ -167,9 +171,17 @@ class AddQuizTypeView(View):
 @method_decorator(login_required, name='dispatch')
 class AddQuestionView(View):
     def get(self, request, activity_id, quiz_type_id):
-        print(f"Activity ID: {activity_id}, Quiz Type ID: {quiz_type_id}")
         activity = get_object_or_404(Activity, id=activity_id)
         quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
+
+        if quiz_type.name == 'Participation':
+            students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct()
+            return render(request, 'course/participation/addParticipation.html', {
+                'activity': activity,
+                'quiz_type': quiz_type,
+                'students': students  # Display students and scores
+            })
+        
         return render(request, 'activity/question/createQuestion.html', {
             'activity': activity,
             'quiz_type': quiz_type,
@@ -178,6 +190,38 @@ class AddQuestionView(View):
     def post(self, request, activity_id, quiz_type_id):
         activity = get_object_or_404(Activity, id=activity_id)
         quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
+
+        # Handle participation quiz type
+        if quiz_type.name == 'Participation':
+            max_score = float(request.POST.get('max_score', 100))  # Get max score for participation
+            students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct()
+
+            participation_data = []  # Collect participation data for session storage
+
+            for student in students:
+                score = float(request.POST.get(f'score_{student.id}', 0))
+                if score <= max_score:
+                    participation_data.append({
+                        'student_id': student.id,
+                        'score': score
+                    })
+                else:
+                    messages.error(request, f"Score for {student.get_full_name()} exceeds maximum score")
+                    return self.get(request, activity_id, quiz_type_id)
+                
+
+        # Store the participation data in the session
+            questions = request.session.get('questions', {})
+            if str(activity_id) not in questions:
+                questions[str(activity_id)] = []
+            
+            questions[str(activity_id)].append({
+                'quiz_type': quiz_type.name,
+                'participation_data': participation_data  # Store the participation data here
+            })
+            request.session['questions'] = questions
+            request.session.modified = True
+            return redirect('add_quiz_type', activity_id=activity.id)
 
         question_text = request.POST.get('question_text', '')
         correct_answer = ''
@@ -280,45 +324,62 @@ class UpdateQuestionView(View):
 class SaveAllQuestionsView(View):
     def post(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
+        print(f"Activity ID: {activity_id}, Found Activity: {activity.activity_name}")
         questions = request.session.get('questions', {}).get(str(activity_id), [])
 
         
         for i, question_data in enumerate(questions):
             quiz_type = get_object_or_404(QuizType, name=question_data['quiz_type'])
-            question = ActivityQuestion.objects.create(
-                activity=activity,
-                question_text=question_data['question_text'],
-                correct_answer=question_data['correct_answer'],
-                quiz_type=quiz_type,
-                score=question_data['score']
-            )
 
-            if quiz_type.name == 'Multiple Choice':
-                for choice_text in question_data['choices']:
-                    choice = QuestionChoice.objects.create(question=question, choice_text=choice_text)
-                    print(f"Saved choice for Question {i}: {choice_text}")
-
-            # Fetch students enrolled in the subject associated with the activity
-            if activity.remedial:
-                # Fetch only the students assigned to the remedial activity
-                students = StudentActivity.objects.filter(activity=activity).values_list('student', flat=True)
-                print(f"Creating questions for remedial students only: {students}")
+            if quiz_type.name == 'Participation':
+                participation_data = question_data.get('participation_data', [])
+                for participation in participation_data:
+                    student = CustomUser.objects.get(id=participation['student_id'])
+                    StudentQuestion.objects.create(
+                        student=student,
+                        activity=activity,  # Link to the activity
+                        activity_question=None,  # No need to link to ActivityQuestion for Participation
+                        score=participation['score'],
+                        student_answer=None,
+                        uploaded_file=None,
+                        is_participation=True
+                    )
+                print(f"Saved participation data for Activity: {activity.activity_name}")
             else:
-                # If not remedial, fetch all students enrolled in the subject
-                students = CustomUser.objects.filter(
-                    profile__role__name__iexact='Student',
-                    subjectenrollment__subject=activity.subject
-                ).distinct().values_list('id', flat=True)
-                print(f"Creating questions for all students: {students}")
-
-            # Now assign the questions only to the filtered students
-            for student_id in students:
-                student = CustomUser.objects.get(id=student_id)
-                StudentQuestion.objects.create(
-                    student=student,
-                    activity_question=question
+                question = ActivityQuestion.objects.create(
+                    activity=activity,
+                    question_text=question_data['question_text'],
+                    correct_answer=question_data['correct_answer'],
+                    quiz_type=quiz_type,
+                    score=question_data['score']
                 )
-                print(f"Created StudentQuestion for {student.get_full_name()}")
+
+                if quiz_type.name == 'Multiple Choice':
+                    for choice_text in question_data['choices']:
+                        choice = QuestionChoice.objects.create(question=question, choice_text=choice_text)
+                        print(f"Saved choice for Question {i}: {choice_text}")
+
+                # Fetch students enrolled in the subject associated with the activity
+                if activity.remedial:
+                    # Fetch only the students assigned to the remedial activity
+                    students = StudentActivity.objects.filter(activity=activity).values_list('student', flat=True)
+                    print(f"Creating questions for remedial students only: {students}")
+                else:
+                    # If not remedial, fetch all students enrolled in the subject
+                    students = CustomUser.objects.filter(
+                        profile__role__name__iexact='Student',
+                        subjectenrollment__subject=activity.subject
+                    ).distinct().values_list('id', flat=True)
+                    print(f"Creating questions for all students: {students}")
+
+                # Now assign the questions only to the filtered students
+                for student_id in students:
+                    student = CustomUser.objects.get(id=student_id)
+                    StudentQuestion.objects.create(
+                        student=student,
+                        activity_question=question
+                    )
+                    print(f"Created StudentQuestion for {student.get_full_name()}")
 
         # Clear the questions from the session
         request.session.pop('questions', None)
@@ -501,7 +562,7 @@ class GradeEssayView(View):
                 student_question.save()
                 total_score += score
 
-
+        messages.success(request, 'Activity successfully graded.')
         return redirect('grade_essay', activity_id=activity_id)
 
 # Grade student individual essay

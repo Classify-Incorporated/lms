@@ -36,13 +36,13 @@
     </div>
 
     <div class="form-group" id="remedial_students_field" style="display: none;">
-        <label for="remedial_students">Select Students:</label>
-        <select id="remedial_students" name="remedial_students" class="form-control" multiple>
-            {% for student in students %}
-                <option value="{{ student.id }}">{{ student.get_full_name }}</option>
-            {% endfor %}
-        </select>
-    </div>
+      <label for="remedial_students">Select Students:</label>
+      <select id="remedial_students" name="remedial_students" class="form-control" multiple>
+          {% for student in students %}
+              <option value="{{ student.id }}">{{ student.get_full_name }}</option>
+          {% endfor %}
+      </select>
+  </div>
 
     
     <div class="form-group">

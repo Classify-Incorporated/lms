@@ -9,6 +9,32 @@ Add Question
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    {% if quiz_type.name == 'Participation' %}
+        <div class="form-group">
+            <label for="max_score">Maximum Score:</label>
+            <input type="number" id="max_score" name="max_score" class="form-control" required>
+        </div>
+
+        <h2>Participation Scores</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                    <tr>
+                        <td>{{ student.get_full_name }}</td>
+                        <td>
+                            <input type="number" name="score_{{ student.id }}" class="form-control" required>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
     {% if quiz_type.name != 'Matching' and quiz_type.name != 'Document' %}
         <div class="form-group">
             <label for="question_text">Question:</label>
