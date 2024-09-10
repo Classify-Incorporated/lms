@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  Select Question Type
+  Add
 {% endblock %}
 
 {% block content %}
   <h1> {{ activity.activity_name }}</h1>
 
   <div class="dropdown">
-    <button class="btn btn-primary dropdown-toggle mb-3" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Question Type</button>
+    <button class="btn btn-primary dropdown-toggle mb-3" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Add</button>
     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
       {% for quiz_type in quiz_types %}
         <a class="dropdown-item" href="#" data-toggle="modal" data-target="#quizTypeModal" data-id="{{ quiz_type.id }}" data-name="{{ quiz_type.name }}">{{ quiz_type.name }}</a>
@@ -21,14 +21,14 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="quizTypeModalLabel">Add Question</h5>
+          <h5 class="modal-title" id="quizTypeModalLabel">Add</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
         <div class="modal-body">
-          <form id="quizTypeForm" method="post" action="#" enctype="multipart/form-data">
+          <form id="quizTypeForm" method="post" action="" enctype="multipart/form-data">
             {% csrf_token %}
             <div id="quiz-type-fields"></div>
-            <button type="submit" class="btn btn-primary">Add Question</button>
+            <button type="submit" class="btn btn-primary">Add</button>
           </form>
         </div>
       </div>
@@ -41,7 +41,7 @@
           <tr>
               <th>#</th>
               <th>Question</th>
-              <th>Score</th>
+              <th>Points</th>
               <th>Quiz Type</th>
               <th>Actions</th>
           </tr>
@@ -76,6 +76,12 @@
       $('#quizTypeModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget)
         var quizTypeId = button.data('id')
+
+        if (!quizTypeId) {
+          console.error("quizTypeId is undefined or null");
+          return;  // Exit if no quizTypeId
+      }
+      
         var quizTypeName = button.data('name')
         var modal = $(this)
         modal.find('.modal-title').text('Add Question for ' + quizTypeName)
@@ -86,16 +92,19 @@
     
         var quizTypeFields = modal.find('#quiz-type-fields')
         quizTypeFields.empty()
-        quizTypeFields.append(`
-          <div class="form-group">
-            <label for="question_text">Question:</label>
-            <textarea id="question_text" name="question_text" class="form-control" required></textarea>
-          </div>
-          <div class="form-group">
-            <label for="score">Score:</label>
-            <input type="number" id="score" name="score" class="form-control" required>
-          </div>
-        `)
+        
+        if (quizTypeName !== 'Participation') {
+          quizTypeFields.append(`
+            <div class="form-group">
+              <label for="question_text">Question:</label>
+              <textarea id="question_text" name="question_text" class="form-control" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="score">Points:</label>
+              <input type="number" id="score" name="score" class="form-control" required>
+            </div>
+          `);
+        }
 
         if (quizTypeName == 'Multiple Choice') {
           quizTypeFields.append(`
@@ -108,7 +117,7 @@
                 </div>
               </div>
             </div>
-            <button type="button" class="btn btn-secondary mb-2" onclick="addChoice()">Add Another Choice</button>
+            <button type="button" class="btn btn-secondary mb-2" onclick="addChoice()">Add Choice</button>
           `)
         } else if (quizTypeName == 'True/False') {
           quizTypeFields.append(`
@@ -131,7 +140,7 @@
                 </div>
               </div>
             </div>
-            <button type="button" class="btn btn-secondary" onclick="addMatchingPair()">Add Another Pair</button>
+            <button type="button" class="btn btn-secondary mb-2" onclick="addMatchingPair()">Add Pair</button>
           `)
         } else if (quizTypeName == 'Calculated Numeric' || quizTypeName == 'Fill in the Blank') {
           quizTypeFields.append(`
@@ -147,6 +156,41 @@
               <input type="file" id="document_file" name="document_file" class="form-control">
             </div>
           `)
+        }
+        
+        // Handle Participation quiz type separately
+        if (quizTypeName == 'Participation') {
+          quizTypeFields.append(`
+            <div class="form-group">
+              <label for="max_score">Maximum Score:</label>
+              <input type="number" id="max_score" name="max_score" class="form-control" required>
+            </div>
+            <h4>Participation Scores</h4>
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Points</th>
+                </tr>
+              </thead>
+              <tbody id="participation-students">
+              </tbody>
+            </table>
+          `)
+
+          fetch(`/participation_scores/{{ activity.id }}`).then((response) => {
+            return response.json();
+          }).then((data) => {
+            const studentsTable = document.getElementById('participation-students');
+            data.students.forEach((student) => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${student.name}</td>
+                <td><input type="number" name="score_${student.id}" class="form-control" required></td>
+              `;
+              studentsTable.appendChild(row);
+            });
+          });
         }
       })
     })

@@ -18,6 +18,8 @@ from django.http import HttpResponse
 from module.forms import moduleForm
 from django.contrib import messages
 from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import permission_required
+from django.http import JsonResponse
 
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
@@ -46,6 +48,7 @@ class enrollStudentView(View):
 
 # Enrollled Student
 @login_required
+@permission_required('course.add_subjectenrollment', raise_exception=True)
 def enrollStudent(request):
     student_role = Role.objects.get(name__iexact='student')
     profiles = Profile.objects.filter(role=student_role)
@@ -63,6 +66,7 @@ def enrollStudent(request):
 
 #enrolled Student List
 @login_required
+@permission_required('course.view_subjectenrollment', raise_exception=True)
 def subjectEnrollmentList(request):
     user = request.user
     selected_semester_id = request.GET.get('semester', None)  # Get the selected semester from the query parameters
@@ -103,6 +107,14 @@ def subjectEnrollmentList(request):
         'available_subjects': available_subjects,
         'selected_subject': selected_subject,
     })
+
+@login_required
+@permission_required('course.delete_subjectenrollment', raise_exception=True)
+def dropStudentFromSubject(request, enrollment_id):
+    enrollment = get_object_or_404(SubjectEnrollment, id=enrollment_id)
+    enrollment.delete()
+    messages.success(request, f"{enrollment.student.get_full_name()} has been dropped from {enrollment.subject.subject_name}.")
+    return redirect('subjectEnrollmentList')
 
 
 # Display the module based on the subject
@@ -151,7 +163,10 @@ def subjectDetail(request, pk):
 
         answered_activity_ids = set(completed_activities).union(answered_essays, answered_documents)
         
-        activities = Activity.objects.filter(subject=subject, term__in=terms)
+        activities = Activity.objects.filter(
+            Q(subject=subject) & Q(term__in=terms) & 
+            (Q(remedial=False) | Q(remedial=True, studentactivity__student=user))
+        ).distinct()
         
         finished_activities = activities.filter(
             end_time__lte=timezone.localtime(timezone.now()), 
@@ -160,16 +175,24 @@ def subjectDetail(request, pk):
         ongoing_activities = activities.filter(
             start_time__lte=timezone.localtime(timezone.now()), 
             end_time__gte=timezone.localtime(timezone.now())
+        ).exclude(
+            id__in=StudentQuestion.objects.filter(
+                is_participation=True
+            ).values_list('activity_id', flat=True)
         )
-        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
+        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now())).exclude(
+            id__in=StudentQuestion.objects.filter(
+                is_participation=True
+            ).values_list('activity_id', flat=True)  # Exclude participation activities
+        )
 
-        modules = Module.objects.filter(
-            subject=subject,
-            hide_lesson_for_student=False,  
-        ).exclude(hide_lesson_for_selected_users=user).filter(
-            Q(start_date__isnull=True) | Q(start_date__lte=timezone.localtime(timezone.now())),
-            Q(end_date__isnull=True) | Q(end_date__gte=timezone.localtime(timezone.now()))
-        )
+        # Adjusted module visibility logic
+        modules = Module.objects.filter(subject=subject)
+        visible_modules = []
+
+        for module in modules:
+            if not module.display_lesson_for_selected_users.exists() or user in module.display_lesson_for_selected_users.all():
+                visible_modules.append(module)
     else:
         modules = Module.objects.filter(subject=subject)
         activities = Activity.objects.filter(subject=subject, term__in=terms)
@@ -179,8 +202,16 @@ def subjectDetail(request, pk):
         ongoing_activities = activities.filter(
             start_time__lte=timezone.localtime(timezone.now()), 
             end_time__gte=timezone.localtime(timezone.now())
+        ).exclude(
+            id__in=StudentQuestion.objects.filter(
+                is_participation=True
+            ).values_list('activity_id', flat=True)  # Exclude participation activities
         )
-        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now()))
+        upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now())).exclude(
+            id__in=StudentQuestion.objects.filter(
+                is_participation=True
+            ).values_list('activity_id', flat=True)  # Exclude participation activities
+        )
 
     activities_with_grading_needed = []
     ungraded_items_count = 0
@@ -217,6 +248,7 @@ def subjectDetail(request, pk):
         'answered_activity_ids': answered_activity_ids,
         'form': form,
     })
+
 
 # get all the finished activities
 @login_required
@@ -315,6 +347,7 @@ def subjectList(request):
     else:
         selected_semester = current_semester
 
+    # Handle subject filtering based on roles
     if profile.role.name.lower() == 'student':
         subjects = Subject.objects.filter(
             subjectenrollment__student=user,
@@ -323,6 +356,11 @@ def subjectList(request):
     elif profile.role.name.lower() == 'teacher':
         subjects = Subject.objects.filter(
             assign_teacher=user,
+            subjectenrollment__semester=selected_semester
+        ).distinct()
+    else:
+        # For admin, registrar, or other roles, display all subjects for the selected semester
+        subjects = Subject.objects.filter(
             subjectenrollment__semester=selected_semester
         ).distinct()
 
@@ -338,8 +376,10 @@ def subjectList(request):
     })
 
 
+
 # Display semester list
 @login_required
+@permission_required('course.view_semester', raise_exception=True)
 def semesterList(request):
     semesters = Semester.objects.all()
     form = semesterForm()
@@ -349,6 +389,7 @@ def semesterList(request):
 
 # Create Semester
 @login_required
+@permission_required('course.add_semester', raise_exception=True)
 def createSemester(request):
     if request.method == 'POST':
         form = semesterForm(request.POST)
@@ -366,6 +407,7 @@ def createSemester(request):
 
 # Update Semester
 @login_required
+@permission_required('course.change_semester', raise_exception=True)
 def updateSemester(request, pk):
     semester = get_object_or_404(Semester, pk=pk)
     if request.method == 'POST':
@@ -384,8 +426,12 @@ def updateSemester(request, pk):
 
 # Display term list
 @login_required
+@permission_required('course.view_term', raise_exception=True)
 def termList(request):
-    terms = Term.objects.all()
+    if request.user.is_superuser:
+        terms = Term.objects.all() 
+    else:
+        terms = Term.objects.filter(created_by=request.user)
     form = termForm()
     return render(request, 'course/term/termList.html', {
         'terms': terms,
@@ -394,11 +440,14 @@ def termList(request):
 
 # Create Semester
 @login_required
+@permission_required('course.add_term', raise_exception=True)
 def createTerm(request):
     if request.method == 'POST':
         form = termForm(request.POST)
         if form.is_valid():
-            form.save()
+            term = form.save(commit=False)
+            term.created_by = request.user  
+            term.save()
             messages.success(request, 'Term created successfully!')
             return redirect('termList')
         else:
@@ -411,8 +460,14 @@ def createTerm(request):
 
 # Update Semester
 @login_required
+@permission_required('course.change_term', raise_exception=True)
 def updateTerm(request, pk):
     term = get_object_or_404(Term, pk=pk)
+
+    if term.created_by != request.user:
+        messages.error(request, 'You do not have permission to edit this term.')
+        return redirect('termList')
+
     if request.method == 'POST':
         form = termForm(request.POST, instance=term)
         if form.is_valid():
@@ -423,8 +478,10 @@ def updateTerm(request, pk):
             messages.error(request, 'There was an error updating the term. Please try again.')
     else:
         form = termForm(instance=term)
+        
     return render(request, 'course/term/updateterm.html', {
-        'form': form,'term': term
+        'form': form, 
+        'term': term
     })
 
 # Participation Scores
@@ -475,3 +532,16 @@ def participationScoresView(request, subject_id, term_id, max_score):
         'participation_scores': participation_scores,
         'max_score': max_score,
     })
+
+
+@login_required
+def participation_scores(request, activity_id):
+    activity = get_object_or_404(Activity, id=activity_id)
+    students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct()
+
+    student_list = [{
+        'id': student.id,
+        'name': student.get_full_name()
+    } for student in students]
+
+    return JsonResponse({'students': student_list})

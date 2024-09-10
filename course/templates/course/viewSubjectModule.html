@@ -19,7 +19,6 @@
           <div class="col-md-12 justify-content-between">
             <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-outline-primary">Add Activity</a>
             <a href="{% url 'activityList' subject.id %}" class="btn btn-outline-secondary">Activity List</a>
-            <a href="javascript:void(0);" onclick="openParticipationModal('{{ subject.id }}')" class="btn btn-outline-info">Add Participation</a>
           </div>
         </div>
       {% endif %}
@@ -161,8 +160,10 @@
 
   <!-- Custom Modal for Adding Module -->
   <div id="moduleModal" class="custom-modal">
+
     <div class="custom-modal-header d-flex justify-content-between">
       <h5 class="text-dark">Add Lesson</h5>
+
       <button class="close-btn" id="closeModuleModalBtn"></button>
     </div>
     <div class="custom-modal-body" id="moduleModalBody"></div>
@@ -171,7 +172,7 @@
 
   <script>
     function openParticipationModal(subjectId) {
-      fetch(`/selectParticipation/${subjectId}/`)
+      fetch(`/participationScoresView/${subjectId}/`)
         .then((response) => response.text())
         .then((html) => {
           document.getElementById('participationModalBody').innerHTML = html

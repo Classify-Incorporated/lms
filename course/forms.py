@@ -13,18 +13,32 @@ class semesterForm(forms.ModelForm):
         model = Semester
         fields = ['semester_name', 'start_date', 'end_date', 'school_year']
         widgets = {
-            'semester_name': forms.Select(attrs={'class': 'form-control'}),  # Use Select widget for dropdown
+            'semester_name': forms.Select(attrs={'class': 'form-control'}), 
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
+
 class termForm(forms.ModelForm):
     class Meta:
         model = Term
-        fields = '__all__'
+        fields = ['semester', 'term_name', 'start_date', 'end_date']
         widgets = {
             'semester': forms.Select(attrs={'class': 'form-control'}),
             'term_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+
+        # Validation to check if start_date is before end_date
+        if start_date and end_date and start_date > end_date:
+            raise forms.ValidationError("The start date cannot be later than the end date.")
+
+        return cleaned_data
 
 class ParticipationForm(forms.Form):
     term = forms.ModelChoiceField(

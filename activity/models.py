@@ -25,6 +25,7 @@ class QuizType(models.Model):
         ('Matching', 'Matching'),
         ('Calculated Numeric', 'Calculated Numeric'),
         ('Document', 'Document'),
+        ('Participation', 'Participation'),
     ]
 
     name = models.CharField(max_length=50, choices=QUIZ_CHOICES)
@@ -40,6 +41,8 @@ class Activity(models.Model):
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     show_score = models.BooleanField(default=False)
+    remedial = models.BooleanField(default=False) 
+    remedial_students = models.ManyToManyField(CustomUser, blank=True, limit_choices_to={'profile__role__name__iexact': 'Student'})
 
     def __str__(self):
         return self.activity_name
@@ -85,14 +88,18 @@ class StudentActivity(models.Model):
 
 class StudentQuestion(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    activity_question = models.ForeignKey(ActivityQuestion, on_delete=models.CASCADE)
+    activity_question = models.ForeignKey(ActivityQuestion, on_delete=models.CASCADE, null=True, blank=True)
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE, null=True, blank=True)
     score = models.FloatField(default=0)
     student_answer = models.TextField(null=True, blank=True)
     uploaded_file = models.FileField(upload_to=get_upload_path, null=True, blank=True)
     status = models.BooleanField(default=False)
     submission_time = models.DateTimeField(null=True, blank=True, default=None)
+    is_participation = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.student.email} - {self.activity_question.activity.activity_name} - {self.activity_question.question_text}"
+        if self.activity_question and self.activity_question.activity:
+            return f"{self.student.email} - {self.activity_question.activity.activity_name} - {self.activity_question.question_text}"
+        return f"{self.student.email} - No activity question available"
     
 

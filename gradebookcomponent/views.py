@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import GradeBookComponentsForm, CopyGradeBookForm, TermGradeBookComponentsForm
-from .models import GradeBookComponents, TermGradeBookComponents
+from .forms import GradeBookComponentsForm, CopyGradeBookForm, TermGradeBookComponentsForm, SubGradeBookForm
+from .models import GradeBookComponents, TermGradeBookComponents, SubGradeBook
 from activity.models import StudentQuestion, Activity, ActivityQuestion, ActivityType
 from accounts.models import CustomUser
 from django.db.models import Sum, Max
@@ -112,6 +112,48 @@ def deleteGradeBookComponents(request, pk):
     messages.success(request, 'Gradebook deleted successfully!')
     return redirect('viewGradeBookComponents')
 
+@login_required
+def subGradebook(request):
+    subgradebook = SubGradeBook.objects.all()
+    return render(request, 'gradebookcomponent/subgradebook/subGradebook.html',{'subgradebook':subgradebook})
+
+
+@login_required
+def createSubGradeBook(request):
+    if request.method == 'POST':
+        sub_gradebook = SubGradeBookForm(request.POST, user=request.user)
+        if sub_gradebook.is_valid():
+            sub_gradebook.save()
+            messages.success(request, 'Sub Gradebook created successfully!')
+            return redirect('subGradebook')
+        else:
+            messages.error(request, 'An error occurred while creating the sub gradebook!')
+    else:
+        # Pass the user to the form for GET requests as well
+        sub_gradebook = SubGradeBookForm(user=request.user)
+
+    return render(request, 'gradebookcomponent/subgradebook/createSubGradeBook.html', {'sub_gradebook': sub_gradebook})
+
+def updateSubGradebook(request, id):
+    sub_gradebook = get_object_or_404(SubGradeBook, id=id)
+    if request.method == 'POST':
+        form = SubGradeBookForm(request.POST, instance=sub_gradebook)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Sub Gradebook updated successfully!')
+            return redirect('subGradebook')
+        else:
+            messages.error(request, 'An error occurred while updating the sub gradebook!')
+    else:
+        form = SubGradeBookForm(instance=sub_gradebook)
+    return render(request, 'gradebookcomponent/subgradebook/updateSubGradeBook.html', {'form': form, 'sub_gradebook': sub_gradebook})
+
+def deleteSubGradebook(request, id):
+    sub_gradebook = get_object_or_404(SubGradeBook, id=id)
+    sub_gradebook.delete()
+    messages.success(request, 'Sub Gradebook deleted successfully!')
+    return redirect('subGradebook')
+
 #View TermGradeBook List
 @login_required
 def termBookList(request):
@@ -127,15 +169,15 @@ def createTermGradeBookComponent(request):
     if request.method == 'POST':
         form = TermGradeBookComponentsForm(request.POST, user=request.user)
         if form.is_valid():
-            instance = form.save(commit=False)  # Save the main model instance without committing
-            instance.teacher = request.user 
+            instance = form.save(commit=False)
+            instance.teacher = request.user  
             instance.save() 
             
-            form.save_m2m()  
-            messages.success(request, 'Termbook deleted successfully!')
+            form.save_m2m() 
+            messages.success(request, 'Termbook created successfully!')
             return redirect('termBookList')
         else:
-            messages.success(request, 'An error occured while creating termbook!')
+            messages.error(request, 'An error occurred while creating the termbook!')
     else:
         form = TermGradeBookComponentsForm(user=request.user)
 
@@ -295,7 +337,7 @@ def studentTotalScore(request, student_id, subject_id):
 
     if selected_semester_id == 'null':
         selected_semester_id = None
-    
+
     if selected_semester_id:
         current_semester = get_object_or_404(Semester, id=selected_semester_id)
     else:
@@ -311,7 +353,7 @@ def studentTotalScore(request, student_id, subject_id):
     student = get_object_or_404(CustomUser, id=student_id)
     subject = get_object_or_404(Subject, id=subject_id, subjectenrollment__student=student, subjectenrollment__semester=current_semester)
 
-    activity_types = ActivityType.objects.all()
+    activity_types = ActivityType.objects.exclude(name__iexact="Participation")  # Exclude participation activities
     terms = Term.objects.filter(semester=current_semester)
 
     term_scores_data = []
@@ -323,34 +365,7 @@ def studentTotalScore(request, student_id, subject_id):
         student_scores_data = []
         term_has_data = False
 
-        # Ensure participation scores are retrieved for both teachers and students
-        participation_component = GradeBookComponents.objects.filter(
-            teacher=user if user.profile.role.name.lower() == 'teacher' else subject.assign_teacher,
-            subject=subject,
-            is_participation=True
-        ).first()
-
-        if participation_component:
-            participation_score = StudentParticipationScore.objects.filter(
-                student=student, subject=subject, term=term
-            ).first()
-
-            if participation_score:
-                weighted_participation_score = (participation_score.score / participation_score.max_score) * participation_component.percentage
-                term_has_data = True
-
-                student_scores_data.append({
-                    'student': student.get_full_name(),
-                    'activity_name': 'Participation',
-                    'question_text': 'Participation',
-                    'total_score': participation_score.score,
-                    'max_score': participation_score.max_score,
-                    'percentage': (participation_score.score / participation_score.max_score) * 100,
-                    'weighted_score': weighted_participation_score,
-                    'activity': None,
-                    'is_participation': True
-                })
-
+        # Loop through all non-participation activities
         for activity_type in activity_types:
             activities = Activity.objects.filter(term=term, activity_type=activity_type, subject=subject)
 
@@ -384,9 +399,7 @@ def studentTotalScore(request, student_id, subject_id):
                         'max_score': max_score,
                         'percentage': 0,
                         'weighted_score': 0,
-                        'activity': activity.activity_name,
                         'missed': True,
-                        'is_participation': False,
                         'submission_time': None,
                     })
                     continue
@@ -407,15 +420,45 @@ def studentTotalScore(request, student_id, subject_id):
                         'max_score': max_score,
                         'percentage': (Decimal(score) / Decimal(max_score)) * 100 if max_score > 0 else 0,
                         'weighted_score': (Decimal(score) / Decimal(max_score)) * activity_percentage if max_score > 0 else 0,
-                        'activity': activity.activity_name,
                         'missed': False,
-                        'is_participation': False,
                         'submission_time': student_question.submission_time,
                     })
 
                 term_has_data = True
 
-        if term_has_data:
+        # Now we handle participation scores separately from other activities
+        participation_student_questions = StudentQuestion.objects.filter(
+            student=student,
+            activity__term=term,
+            activity__subject=subject,
+            is_participation=True  # Flag for participation
+        )
+
+        participation_total_score = Decimal(0)
+        participation_max_score_sum = Decimal(0)
+
+        if participation_student_questions.exists():
+            for student_question in participation_student_questions:
+                score = Decimal(student_question.score)
+                participation_total_score += score
+                participation_max_score_sum += 100  # Assuming the max score for participation is 100
+
+            participation_percentage = (participation_total_score / participation_max_score_sum) * 100 if participation_max_score_sum > 0 else 0
+            weighted_score = participation_total_score / participation_max_score_sum  # Assuming full weight
+
+            student_scores_data.append({
+                'student': student.get_full_name(),
+                'activity_name': 'Participation',  # Label for participation
+                'question_text': 'Participation Activity',
+                'score': participation_total_score,
+                'max_score': participation_max_score_sum,
+                'percentage': participation_percentage,
+                'weighted_score': weighted_score,
+                'missed': participation_total_score == 0,
+                'submission_time': None
+            })
+
+        if term_has_data or participation_student_questions.exists():
             term_scores_data.append({
                 'term': term,
                 'subject': subject,
@@ -428,10 +471,9 @@ def studentTotalScore(request, student_id, subject_id):
         'subjects': [subject],
         'term_scores_data': term_scores_data,
         'selected_term_id': selected_term_id,
-        'selected_semester_id': selected_semester_id,  # Pass the selected semester ID to the template
+        'selected_semester_id': selected_semester_id,
         'student': student,
     })
-
 
 #display total grade
 @login_required
@@ -446,7 +488,6 @@ def studentTotalScoreForActivityType(request):
 # Teacher (fetch student total score for all activity)
 @login_required
 def studentTotalScoreApi(request):
-    # Get the selected semester from the request (default to current semester if 'current' is provided)
     selected_semester_id = request.GET.get('semester', None)
     current_semester = None
 
@@ -478,17 +519,19 @@ def studentTotalScoreApi(request):
     if selected_subject_id != 'all':
         subjects = subjects.filter(id=selected_subject_id)
 
+    # Use student IDs as keys to avoid serialization errors
     student_data = defaultdict(lambda: defaultdict(list))
     student_total_weighted_grade = defaultdict(lambda: defaultdict(Decimal))
-    failing_students = set()  
+    remedial_data = defaultdict(lambda: defaultdict(list))
 
+    # Loop through each term
     for term in Term.objects.filter(semester=current_semester):
         for subject in subjects:
             if is_student:
                 subject_enrollment = SubjectEnrollment.objects.filter(student=user, subject=subject, semester=current_semester).first()
                 if not subject_enrollment or not subject_enrollment.can_view_grade:
-                    continue  
-                
+                    continue
+
             student_scores = defaultdict(lambda: {'term_scores': [], 'total_weighted_score': Decimal(0)})
 
             try:
@@ -500,32 +543,9 @@ def studentTotalScoreApi(request):
             except TermGradeBookComponents.DoesNotExist:
                 term_percentage = Decimal(0)
 
-            participation_component = GradeBookComponents.objects.filter(
-                teacher=user if is_teacher else subject.assign_teacher, 
-                subject=subject, 
-                is_participation=True
-            ).first()
-
-            if participation_component:
-                for student in students:
-                    if not student.subjectenrollment_set.filter(subject=subject, semester=current_semester).exists():
-                        continue
-
-                    participation_score = StudentParticipationScore.objects.filter(
-                        student=student, subject=subject, term=term
-                    ).first()
-
-                    if participation_score:
-                        weighted_participation_score = (Decimal(participation_score.score) / Decimal(participation_score.max_score)) * Decimal(participation_component.percentage)
-                        student_scores[student]['term_scores'].append({
-                            'term_name': term.term_name,
-                            'activity_type': 'Participation',
-                            'term_final_score': weighted_participation_score
-                        })
-                        student_scores[student]['total_weighted_score'] += weighted_participation_score
-
+            # Regular activities (non-remedial)
             for activity_type in ActivityType.objects.all():
-                activities = Activity.objects.filter(term=term, activity_type=activity_type, subject=subject)
+                activities = Activity.objects.filter(term=term, activity_type=activity_type, subject=subject, remedial=False)
 
                 try:
                     gradebook_component = GradeBookComponents.objects.get(
@@ -578,46 +598,107 @@ def studentTotalScoreApi(request):
                         })
                         student_scores[student]['total_weighted_score'] += weighted_score
 
+            # Participation activities
+            participation_activity_type = ActivityType.objects.get(name__iexact="Participation")
+            participation_activities = Activity.objects.filter(term=term, activity_type=participation_activity_type, subject=subject, remedial=False)
+
+            try:
+                participation_component = GradeBookComponents.objects.get(
+                    teacher=user if is_teacher else subject.assign_teacher,
+                    subject=subject,
+                    activity_type=participation_activity_type
+                )
+                participation_percentage = Decimal(participation_component.percentage)
+            except GradeBookComponents.DoesNotExist:
+                participation_percentage = Decimal(0)
+
+            for student in students:
+                if not student.subjectenrollment_set.filter(subject=subject, semester=current_semester).exists():
+                    continue
+
+                participation_total_score = Decimal(0)
+                participation_max_score_sum = Decimal(0)
+
+                # Fetch participation data directly from StudentQuestion where is_participation=True
+                participation_student_questions = StudentQuestion.objects.filter(
+                    student=student,
+                    activity__term=term,
+                    activity__subject=subject,
+                    is_participation=True
+                )
+
+                for student_question in participation_student_questions:
+                    score = Decimal(student_question.score)
+                    participation_total_score += score
+                    participation_max_score_sum += 100  # Assuming the max score for participation is 100
+
+                if participation_max_score_sum > 0:
+                    participation_weighted_score = (participation_total_score / participation_max_score_sum) * participation_percentage
+                    student_scores[student]['term_scores'].append({
+                        'term_name': term.term_name,
+                        'activity_type': participation_activity_type.name,
+                        'term_final_score': participation_weighted_score,
+                    })
+                    student_scores[student]['total_weighted_score'] += participation_weighted_score
+
+            # Process remedial activities separately
+            remedial_activities = Activity.objects.filter(term=term, subject=subject, remedial=True)
+
+            for activity in remedial_activities:
+                for remedial_student in activity.remedial_students.all():
+                    if remedial_student not in students:
+                        continue
+
+                    student_questions = StudentQuestion.objects.filter(
+                        student=remedial_student,
+                        activity_question__activity=activity,
+                        status=True
+                    )
+
+                    # Check for matching sub_gradebook_component
+                    sub_gradebook_component = SubGradeBook.objects.filter(gradebook__activity_type=activity.activity_type).first()
+                    if sub_gradebook_component:
+                        
+                        for student_question in student_questions:
+                            score = Decimal(student_question.score)
+                            max_score = Decimal(student_question.activity_question.score)
+                            weighted_score = (score / max_score) * Decimal(sub_gradebook_component.percentage)
+
+                            # Store remedial data separately using student ID instead of the object
+                            remedial_data[remedial_student.id][subject.subject_name].append({
+                                'term_name': term.term_name,
+                                'activity_name': activity.activity_name,
+                                'weighted_score': weighted_score,
+                                'max_score': max_score,
+                                'percentage': (score / max_score) * 100 if max_score > 0 else 0,
+                            })
+
+                            # Add remedial points as bonus (does not change max score)
+                            student_scores[remedial_student]['total_weighted_score'] += weighted_score
+
+            # Calculate total weighted score (including regular, participation, and remedial bonus points)
             for student, scores in student_scores.items():
                 weighted_term_score = scores['total_weighted_score'] * (term_percentage / Decimal(100))
-                student_total_weighted_grade[student][subject.subject_name] += weighted_term_score
+                student_total_weighted_grade[student.id][subject.subject_name] += weighted_term_score
 
                 max_possible_score = term_percentage
-
                 weighted_term_percentage = (weighted_term_score / max_possible_score) * Decimal(100) if max_possible_score > 0 else Decimal(0)
 
-                student_data[student][subject.subject_name].append({
+                student_data[student.id][subject.subject_name].append({
+                    'subject_id': subject.id,
                     'term_name': term.term_name,
                     'total_weighted_score': f"{weighted_term_score:.6f}",
                     'percentage': f"{weighted_term_percentage:.1f}%",
-                    'missed': any(score.get('missed', False) for score in scores['term_scores'])
+                    'missed': any(score.get('missed', False) for score in scores['term_scores']),
+                    'student_name': student.get_full_name()
                 })
 
-                # Check if the student is failing based on the criteria
-                if weighted_term_percentage < Decimal(40):
-                    failing_students.add(student)
+    return JsonResponse({
+        'student_data': student_data,
+        'remedial_data': remedial_data,
+        'student_total_weighted_grade': student_total_weighted_grade
+    })
 
-    final_term_data = []
-    for student_obj, subjects in student_data.items():
-        student_subjects = []
-        student_id = student_obj.id
-
-        for subject_name, terms in subjects.items():
-            subject_id = Subject.objects.get(subject_name=subject_name).id
-            student_subjects.append({
-                'subject_name': subject_name,
-                'subject_id': subject_id,
-                'terms': terms,
-                'total_weighted_grade': float(student_total_weighted_grade[student_obj][subject_name])
-            })
-        final_term_data.append({
-            'student': student_obj.get_full_name(),
-            'student_id': student_id,
-            'subjects': student_subjects,
-            'is_failing': student_obj in failing_students  # Add failing status
-        })
-
-    return JsonResponse({'term_data': final_term_data, 'failing_students_count': len(failing_students)})
 
 @login_required
 def getSemesters(request):
@@ -643,7 +724,6 @@ def getSubjects(request):
 
     if not semester_id:
         return JsonResponse({'error': 'Semester ID not provided.'}, status=400)
-
     try:
         selected_semester = Semester.objects.get(id=semester_id)
     except Semester.DoesNotExist:
@@ -695,7 +775,7 @@ def allowGradeVisibility(request, student_id):
 
 
 
-FAILING_THRESHOLD = Decimal(65)
+FAILING_THRESHOLD = Decimal(75)
 EXCELLING_THRESHOLD = Decimal(85)
 
 @login_required

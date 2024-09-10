@@ -1,5 +1,5 @@
 from django import forms
-from .models import GradeBookComponents, TermGradeBookComponents
+from .models import GradeBookComponents, TermGradeBookComponents, SubGradeBook
 from subject.models import Subject
 from course.models import Term
 from django.db.models import Sum
@@ -60,6 +60,40 @@ class GradeBookComponentsForm(forms.ModelForm):
                 )
 
         return cleaned_data
+    
+
+class SubGradeBookForm(forms.ModelForm):
+    class Meta:
+        model = SubGradeBook
+        fields = ['gradebook', 'category_name', 'percentage']
+        widgets = {
+            'gradebook': forms.Select(attrs={'class': 'form-control'}),
+            'category_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'percentage': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(SubGradeBookForm, self).__init__(*args, **kwargs)
+
+        today = date.today()
+
+        current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
+
+        if user and current_semester:
+            assigned_subjects = Subject.objects.filter(assign_teacher=user)
+
+            subjects_in_semester = assigned_subjects.filter(
+                id__in=SubjectEnrollment.objects.filter(semester=current_semester).values_list('subject_id', flat=True)
+            )
+
+            gradebook_queryset = GradeBookComponents.objects.filter(
+                teacher=user,
+                subject__in=subjects_in_semester  
+            )
+
+            self.fields['gradebook'].queryset = gradebook_queryset
+        
 
 
 class CopyGradeBookForm(forms.Form):
@@ -119,6 +153,7 @@ class CopyGradeBookForm(forms.Form):
             self.fields['subject'].queryset = Subject.objects.none()
             self.fields['copy_from_subject'].queryset = Subject.objects.none()
 
+
 class TermGradeBookComponentsForm(forms.ModelForm):
     subjects = forms.ModelMultipleChoiceField(
         queryset=Subject.objects.none(),
@@ -136,7 +171,6 @@ class TermGradeBookComponentsForm(forms.ModelForm):
         widgets = {
             'term': forms.Select(attrs={'class': 'form-control'}),
             'percentage': forms.TextInput(attrs={'class': 'form-control'}),
-
         }
 
     def __init__(self, *args, **kwargs):
@@ -149,13 +183,13 @@ class TermGradeBookComponentsForm(forms.ModelForm):
 
         if user and current_semester:
             if user.is_superuser:
-                # If the user is an admin, show all terms and subjects within the current semester
+                # Admin users can see all terms and subjects
                 self.fields['term'].queryset = Term.objects.filter(semester=current_semester)
                 self.fields['subjects'].queryset = Subject.objects.filter(
                     subjectenrollment__semester=current_semester
                 ).distinct()
             else:
-                # If the user is not an admin, restrict based on assigned subjects within the current semester
+                # For teachers, only show the terms and subjects assigned to them
                 self.fields['term'].queryset = Term.objects.filter(
                     semester=current_semester,
                     semester__subjectenrollment__subject__assign_teacher=user
@@ -178,7 +212,6 @@ class TermGradeBookComponentsForm(forms.ModelForm):
                         assign_teacher=user
                     ).distinct()
 
-
     def clean(self):
         cleaned_data = super().clean()
         term = cleaned_data.get('term')
@@ -198,5 +231,3 @@ class TermGradeBookComponentsForm(forms.ModelForm):
                 )
 
         return cleaned_data
-
-

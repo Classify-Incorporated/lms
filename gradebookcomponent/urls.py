@@ -3,7 +3,7 @@ from .views import (
 viewGradeBookComponents, createGradeBookComponents, copyGradeBookComponents, updateGradeBookComponents, deleteGradeBookComponents,
 teacherActivityView, studentActivityView, studentTotalScore, studentTotalScoreForActivityType, createTermGradeBookComponent, updateTermBookComponent,
 deleteTermBookComponent, viewTermBookComponent, termBookList, studentTotalScoreApi, getSubjects, allowGradeVisibility, getSemesters,
-excellingStudentsPerSubjectView, failingStudentsPerSubjectView
+excellingStudentsPerSubjectView, failingStudentsPerSubjectView, createSubGradeBook, updateSubGradebook, subGradebook, deleteSubGradebook
 
 )
 
@@ -14,6 +14,12 @@ urlpatterns = [
     path('copyGradeBookComponents/', copyGradeBookComponents, name='copyGradeBookComponents'),
     path('updateGradeBookComponents/<int:pk>/', updateGradeBookComponents, name='updateGradeBookComponents'),
     path('deleteGradeBookComponents/<int:pk>/', deleteGradeBookComponents, name='deleteGradeBookComponents'),
+
+    #sub gradebook crud
+    path('subGradebook/', subGradebook, name='subGradebook'),
+    path('createSubGradeBook/', createSubGradeBook, name='createSubGradeBook'),
+    path('updateSubGradebook/<int:id>/', updateSubGradebook, name='updateSubGradebook'),
+    path('deleteSubGradebook/<int:id>/', deleteSubGradebook, name='deleteSubGradebook'),
 
     #display score for student for each activity
     path('teacherActivityView/<int:activity_id>/', teacherActivityView, name='teacherActivityView'),
