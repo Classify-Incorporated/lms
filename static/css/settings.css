@@ -232,22 +232,21 @@ body, p, .list-group-item, .alert {
     font-weight: 400;
 }
 
-/* Pastel Color Palette */
 :root {
-    --primary: #a8d5e2;
-    --primary-hover: #88c1cf;
-    --secondary: #b0b0b0;
-    --secondary-hover: #9a9a9a;
-    --success: #b2e0a8;
-    --success-hover: #9edb91;
-    --info: #a8c7e2;
-    --info-hover: #92b3db;
-    --warning: #f7e3af;
-    --warning-hover: #f5d895;
-    --danger: #f4b8b4;
-    --danger-hover: #f09d98;
-    --primary-text: #2c3e50;
-    --light-text: #ffffff;
+    --primary: #4A90E2;            /* Modern vibrant blue */
+    --primary-hover: #357ABD;      /* Slightly darker blue for hover */
+    --secondary: #7F8C8D;          /* Sophisticated muted gray */
+    --secondary-hover: #5D6D6E;    /* Darker shade for hover */
+    --success: #2ECC71;            /* Fresh, energetic green */
+    --success-hover: #27AE60;      /* Darker green for hover */
+    --info: #16A085;               /* Calm teal */
+    --info-hover: #138D75;         /* Deeper teal for hover */
+    --warning: #F39C12;            /* Bright, engaging orange */
+    --warning-hover: #E67E22;      /* Warmer orange for hover */
+    --danger: #E74C3C;             /* Bold, striking red */
+    --danger-hover: #C0392B;       /* Darker red for hover */
+    --primary-text: #ffffff;       /* Modern dark blue for text */
+    --light-text: #ECF0F1;         /* Soft light gray for contrast */
 }
 
 /* Button Styling */
@@ -423,3 +422,56 @@ body, p, .list-group-item, .alert {
 .dark-mode .btn-danger {
     color: #ffffff;
 }
+
+.text-primary {
+    color: var(--primary) !important; /* Default: #007bff */
+}
+
+.text-secondary {
+    color: var(--secondary) !important; /* Default: #6c757d */
+}
+
+.text-success {
+    color: var(--success) !important; /* Default: #28a745 */
+}
+
+.text-danger {
+    color: var(--danger) !important; /* Default: #dc3545 */
+}
+
+.text-warning {
+    color: var(--warning) !important; /* Default: #ffc107 */
+}
+
+.text-info {
+    color: var(--info) !important; /* Default: #17a2b8 */
+}
+
+.text-light {
+    color: var(--light-text) !important; /* Default: #f8f9fa */
+}
+
+.text-dark {
+    color: #343a40 !important; /* Default: #343a40 */
+}
+
+.text-body {
+    color: #212529 !important; /* Default: #212529 */
+}
+
+.text-muted {
+    color: #6c757d !important; /* Default: #6c757d */
+}
+
+.text-white {
+    color: #ffffff !important; /* Default: #ffffff */
+}
+
+.text-black-50 {
+    color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.text-white-50 {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+

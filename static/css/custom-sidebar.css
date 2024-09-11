@@ -1,22 +1,23 @@
 .custom-sidebar {
-  background-color: #354e69; /* Background color */
+  background-color: #282A42; /* Sidebar background color */
+  width: 300px !important; /* Compact sidebar width */
 }
 
 .custom-sidebar .nav-link {
-  color: #FFFFFF; /* Text color */
+  color: #C1C2D7; /* Text color */
+  font-weight: 700;
+  padding: 10px 15px !important; /* Consistent padding */
+  border-radius: 8px; /* Consistent border-radius */
 }
 
-.custom-sidebar .nav-link:hover {
-  color: #1E90FF; /* Hover text color */
-  background-color: #314455; /* Hover background color */
-}
 
 .custom-sidebar .sidebar-divider {
-  border-color: #314455; /* Divider color */
+  border-color: #55B041; /* Divider color */
 }
 
 .custom-sidebar .sidebar-brand-text {
-  color: #FFFFFF; /* Brand text color */
+  color: #C1C2D7; /* Brand text color */
+  font-weight: bolder;
 }
 
 @keyframes shine {
@@ -29,12 +30,25 @@
 }
 
 .custom-sidebar .nav-item.active .nav-link {
-  color: #FFFFFF; /* Active link text color */
-  background-color: #314455; /* Active link background color */
-  border: 2px solid #1E90FF; /* Active link border */
-  border-left: 5px solid #8d8d8d;
+  color: #C1C2D7; /* Active link text color */
+  background-color: #50648D; /* Active link background color */
+  border-radius: 8px;
   position: relative;
   overflow: hidden;
+  padding: 6px 15px; /* Consistent padding */
+  align-items: center;
+}
+
+.custom-sidebar .nav-link i {
+  font-size: 1.4rem !important; /* Slightly reduced icon size for compact look */
+  margin-right: 8px !important; /* Space between icon and text */
+  margin-left: 8px !important; /* Space between icon and text */
+  transition: transform 0.3s ease-in-out; /* Animation for icon hover */
+  color: #C1C2D7; /* Light text color for contrast */
+}
+
+.custom-sidebar .nav-item .nav-link {
+  width: 100%; /* Ensure the link covers the full width */
 }
 
 .custom-sidebar .nav-item.active .nav-link::before {
@@ -49,9 +63,9 @@
 }
 
 .custom-sidebar .nav-item.active .nav-link span {
-  font-weight: bold; /* Active link font weight */
   position: relative; /* Ensure text is above the animation */
   z-index: 2;
+  font-size: 0.85rem !important; /* Slightly smaller font size for compact layout */
 }
 
 .bg-login-image {
@@ -61,5 +75,5 @@
 }
 
 .bg-login {
-  background-color: #0E1E2F;
+  background-color: #171F29; /* Matching the sidebar color */
 }

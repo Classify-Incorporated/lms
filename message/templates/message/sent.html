@@ -56,7 +56,7 @@
                     </td>
                     <td class="text-left">{{ item.message.sender }}</td>
                     <td class="text-left">
-                      <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">{{ item.message.subject }} - {{ item.message.body|truncatewords:18 }}</a>
+                      <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">{{ item.message.subject }} - {{ item.message.body|striptags|truncatewords:5 }}</a>
                     </td>
                     <td>
                       <span class="badge badge-info">{{ item.status }}</span>
