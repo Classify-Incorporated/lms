@@ -27,13 +27,7 @@ class Retake(models.Model):
 
 
 class Semester(models.Model):
-    SEMESTER_CHOICES  = [
-        ('1st Semester', '1st Semester'),
-        ('2nd Semester', '2nd Semester'),
-        ('3rd Semester', '3rd Semester'),
-        ('4th Semester', '4th Semester'),
-    ]
-    semester_name = models.CharField(max_length=50, choices=SEMESTER_CHOICES )
+    semester_name = models.CharField(max_length=50)
     school_year = models.PositiveIntegerField()
     start_date = models.DateField()
     end_date = models.DateField()

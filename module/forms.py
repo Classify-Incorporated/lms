@@ -18,7 +18,7 @@ class moduleForm(forms.ModelForm):
         }
 
     display_lesson_for_selected_users = forms.ModelMultipleChoiceField(
-        queryset=get_user_model().objects.filter(profile__role__name__iexact='student'),
+        queryset=get_user_model().objects.filter(profile__role__name__iexact='Student'),
         required=False,
         widget=forms.SelectMultiple(
             attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box': 'true'}

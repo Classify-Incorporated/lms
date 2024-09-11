@@ -114,8 +114,24 @@ def deleteGradeBookComponents(request, pk):
 
 @login_required
 def subGradebook(request):
-    subgradebook = SubGradeBook.objects.all()
-    return render(request, 'gradebookcomponent/subgradebook/subGradebook.html',{'subgradebook':subgradebook})
+
+    selected_semester_id = request.GET.get('semester', None)
+    semesters = Semester.objects.all()
+
+    if selected_semester_id:
+        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
+        subjects_in_semester = SubjectEnrollment.objects.filter(semester=selected_semester).values_list('subject', flat=True)
+        gradebook_components = GradeBookComponents.objects.filter(subject__in=subjects_in_semester)
+
+        subgradebook = SubGradeBook.objects.filter(gradebook_component__in=gradebook_components)
+    else:
+        subgradebook = SubGradeBook.objects.none()
+
+    return render(request, 'gradebookcomponent/subgradebook/subGradebook.html', {
+        'subgradebook': subgradebook,
+        'semesters': semesters,
+        'selected_semester_id': selected_semester_id
+    })
 
 
 @login_required
@@ -157,11 +173,47 @@ def deleteSubGradebook(request, id):
 #View TermGradeBook List
 @login_required
 def termBookList(request):
-    if request.user.profile.role.name.lower() == 'teacher':
-        termbook = TermGradeBookComponents.objects.filter(teacher=request.user)
+    # Get the current date
+    current_date = timezone.now().date()
+
+    # Try to get the current semester based on the current date
+    current_semester = Semester.objects.filter(start_date__lte=current_date, end_date__gte=current_date).first()
+
+    # Get the selected semester from query parameters (if any)
+    selected_semester_id = request.GET.get('semester', None)
+
+    # If a specific semester is selected, use it; otherwise, use the current semester
+    if selected_semester_id:
+        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
     else:
-        termbook = TermGradeBookComponents.objects.all()
-    return render(request, 'gradebookcomponent/termbook/TermBook.html', {'termbook': termbook})
+        selected_semester = current_semester
+
+    # Fetch all semesters for the dropdown menu
+    semesters = Semester.objects.all()
+
+    # Filter TermGradeBookComponents based on the user's role and the selected/current semester
+    if request.user.profile.role.name.lower() == 'teacher':
+        if selected_semester:
+            termbook = TermGradeBookComponents.objects.filter(
+                teacher=request.user,
+                subjects__subjectenrollment__semester=selected_semester
+            ).distinct()
+        else:
+            termbook = TermGradeBookComponents.objects.filter(teacher=request.user).distinct()
+    else:
+        if selected_semester:
+            termbook = TermGradeBookComponents.objects.filter(
+                subjects__subjectenrollment__semester=selected_semester
+            ).distinct()
+        else:
+            termbook = TermGradeBookComponents.objects.all().distinct()
+
+    return render(request, 'gradebookcomponent/termbook/TermBook.html', {
+        'termbook': termbook,
+        'semesters': semesters,
+        'selected_semester_id': selected_semester_id,
+        'current_semester': current_semester,
+    })
 
 #create TermGradeBook
 @login_required
@@ -328,6 +380,7 @@ def get_current_semester(request):
         return current_semester
     except Semester.DoesNotExist:
         return None
+
 
 #Teacher (Student breakdown score for all activity)
 @login_required
