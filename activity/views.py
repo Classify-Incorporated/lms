@@ -696,11 +696,22 @@ def deleteActivityView(request, activity_id):
 @login_required
 def activityList(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
-    activities = Activity.objects.filter(subject=subject)
+    now = timezone.now()
+
+    # Get the current semester based on the current date
+    current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+
+    # If a current semester is found, filter activities by the terms related to the current semester
+    if current_semester:
+        activities = Activity.objects.filter(subject=subject, term__semester=current_semester)
+    else:
+        # If no current semester is found, show all activities for the subject
+        activities = Activity.objects.filter(subject=subject)
 
     return render(request, 'activity/activities/activityList.html', {
         'subject': subject,
         'activities': activities,
+        'current_semester': current_semester,  # Pass the current semester to the template (if needed)
     })
 
 @login_required

@@ -49,17 +49,18 @@
   <!-- Add Term Modal -->
   {% include 'course/term/createTerm.html' %}
 
-  <!-- Edit Term Modal -->
-  <div id="editModal" class="custom-modal">
-    <div class="custom-modal-header">
-      <button class="close-btn" id="closeEditModalBtn"></button>
-      <h5>Edit Term</h5>
+    <!-- Edit Semester Modal -->
+    <div id="editModal" class="custom-modal">
+      <div class="custom-modal-header">
+        <button class="close-btn" id="closeEditModalBtn"></button>
+        <h5>Edit Term</h5>
+      </div>
+      <div class="custom-modal-body" id="editModalBody">
+        <!-- The content will be loaded dynamically here -->
+      </div>
     </div>
-    <div class="custom-modal-body" id="editModalBody">
-      <!-- The content will be loaded dynamically here -->
-    </div>
-  </div>
-  <div id="editModalBackdrop" class="custom-modal-backdrop"></div>
+    <div id="editModalBackdrop" class="custom-modal-backdrop"></div>
+
 
   <!-- Separate Scripts for Each Modal -->
   <script>
@@ -75,7 +76,7 @@
       document.getElementById('customModalBackdrop').classList.remove('show')
     })
     
-    // Function to open the Edit Term modal and load the content dynamically
+    // Function to open the Edit Semester modal and load the content dynamically
     function openEditModal(termId) {
       fetch(`/updateTerm/${termId}/`)
         .then((response) => response.text())
@@ -86,7 +87,7 @@
         })
     }
     
-    // Script to close the Edit Term modal
+    // Script to close the Edit Semester modal
     document.getElementById('closeEditModalBtn').addEventListener('click', function () {
       document.getElementById('editModal').classList.remove('show')
       document.getElementById('editModalBackdrop').classList.remove('show')
