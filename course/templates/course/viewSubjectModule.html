@@ -17,8 +17,8 @@
       {% if selected_semester.start_date|date:'Y-m-d' <= today_date and selected_semester.end_date|date:'Y-m-d' >= today_date %}
         <div class="row justify-content-center mb-4">
           <div class="col-md-12 justify-content-between">
-            <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-outline-primary">Add Activity</a>
-            <a href="{% url 'activityList' subject.id %}" class="btn btn-outline-secondary">Activity List</a>
+            <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
+            <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
           </div>
         </div>
       {% endif %}
@@ -144,7 +144,7 @@
     </div>
 
     <div class="text-left mt-3">
-      <a href="{% url 'SubjectList' %}" class="btn btn-outline-secondary">Back</a>
+      <a href="{% url 'SubjectList' %}" class="btn btn-secondary">Back</a>
     </div>
   </div>
 

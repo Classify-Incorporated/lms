@@ -1,34 +1,36 @@
 <form method="post" action="{% url 'createModule' subject.id %}" enctype="multipart/form-data">
   {% csrf_token %}
+
   <div class="form-group">
-      <label for="file_name">File name:</label>
-      {{ form.file_name }}
+    <label for="file_name">File name:</label>
+    {{ form.file_name }}
   </div>
 
   <div class="form-group">
-      <label for="file">File:</label>
-      {{ form.file }}
+    <label for="file">File:</label>
+    {{ form.file }}
   </div>
 
   <div class="form-group">
-      <label for="url">Url:</label>
-      {{ form.url }}
+    <label for="url">Url:</label>
+    {{ form.url }}
   </div>
 
   <div class="form-group">
-      <label for="term">Term:</label>
-      {{ form.term }}
+    <label for="term">Term:</label>
+    {{ form.term }}
   </div>
 
   <div class="form-group">
-      <label for="display_lesson_for_selected_users">Display lesson for selected users:</label>
-      {{ form.display_lesson_for_selected_users }}
+    <label for="display_lesson_for_selected_users">Display lesson for selected users:</label>
+    {{ form.display_lesson_for_selected_users }}
   </div>
 
-  <div class="form-group">
-      <label for="allow_download">Allow download:</label>
-      {{ form.allow_download }}
+  <!-- Properly formatted checkbox field for allow_download -->
+  <div class="form-check">
+    {{ form.allow_download }}
+    <label for="allow_download" class="form-check-label">Allow download:</label>
   </div>
 
-  <button type="submit" class="btn btn-primary">Save</button>
+  <button type="submit" class="btn btn-primary mt-3">Save</button>
 </form>
