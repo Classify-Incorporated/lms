@@ -12,8 +12,18 @@ class GradeBookComponentsForm(forms.ModelForm):
         model = GradeBookComponents
         fields = ['subject', 'activity_type', 'category_name', 'percentage', 'is_participation']
         widgets = {
-            'subject': forms.Select(attrs={'class': 'form-control'}),
-            'activity_type': forms.Select(attrs={'class': 'form-control'}),
+            'subject': forms.Select(attrs={
+                'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+                'data-actions-box': 'true',
+                'data-style': 'btn-outline-secondary',
+                'title': 'Select Term'}),
+            'activity_type': forms.Select(attrs={
+                'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+                'data-actions-box': 'true',
+                'data-style': 'btn-outline-secondary',
+                'title': 'Select Term'}),
             'category_name': forms.TextInput(attrs={'class': 'form-control'}),
             'percentage': forms.NumberInput(attrs={'class': 'form-control'}),
             'is_participation': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -25,6 +35,12 @@ class GradeBookComponentsForm(forms.ModelForm):
 
         # Get the current date
         today = date.today()
+        
+        # Remove the default empty option for the term field
+        self.fields['subject'].empty_label = None
+        
+        # Remove the default empty option for the term field
+        self.fields['activity_type'].empty_label = None
 
         # Find the current semester based on today's date
         current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
@@ -100,12 +116,20 @@ class CopyGradeBookForm(forms.Form):
     subject = forms.ModelMultipleChoiceField(
         queryset=Subject.objects.none(),
         label="Target Subject(s)",
-        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+        widget=forms.SelectMultiple(attrs={'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+                'data-actions-box': 'true',
+                'data-style': 'btn-outline-secondary',
+                'title': 'Select Subject'})
     )
     copy_from_subject = forms.ModelChoiceField(
         queryset=Subject.objects.none(),
         label="Copy GradeBook from",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+                'data-actions-box': 'true',
+                'data-style': 'btn-outline-secondary',
+                'title': 'Copy From'})
     )
 
     def __init__(self, *args, **kwargs):
@@ -114,6 +138,11 @@ class CopyGradeBookForm(forms.Form):
 
         # Get the current date
         today = date.today()
+        
+        # Remove the default empty option for the term field
+        self.fields['subject'].empty_label = None
+        
+        self.fields['copy_from_subject'].empty_label = None
 
         # Find the current semester based on today's date
         current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
@@ -161,6 +190,7 @@ class TermGradeBookComponentsForm(forms.ModelForm):
             'class': 'form-control selectpicker',
             'data-actions-box': 'true',
             'data-live-search': 'true',  # optional: adds a search box
+            'title': 'Select Subject',
         }),
         required=True
     )
@@ -169,13 +199,19 @@ class TermGradeBookComponentsForm(forms.ModelForm):
         model = TermGradeBookComponents
         fields = ['term', 'subjects', 'percentage']
         widgets = {
-            'term': forms.Select(attrs={'class': 'form-control'}),
+            'term': forms.Select(attrs={'class': 'form-control selectpicker',
+            'data-actions-box': 'true',
+            'data-live-search': 'true',  # optional: adds a search box
+            'title': 'Select Term',}),
             'percentage': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super(TermGradeBookComponentsForm, self).__init__(*args, **kwargs)
+        
+        # Add a placeholder or title to the Select field
+        self.fields['term'].empty_label = None
 
         # Get the current semester based on today's date
         today = timezone.now().date()

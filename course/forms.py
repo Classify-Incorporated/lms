@@ -23,11 +23,23 @@ class termForm(forms.ModelForm):
         model = Term
         fields = ['semester', 'term_name', 'start_date', 'end_date']
         widgets = {
-            'semester': forms.Select(attrs={'class': 'form-control'}),
+            'semester': forms.Select(attrs={
+                'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+                'data-actions-box': 'true',
+                'data-style': 'btn-outline-secondary',
+                'title': 'Select Semester'
+            }),
             'term_name': forms.TextInput(attrs={'class': 'form-control'}),
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(termForm, self).__init__(*args, **kwargs)
+        
+        # Add a placeholder or title to the Select field
+        self.fields['semester'].empty_label = None
 
     def clean(self):
         cleaned_data = super().clean()
@@ -39,6 +51,7 @@ class termForm(forms.ModelForm):
             raise forms.ValidationError("The start date cannot be later than the end date.")
 
         return cleaned_data
+
 
 class ParticipationForm(forms.Form):
     term = forms.ModelChoiceField(

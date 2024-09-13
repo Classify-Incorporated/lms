@@ -1,4 +1,3 @@
-<!-- updateModule.html -->
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
@@ -6,10 +5,48 @@
 {% endblock %}
 {% block content %}
   <h1 class="h3 mb-4 text-gray-800">Update Lesson</h1>
+
   <form method="post" action="{% url 'updateModule' module.id %}" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+
+    <!-- File name input -->
+    <div class="form-group">
+      <label for="file_name">File name:</label>
+      {{ form.file_name }}
+    </div>
+
+    <!-- Custom file input for file -->
+    <div class="form-group">
+      <label for="file_name">File:</label>
+      {{ form.file }}
+    </div>
+
+    <!-- URL input -->
+    <div class="form-group">
+      <label for="url">Url:</label>
+      {{ form.url }}
+    </div>
+
+    <!-- Term input -->
+    <div class="form-group">
+      <label for="term">Term:</label>
+      {{ form.term }}
+    </div>
+
+    <!-- Select multiple users -->
+    <div class="form-group">
+      <label for="display_lesson_for_selected_users">Display lesson for selected users:</label>
+      {{ form.display_lesson_for_selected_users }}
+    </div>
+
+    <!-- Checkbox field for allow download -->
+    <div class="form-check">
+      {{ form.allow_download }}
+      <label for="allow_download" class="form-check-label">Allow download:</label>
+    </div>
+
+    <!-- Submit and back buttons -->
+    <button type="submit" class="btn btn-primary mt-3">Save</button>
+    <a href="javascript:history.back()" class="btn btn-secondary mt-3">Back</a>
   </form>
 {% endblock %}

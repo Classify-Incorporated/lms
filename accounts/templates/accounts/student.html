@@ -67,6 +67,8 @@
     document.getElementById('openModalBtn').addEventListener('click', function () {
       document.getElementById('customModal').classList.add('show')
       document.getElementById('customModalBackdrop').classList.add('show')
+    
+      $('.selectpicker').selectpicker('refresh')
     })
     
     // Script to close the add user modal
@@ -83,6 +85,9 @@
           document.getElementById('editModalBody').innerHTML = html
           document.getElementById('editModal').classList.add('show')
           document.getElementById('editModalBackdrop').classList.add('show')
+    
+          // Initialize or refresh selectpicker after loading the modal content
+          $('.selectpicker').selectpicker('refresh')
         })
     }
     

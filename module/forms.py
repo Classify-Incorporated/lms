@@ -10,10 +10,21 @@ class moduleForm(forms.ModelForm):
         exclude = ['subject']
         widgets = {
             'file_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'file': forms.FileInput(attrs={'class': 'form-control'}),
-            'url': forms.URLInput(attrs={'class': 'form-control','placeholder':'Optional'}),
-            'term': forms.Select(attrs={'class': 'form-control'}),
-            'display_lesson_for_selected_users': forms.SelectMultiple(attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box': 'true'}),
+            'file': forms.ClearableFileInput(attrs={
+                'class': 'custom-file-input',  # Use Bootstrap custom file input class
+                'aria-describedby': 'inputGroupFileAddon',  # Add ARIA attributes for accessibility
+            }),
+            'url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
+            'term': forms.Select(attrs={
+                'class': 'form-control selectpicker',
+                'data-live-search': 'true',
+                'data-actions-box': 'true',
+                'data-style': 'btn-outline-secondary',
+                'title': 'Select Term'
+            }),
+            'display_lesson_for_selected_users': forms.SelectMultiple(
+                attrs={'class': 'selectpicker form-control', 'data-live-search': 'true', 'data-actions-box': 'true'}
+            ),
             'allow_download': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
@@ -21,7 +32,7 @@ class moduleForm(forms.ModelForm):
         queryset=get_user_model().objects.filter(profile__role__name__iexact='Student'),
         required=False,
         widget=forms.SelectMultiple(
-            attrs={'class': 'form-control selectpicker', 'data-live-search': 'true', 'data-actions-box': 'true'}
+            attrs={'class': 'selectpicker form-control', 'data-live-search': 'true', 'data-actions-box': 'true', 'data-style': 'btn-outline-secondary'}
         ),
     )
 
@@ -34,3 +45,6 @@ class moduleForm(forms.ModelForm):
             self.fields['term'].queryset = Term.objects.filter(semester=current_semester)
         else:
             self.fields['term'].queryset = Term.objects.none()
+
+        # Remove the default empty option for the term field
+        self.fields['term'].empty_label = None

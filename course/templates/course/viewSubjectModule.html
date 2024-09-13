@@ -187,6 +187,15 @@
           document.getElementById('moduleModalBody').innerHTML = html
           document.getElementById('moduleModal').classList.add('show')
           document.getElementById('moduleModalBackdrop').classList.add('show')
+    
+          // Initialize or refresh selectpicker after loading the modal content
+          $('.selectpicker').selectpicker('refresh')
+    
+          // Add file input label update functionality after the modal content loads
+          document.querySelector('.custom-file-input').addEventListener('change', function (e) {
+            var fileName = e.target.files[0].name
+            e.target.nextElementSibling.innerText = fileName // Update the label with the file name
+          })
         })
     }
     

@@ -1,5 +1,52 @@
 <form method="post" enctype="multipart/form-data" action="{% url 'updateSubject' subject.id %}">
   {% csrf_token %}
-  {{ form.as_p }}
+
+  <!-- Subject Name Field -->
+  <div class="form-group">
+    <label for="{{ form.subject_name.id_for_label }}">Subject Name</label>
+    {{ form.subject_name }}
+  </div>
+
+  <!-- Subject Short Name Field -->
+  <div class="form-group">
+    <label for="{{ form.subject_short_name.id_for_label }}">Subject Short Name</label>
+    {{ form.subject_short_name }}
+  </div>
+
+  <!-- Custom File Input for Subject Photo -->
+  <div class="form-group">
+    <label for="{{ form.subject_photo.id_for_label }}">Subject Photo</label>
+    {{ form.subject_photo }}
+  </div>
+
+  <!-- Assign Teacher Dropdown -->
+  <div class="form-group">
+    <label for="{{ form.assign_teacher.id_for_label }}">Assign Teacher</label>
+    {{ form.assign_teacher }}
+  </div>
+
+  <!-- Submit Button -->
   <button type="submit" class="btn btn-primary">Submit</button>
 </form>
+<script>
+  // Function to dynamically update the label of the custom file input
+  function updateFileLabel() {
+    var input = document.querySelector('.custom-file-input')
+    var fileName = input.getAttribute('data-current-file') // Get the current file name if it's set as an attribute
+  
+    if (fileName) {
+      input.nextElementSibling.innerText = fileName // Display the current file from the database if available
+    }
+  
+    // Add event listener to handle file selection changes
+    input.addEventListener('change', function (e) {
+      var selectedFileName = e.target.files[0].name
+      e.target.nextElementSibling.innerText = selectedFileName // Update the label with the new file name
+    })
+  }
+  
+  // Call the function after the DOM is loaded
+  document.addEventListener('DOMContentLoaded', function () {
+    updateFileLabel()
+  })
+</script>
