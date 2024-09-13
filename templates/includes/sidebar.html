@@ -97,7 +97,6 @@
     </li>
   {% endif %}
   <!-- Settings Section -->
-  {% if user|has_perm:'roles.view_role' %}
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
         <i class="bx bx-cog"></i>
@@ -162,7 +161,7 @@
         </div>
       </div>
     </li>
-  {% endif %}
+
 
   <!-- Footer -->
   <div class="sidebar-footer mt-auto text-center">
