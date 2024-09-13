@@ -114,23 +114,27 @@ def deleteGradeBookComponents(request, pk):
 
 @login_required
 def subGradebook(request):
-
-    selected_semester_id = request.GET.get('semester', None)
-    semesters = Semester.objects.all()
-
-    if selected_semester_id:
-        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
-        subjects_in_semester = SubjectEnrollment.objects.filter(semester=selected_semester).values_list('subject', flat=True)
-        gradebook_components = GradeBookComponents.objects.filter(subject__in=subjects_in_semester)
-
-        subgradebook = SubGradeBook.objects.filter(gradebook_component__in=gradebook_components)
+    today = timezone.now().date()
+    current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
+    
+    if current_semester:
+        # Check if the user is a teacher
+        if request.user.profile.role.name.lower() == 'teacher':
+            # Filter SubGradeBook based on teacher and the current semester
+            subgradebook = SubGradeBook.objects.filter(
+                gradebook__teacher=request.user,
+                gradebook__subject__subjectenrollment__semester=current_semester
+            ).distinct()
+        else:
+            # If the user is not a teacher, filter based on the current semester only
+            subgradebook = SubGradeBook.objects.filter(
+                gradebook__subject__subjectenrollment__semester=current_semester
+            ).distinct()
     else:
-        subgradebook = SubGradeBook.objects.none()
+        subgradebook = SubGradeBook.objects.none()  # No current semester found
 
     return render(request, 'gradebookcomponent/subgradebook/subGradebook.html', {
         'subgradebook': subgradebook,
-        'semesters': semesters,
-        'selected_semester_id': selected_semester_id
     })
 
 
