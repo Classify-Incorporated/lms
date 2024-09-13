@@ -160,5 +160,14 @@
       });
 {% endif %}
     </script>
+    <script>
+      // Function to dynamically update the label of the custom file input
+      document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+          // Get the name of the selected file
+          var fileName = e.target.files[0].name;
+          // Update the label next to the file input with the selected file's name
+          e.target.nextElementSibling.innerText = fileName;
+      });
+    </script>
   </body>
 </html>

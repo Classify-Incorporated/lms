@@ -8,6 +8,9 @@ class subjectForm(forms.ModelForm):
         super(subjectForm, self).__init__(*args, **kwargs)
         teacher_role = Role.objects.get(name__iexact='teacher')
         self.fields['assign_teacher'].queryset = CustomUser.objects.filter(profile__role=teacher_role)
+        
+        # Remove the default empty option for the term field
+        self.fields['assign_teacher'].empty_label = None
 
     class Meta:
         model = Subject
@@ -15,6 +18,15 @@ class subjectForm(forms.ModelForm):
         widgets = {
             'subject_name': forms.TextInput(attrs={'class': 'form-control'}),
             'subject_short_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'subject_photo': forms.FileInput(attrs={'class': 'form-control'}),
-            'assign_teacher': forms.Select(attrs={'class': 'form-control'}),
+            'subject_photo': forms.ClearableFileInput(attrs={
+                'class': 'custom-file-input',
+                'id': 'customFile',
+            }),
+            'assign_teacher': forms.Select(attrs={
+                'class': 'form-control selectpicker',  # Add selectpicker class if needed
+                'data-live-search': 'true',  # Optional: Enable live search in selectpicker
+                'data-actions-box': 'true',  # Optional: Actions box for select all/deselect
+                'title': 'Select Teacher',  # This sets a placeholder-like text without adding an option
+                'data-style': 'btn-outline-secondary',
+            }),
         }

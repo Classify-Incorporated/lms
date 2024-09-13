@@ -1,6 +1,5 @@
-
 <form method="post" action="{% url 'createSubGradeBook' %}">
-    {% csrf_token %}
-    {{sub_gradebook.as_p}}
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
+  {% csrf_token %}
+  {{ sub_gradebook.as_p }}
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
