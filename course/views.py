@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import SubjectEnrollment, Semester, Term, Retake, StudentParticipationScore
+from .models import SubjectEnrollment, Semester, Term, Retake
 from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
@@ -19,7 +19,7 @@ from module.forms import moduleForm
 from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import permission_required
-from django.http import JsonResponse
+from .utils import copy_activities_from_previous_semester
 
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
@@ -543,3 +543,34 @@ def selectParticipation(request, subject_id):
     return render(request, 'course/participation/selectParticipation.html', {'form': form})
 
 
+
+class CopyActivitiesView(View):
+    def get(self, request, subject_id):
+        subject = get_object_or_404(Subject, id=subject_id)
+        semesters = Semester.objects.all()
+        return render(request, 'course/copyActivities.html', {
+            'subject': subject,
+            'semesters': semesters,
+        })
+
+    def post(self, request, subject_id):
+        try:
+            print("POST request received")
+            subject = get_object_or_404(Subject, id=subject_id)
+            from_semester_id = request.POST.get('from_semester')
+            to_semester_id = request.POST.get('to_semester')
+
+            print(f"From semester: {from_semester_id}, To semester: {to_semester_id}")
+
+            if from_semester_id and to_semester_id:
+                result = copy_activities_from_previous_semester(subject_id, from_semester_id, to_semester_id)
+                messages.success(request, result)
+            else:
+                messages.error(request, "Please select both the semesters.")
+
+            return redirect('subjectDetail', pk=subject_id)
+
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            messages.error(request, "An error occurred while processing your request.")
+            return redirect('subjectDetail', pk=subject_id)

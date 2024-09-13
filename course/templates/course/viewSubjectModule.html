@@ -19,6 +19,9 @@
           <div class="col-md-12 justify-content-between">
             <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
             <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
+            <div class="text-right mb-4">
+              <button class="btn btn-info" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</button>
+            </div>
           </div>
         </div>
       {% endif %}
@@ -169,6 +172,16 @@
   </div>
   <div id="moduleModalBackdrop" class="custom-modal-backdrop"></div>
 
+  <!-- Custom Modal for Copying Activities -->
+  <div id="copyActivityModal" class="custom-modal">
+    <div class="custom-modal-header d-flex justify-content-between">
+      <h5 class="text-dark">Copy Activities</h5>
+      <button class="close-btn" id="closeCopyActivityModalBtn"></button>
+    </div>
+    <div class="custom-modal-body" id="copyActivityModalBody"></div>
+  </div>
+  <div id="copyActivityModalBackdrop" class="custom-modal-backdrop"></div>
+
   <script>
     function openParticipationModal(subjectId) {
       fetch(`/participationScoresView/${subjectId}/`)
@@ -199,5 +212,20 @@
       document.getElementById('moduleModal').classList.remove('show')
       document.getElementById('moduleModalBackdrop').classList.remove('show')
     })
+
+    function openCopyActivityModal(subjectId) {
+      fetch(`/subject/${subjectId}/copy_activities/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('copyActivityModalBody').innerHTML = html;
+          document.getElementById('copyActivityModal').classList.add('show');
+          document.getElementById('copyActivityModalBackdrop').classList.add('show');
+        });
+    }
+  
+    document.getElementById('closeCopyActivityModalBtn').addEventListener('click', function () {
+      document.getElementById('copyActivityModal').classList.remove('show');
+      document.getElementById('copyActivityModalBackdrop').classList.remove('show');
+    });
   </script>
 {% endblock %}

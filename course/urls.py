@@ -3,7 +3,7 @@ from .views import (
 
     enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList, previousSemestersView,
     createTerm,termList,updateTerm,subjectFinishedActivities, selectParticipation,
-    enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, 
+    enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, CopyActivitiesView
 )
 
 urlpatterns = [
@@ -33,4 +33,6 @@ urlpatterns = [
 
     # Participation Scores
     path('selectParticipation/<int:subject_id>/', selectParticipation, name='selectParticipation'),
+    # Copy data from previous semester to new semester
+    path('subject/<int:subject_id>/copy_activities/', CopyActivitiesView.as_view(), name='copy_activities'),
 ]

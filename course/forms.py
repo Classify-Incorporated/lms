@@ -1,6 +1,7 @@
 from django import forms
 from .models import Semester, Term
 from subject.models import Subject
+from activity.models import Activity
 
 class semesterForm(forms.ModelForm):
     school_year = forms.ChoiceField(
@@ -58,4 +59,3 @@ class ParticipationForm(forms.Form):
         initial=100,
         widget=forms.NumberInput(attrs={'class': 'form-control'})
     )
-
