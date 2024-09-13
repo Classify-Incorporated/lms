@@ -191,7 +191,6 @@ def termBookList(request):
     # Fetch all semesters for the dropdown menu
     semesters = Semester.objects.all()
 
-    # Filter TermGradeBookComponents based on the user's role and the selected/current semester
     if request.user.profile.role.name.lower() == 'teacher':
         if selected_semester:
             termbook = TermGradeBookComponents.objects.filter(

@@ -46,6 +46,7 @@ class Profile(models.Model):
         ('Female', 'Female'),
         ('Other', 'Other')
     ]
+    
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
     nationality = models.CharField(max_length=255, null=True, blank=True)
 

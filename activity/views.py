@@ -146,15 +146,47 @@ class AddActivityView(View):
 @login_required
 @permission_required('activity.change_activity', raise_exception=True)
 def UpdateActivity(request, activity_id):
-    activity = get_object_or_404(Activity, id=activity_id)  
-    if request.method == 'POST':  
-        form = ActivityForm(request.POST, instance=activity)  
-        if form.is_valid():  
-            form.save()  
-            return redirect('activity_detail', activity_id=activity.id)  
+    activity = get_object_or_404(Activity, id=activity_id)
+    subject = activity.subject
+
+    if request.method == 'POST':
+        form = ActivityForm(request.POST, request.FILES, instance=activity)
+        if form.is_valid():
+            form.save()
+            # After saving the form, we want to create/update student questions.
+            # Check if start time, end time, or term have been updated
+            if activity.term and activity.start_time and activity.end_time:
+                # Fetch students associated with the subject
+                students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
+
+                # Loop through each student and create/update StudentQuestion
+                for student in students:
+                    # Ensure student activity exists
+                    student_activity, created = StudentActivity.objects.get_or_create(
+                        student=student,
+                        activity=activity
+                    )
+                    
+                    # Loop through each question in the activity
+                    for question in ActivityQuestion.objects.filter(activity=activity):
+                        # Create or update the StudentQuestion for this student and question
+                        StudentQuestion.objects.get_or_create(
+                            student=student,
+                            activity_question=question,
+                            activity=activity
+                        )
+                        
+            messages.success(request, 'Activity updated successfully!')
+            return redirect('activityList', subject_id=subject.id)
+        else:
+            messages.error(request, 'There was an error updating the activity. Please try again.')
     else:
-        form = ActivityForm(instance=activity)  
-    return render(request, 'activity/activities/updateActivity.html', {'form': form, 'activity': activity}) 
+        form = ActivityForm(instance=activity)
+
+    return render(request, 'activity/activities/updateActivity.html', {
+        'form': form,
+        'activity': activity
+    })
     
 
 # Add quiz type
@@ -701,12 +733,14 @@ def activityList(request, subject_id):
     # Get the current semester based on the current date
     current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
 
-    # If a current semester is found, filter activities by the terms related to the current semester
-    if current_semester:
-        activities = Activity.objects.filter(subject=subject, term__semester=current_semester)
-    else:
-        # If no current semester is found, show all activities for the subject
-        activities = Activity.objects.filter(subject=subject)
+    # Get activities with a term that belongs to the current semester
+    activities_with_term = Activity.objects.filter(subject=subject, term__semester=current_semester)
+
+    # Get activities that do not have any term (copied activities)
+    activities_without_term = Activity.objects.filter(subject=subject, term__isnull=True)
+
+    # Combine both querysets into a list
+    activities = list(activities_with_term) + list(activities_without_term)
 
     return render(request, 'activity/activities/activityList.html', {
         'subject': subject,
