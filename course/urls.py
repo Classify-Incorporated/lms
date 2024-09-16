@@ -1,8 +1,8 @@
 from django.urls import path
 from .views import (
 
-    enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList, previousSemestersView,
-    createTerm,termList,updateTerm,subjectFinishedActivities, selectParticipation,
+    enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,endSemester,
+    previousSemestersView, createTerm,termList,updateTerm,subjectFinishedActivities, selectParticipation,
     enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, CopyActivitiesView
 )
 
@@ -23,6 +23,7 @@ urlpatterns = [
     path('createSemester/', createSemester, name='createSemester'),
     path('updateSemester/<int:pk>/', updateSemester, name='updateSemester'),
     path('semesterList/', semesterList, name='semesterList'),
+    path('endSemester/<int:pk>/', endSemester, name='endSemester'),
 
     path('previousSemestersView/', previousSemestersView, name='previousSemestersView'),
 

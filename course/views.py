@@ -20,6 +20,7 @@ from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import permission_required
 from .utils import copy_activities_from_previous_semester
+from datetime import date
 
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
@@ -71,11 +72,15 @@ def subjectEnrollmentList(request):
     user = request.user
     selected_semester_id = request.GET.get('semester', None)  # Get the selected semester from the query parameters
     selected_subject_id = request.GET.get('subject', None)  # Get the selected subject from the query parameters
+
+    def get_current_semester():
+        today = date.today()
+        return Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
     
     if selected_semester_id:
         selected_semester = get_object_or_404(Semester, id=selected_semester_id)
     else:
-        selected_semester = None
+        selected_semester = get_current_semester() if selected_semester_id is None else None 
 
     if user.profile.role.name.lower() == 'teacher':
         enrollments = SubjectEnrollment.objects.select_related('subject', 'semester', 'student').filter(subject__assign_teacher=user)
@@ -423,6 +428,15 @@ def updateSemester(request, pk):
     return render(request, 'course/semester/updateSemester.html', {
         'form': form, 'semester': semester
     })
+
+@login_required
+def endSemester(request, pk):
+    semester = get_object_or_404(Semester, pk=pk)
+    semester.end_semester = True
+    semester.save()
+    messages.success(request, 'Semester ended successfully!')
+    return redirect('semesterList')
+
 
 @login_required
 def previousSemestersView(request):

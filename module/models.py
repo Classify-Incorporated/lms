@@ -23,6 +23,8 @@ class Module(models.Model):
     term = models.ForeignKey(Term, on_delete=models.SET_NULL, null=True, blank=True) 
     display_lesson_for_selected_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='modules_visible') 
     allow_download = models.BooleanField(default=False)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
 
 
     def __str__(self):
