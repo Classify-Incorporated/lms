@@ -18,15 +18,17 @@
   <div class="row">
     <!-- Number of Active Students (Monthly) Card Example -->
     <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card shadow h-100 py-2">
         <div class="card-body">
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
-              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Number Of Students Enrolled</div>
+              <div class="text-sm font-weight-bold text-uppercase text-gray-700 mb-1">Students Enrolled</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_users_count }}</div>
             </div>
             <div class="col-auto">
-              <i class="fas fa-user-check fa-2x text-gray-300"></i>
+              <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #6a86e0, #4369d0);">
+                <i class="fas fa-user-check text-white"></i>
+              </div>
             </div>
           </div>
         </div>
@@ -35,15 +37,17 @@
 
     <!-- Courses Completed (Annual) Card Example -->
     <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-success shadow h-100 py-2">
+      <div class="card shadow h-100 py-2">
         <div class="card-body">
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
-              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Number Of Subjects For This Semester</div>
+              <div class="text-sm font-weight-bold text-uppercase text-gray-700 mb-1">Subjects For This Semester</div>
               <div class="h5 mb-0 font-weight-bold text-gray-800">{{ subject_count }}</div>
             </div>
             <div class="col-auto">
-              <i class="fas fa-book fa-2x text-gray-300"></i>
+              <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #6a86e0, #4369d0);">
+                <i class="fas fa-book text-white"></i>
+              </div>
             </div>
           </div>
         </div>
@@ -53,15 +57,17 @@
     <!-- Failing Students Count -->
     <div class="col-xl-3 col-md-6 mb-4">
       <a href="{% url 'failingStudentsPerSubject' %}" style="text-decoration: none;">
-        <div class="card border-left-danger shadow h-100 py-2">
+        <div class="card shadow h-100 py-2">
           <div class="card-body">
             <div class="row no-gutters align-items-center">
               <div class="col mr-2">
-                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Failing Students</div>
+                <div class="text-sm font-weight-bold text-uppercase text-gray-700 mb-1">Failing Students</div>
                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ failing_students_count }}</div>
               </div>
               <div class="col-auto">
-                <i class="fas fa-user-times fa-2x text-gray-300"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #6a86e0, #4369d0);">
+                  <i class="fas fa-user-times text-white"></i>
+                </div>
               </div>
             </div>
           </div>
@@ -72,15 +78,17 @@
     <!-- Excelling Students Count -->
     <div class="col-xl-3 col-md-6 mb-4">
       <a href="{% url 'excellingStudentsPerSubject' %}" style="text-decoration: none;">
-        <div class="card border-left-success shadow h-100 py-2">
+        <div class="card shadow h-100 py-2">
           <div class="card-body">
             <div class="row no-gutters align-items-center">
               <div class="col mr-2">
-                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Excelling Students</div>
+                <div class="text-sm font-weight-bold text-uppercase text-gray-700 mb-1">Excelling Students</div>
                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ excelling_students_count }}</div>
               </div>
               <div class="col-auto">
-                <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #6a86e0, #4369d0);">
+                  <i class="fas fa-user-check text-white"></i>
+                </div>
               </div>
             </div>
           </div>
@@ -91,11 +99,12 @@
 
   <div class="row">
     <div class="col-xl-8 col-lg-7">
-      <div class="card shadow mb-4" style="overflow: hidden;">
+      <div class="card shadow mb-4" style="overflow: hidden; border-radius: 15px;">
+        <!-- Added border-radius to the card -->
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-          <h6 class="m-0 font-weight-bold text-primary">Campus News</h6>
+          <h6 class="m-0 text-gray-800">Campus News</h6>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-0 m-3">
           <div id="newsCarousel" class="carousel slide" data-ride="carousel">
             <div class="carousel-inner">
               {% for article in articles %}
@@ -104,23 +113,24 @@
                     <div class="row no-gutters">
                       <div class="col-md-12 position-relative">
                         {% if article.image_url %}
-                          <img src="{{ article.image_url }}" class="d-block w-100" alt="Post Image" style="height: 380px; object-fit: cover; opacity: 0.9; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);" />
+                          <img src="{{ article.image_url }}" class="d-block w-100" alt="Post Image" style="height: 348px; object-fit: cover; opacity: 0.9; border-radius: 10px;" /> <!-- Added border-radius to the image -->
                         {% else %}
-                          <img src="{% static 'images/gsu_logo.png' %}" class="d-block w-100" alt="Default Image" style="height: 380px; object-fit: cover; opacity: 0.9; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);" />
+                          <img src="{% static 'images/gsu_logo.png' %}" class="d-block w-100" alt="Default Image" style="height: 380px; object-fit: cover; opacity: 0.9; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); border-radius: 5px;" /> <!-- Added border-radius to the default image -->
                         {% endif %}
 
                         <!-- Gradient overlay -->
-                        <div style="position: absolute; bottom: 0; width: 100%; height: 220px; background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));"></div>
+                        <div style="position: absolute; bottom: 0; width: 100%; height: 220px; background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0)); border-radius: 0 0 15px 15px;"></div> <!-- Added border-radius to the gradient overlay -->
 
                         <!-- Caption adjusted for responsiveness -->
-                        <div class="carousel-caption d-block text-white p-3" style="border-radius: 0 0 10px 10px;">
+                        <div class="carousel-caption d-block text-white p-3" style="border-radius: 0 0 15px 15px;">
+                          <!-- Added border-radius to the caption -->
                           <div class="d-flex align-items-center mb-2">
                             {% if article.profile_picture_url %}
                               <img src="{{ article.profile_picture_url }}" alt="Profile Picture" class="img-fluid" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;" />
                             {% endif %}
                             <div>
                               <small class="font-weight-bold" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 1.9);">{{ article.posted_by }}</small>
-                              <small class="text-muted d-none d-sm-inline">&bull; {{ article.created_time }}</small> <!-- Hidden on extra small screens -->
+                              <small class="text-muted d-none d-sm-inline">&bull; {{ article.created_time }}</small>
                             </div>
                           </div>
                           <h4 class="font-weight-bold" style="font-size: 1.2rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 1.9);">{{ article.message }}</h4>
@@ -153,7 +163,7 @@
       <div class="card shadow mb-4">
         <!-- Card Header - Dropdown -->
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-          <h6 class="m-0 font-weight-bold text-primary">Enrolled Student by Subject</h6>
+          <h6 class="m-0 text-gray-800">Enrolled Student by Subject</h6>
           <div class="dropdown no-arrow">
             <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i></a>
             <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
@@ -187,7 +197,7 @@
       <!-- Projects Card Example -->
       <div class="card shadow mb-4">
         <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">Learning Projects</h6>
+          <h6 class="m-0 text-gray-800">Learning Projects</h6>
         </div>
         <div class="card-body" style="height: 350px;">
           <h4 class="small font-weight-bold">Course Development <span class="float-right">20%</span></h4>
@@ -218,7 +228,7 @@
     <div class="col-lg-6 mb-4">
       <div class="card shadow mb-4">
         <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">Active Students in the Last 7 Days</h6>
+          <h6 class="m-0 text-gray-800">Active Students in the Last 7 Days</h6>
         </div>
         <div class="card-body" style="height: 350px;">
           <div class="chart-bar">
