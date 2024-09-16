@@ -9,8 +9,6 @@
     </div>
     <div class="sidebar-brand-text mx-2">Guimaras State University</div>
   </a>
-  <!-- Divider -->
-  <hr class="sidebar-divider my-0" />
 
   <!-- Nav Item - Dashboard -->
   <li class="nav-item mt-2 {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
@@ -97,71 +95,70 @@
     </li>
   {% endif %}
   <!-- Settings Section -->
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-        <i class="bx bx-cog"></i>
-        <span>Settings</span>
-      </a>
-      <div id="collapseOne" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          {% if user|has_perm:'roles.view_role' %}
-            <a class="collapse-item" href="{% url 'roleList' %}">
-              <i class="bx bx-user-check"></i>
-              <span>Role</span>
-            </a>
-          {% endif %}
-          {% if user|has_perm:'course.view_semester' %}
-            <a class="collapse-item" href="{% url 'activityTypeList' %}">
-              <i class="bx bx-bar-chart-alt-2"></i>
-              <span>Activity Type</span>
-            </a>
-          {% endif %}
-          {% if user|has_perm:'course.view_semester' %}
-            <a class="collapse-item" href="{% url 'semesterList' %}">
-              <i class="bx bx-clipboard"></i>
-              <span>Semester</span>
-            </a>
-          {% endif %}
-          {% if user|has_perm:'subject.view_subject' %}
-            <a class="collapse-item" href="{% url 'viewGradeBookComponents' %}">
-              <i class="bx bx-chart"></i>
-              <span>Subject Percentage</span>
-            </a>
-          {% endif %}
-          {% if user|has_perm:'subject.view_subject' %}
-            <a class="collapse-item" href="{% url 'subGradebook' %}">
-              <i class="bx bx-chart"></i>
-              <span>Subject Sub Percentage</span>
-            </a>
-          {% endif %}
-          {% if user|has_perm:'course.view_term' %}
-            <a class="collapse-item" href="{% url 'termList' %}">
-              <i class="bx bx-calendar-event"></i>
-              <span>Term</span>
-            </a>
-          {% endif %}
-          {% if user|has_perm:'subject.view_subject' %}
-            <a class="collapse-item" href="{% url 'termBookList' %}">
-              <i class="bx bx-chart"></i>
-              <span>Term Percentage</span>
-            </a>
-          {% endif %}
-          {% if user|has_perm:'course.view_semester' %}
-            <a class="collapse-item" href="{% url 'student' %}">
-              <i class="bx bx-group"></i>
-              <span>Student List</span>
-            </a>
-          {% endif %}
-          {% if user|has_perm:'course.view_semester' %}
-            <a class="collapse-item" href="{% url 'staff_list' %}">
-              <i class="bx bx-user"></i>
-              <span>Staff List</span>
-            </a>
-          {% endif %}
-        </div>
+  <li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+      <i class="bx bx-cog"></i>
+      <span>Settings</span>
+    </a>
+    <div id="collapseOne" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+      <div class="bg-white py-2 collapse-inner rounded">
+        {% if user|has_perm:'roles.view_role' %}
+          <a class="collapse-item" href="{% url 'roleList' %}">
+            <i class="bx bx-user-check"></i>
+            <span>Role</span>
+          </a>
+        {% endif %}
+        {% if user|has_perm:'course.view_semester' %}
+          <a class="collapse-item" href="{% url 'activityTypeList' %}">
+            <i class="bx bx-bar-chart-alt-2"></i>
+            <span>Activity Type</span>
+          </a>
+        {% endif %}
+        {% if user|has_perm:'course.view_semester' %}
+          <a class="collapse-item" href="{% url 'semesterList' %}">
+            <i class="bx bx-clipboard"></i>
+            <span>Semester</span>
+          </a>
+        {% endif %}
+        {% if user|has_perm:'subject.view_subject' %}
+          <a class="collapse-item" href="{% url 'viewGradeBookComponents' %}">
+            <i class="bx bx-chart"></i>
+            <span>Subject Percentage</span>
+          </a>
+        {% endif %}
+        {% if user|has_perm:'subject.view_subject' %}
+          <a class="collapse-item" href="{% url 'subGradebook' %}">
+            <i class="bx bx-chart"></i>
+            <span>Subject Sub Percentage</span>
+          </a>
+        {% endif %}
+        {% if user|has_perm:'course.view_term' %}
+          <a class="collapse-item" href="{% url 'termList' %}">
+            <i class="bx bx-calendar-event"></i>
+            <span>Term</span>
+          </a>
+        {% endif %}
+        {% if user|has_perm:'subject.view_subject' %}
+          <a class="collapse-item" href="{% url 'termBookList' %}">
+            <i class="bx bx-chart"></i>
+            <span>Term Percentage</span>
+          </a>
+        {% endif %}
+        {% if user|has_perm:'course.view_semester' %}
+          <a class="collapse-item" href="{% url 'student' %}">
+            <i class="bx bx-group"></i>
+            <span>Student List</span>
+          </a>
+        {% endif %}
+        {% if user|has_perm:'course.view_semester' %}
+          <a class="collapse-item" href="{% url 'staff_list' %}">
+            <i class="bx bx-user"></i>
+            <span>Staff List</span>
+          </a>
+        {% endif %}
       </div>
-    </li>
-
+    </div>
+  </li>
 
   <!-- Footer -->
   <div class="sidebar-footer mt-auto text-center">

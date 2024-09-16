@@ -1,5 +1,5 @@
 .custom-sidebar {
-  background-color: #282A42; /* Sidebar background color */
+  background-color: #2A2F42; /* Sidebar background color */
   width: 300px !important; /* Compact sidebar width */
 }
 
@@ -12,11 +12,11 @@
 
 
 .custom-sidebar .sidebar-divider {
-  border-color: #55B041; /* Divider color */
+  border-color: #C1C2D7; /* Divider color */
 }
 
 .custom-sidebar .sidebar-brand-text {
-  color: #C1C2D7; /* Brand text color */
+  color: #FFFFFF; /* Brand text color */
   font-weight: bolder;
 }
 

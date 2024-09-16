@@ -19,9 +19,7 @@
           <div class="col-md-12 justify-content-between">
             <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
             <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
-            <div class="text-right mb-4">
-              <button class="btn btn-info" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</button>
-            </div>
+            <a class="btn btn-info" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
           </div>
         </div>
       {% endif %}
@@ -48,7 +46,7 @@
 
         <!-- Upcoming Activities -->
         <div class="card shadow-sm mb-4">
-          <div class="card-header bg-info text-white">Upcoming Activities</div>
+          <div class="card-header bg-primary text-white">Upcoming Activities</div>
           <ul class="list-group list-group-flush">
             {% for activity in upcoming_activities %}
               <li class="list-group-item">
@@ -61,7 +59,7 @@
         {% if is_teacher %}
           <!-- Activities to be Graded -->
           <div class="card shadow-sm mb-4">
-            <div class="card-header bg-warning text-white">Activities to be Graded</div>
+            <div class="card-header bg-primary text-white">Activities to be Graded</div>
             <ul class="list-group list-group-flush">
               {% for activity, count in activities_with_grading_needed %}
                 <li class="list-group-item">
@@ -74,7 +72,7 @@
 
         <!-- Finished Activities -->
         <div class="card shadow-sm mb-4">
-          <div class="card-header bg-secondary text-white">Finished Activities</div>
+          <div class="card-header bg-primary text-white">Finished Activities</div>
           <ul class="list-group list-group-flush">
             {% for activity in finished_activities|slice:':2' %}
               <li class="list-group-item">
@@ -221,20 +219,20 @@
       document.getElementById('moduleModal').classList.remove('show')
       document.getElementById('moduleModalBackdrop').classList.remove('show')
     })
-
+    
     function openCopyActivityModal(subjectId) {
       fetch(`/subject/${subjectId}/copy_activities/`)
         .then((response) => response.text())
         .then((html) => {
-          document.getElementById('copyActivityModalBody').innerHTML = html;
-          document.getElementById('copyActivityModal').classList.add('show');
-          document.getElementById('copyActivityModalBackdrop').classList.add('show');
-        });
+          document.getElementById('copyActivityModalBody').innerHTML = html
+          document.getElementById('copyActivityModal').classList.add('show')
+          document.getElementById('copyActivityModalBackdrop').classList.add('show')
+        })
     }
-  
+    
     document.getElementById('closeCopyActivityModalBtn').addEventListener('click', function () {
-      document.getElementById('copyActivityModal').classList.remove('show');
-      document.getElementById('copyActivityModalBackdrop').classList.remove('show');
-    });
+      document.getElementById('copyActivityModal').classList.remove('show')
+      document.getElementById('copyActivityModalBackdrop').classList.remove('show')
+    })
   </script>
 {% endblock %}

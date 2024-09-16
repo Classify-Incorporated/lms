@@ -6,8 +6,13 @@
 {% block content %}
   <h1 class="h3 mb-4 text-gray-800">Calendar</h1>
 
-  <!-- Calendar container -->
-  <div id="calendar"></div>
+  <!-- Calendar card container -->
+  <div class="card">
+    <div class="card-body">
+      <!-- Calendar container inside the card -->
+      <div id="calendar"></div>
+    </div>
+  </div>
 
   <style>
     #calendar {
@@ -45,44 +50,44 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      var calendarEl = document.getElementById('calendar');
-
+      var calendarEl = document.getElementById('calendar')
+    
       fetch('/api/activities/')
         .then((response) => response.json())
         .then((events) => {
-          console.log('Events data:', events);
-
-          const now = new Date();
-
+          console.log('Events data:', events)
+    
+          const now = new Date()
+    
           events = events.map(function (event) {
-            const start = new Date(event.start);
-            const end = event.end ? new Date(event.end) : null;
-
+            const start = new Date(event.start)
+            const end = event.end ? new Date(event.end) : null
+    
             if (end && now > end) {
-              event.classNames = ['fc-event-finished'];
-              event.clickable = false;
+              event.classNames = ['fc-event-finished']
+              event.clickable = false
             } else if (start > now) {
-              event.classNames = ['fc-event-upcoming'];
-              event.clickable = false;
+              event.classNames = ['fc-event-upcoming']
+              event.clickable = false
             } else if (start <= now && (!end || now <= end)) {
               if (event.answered) {
-                event.classNames = ['fc-event-answered']; // Apply secondary color if answered
-                event.clickable = false; // Answered events are not clickable
+                event.classNames = ['fc-event-answered'] // Apply secondary color if answered
+                event.clickable = false // Answered events are not clickable
               } else {
-                event.classNames = ['fc-event-ongoing'];
-                event.clickable = true; // Ongoing events are clickable
-                event.url = `/display_question/${event.id}/`; // Set the URL for ongoing events
+                event.classNames = ['fc-event-ongoing']
+                event.clickable = true // Ongoing events are clickable
+                event.url = `/display_question/${event.id}/` // Set the URL for ongoing events
               }
             } else if (end && now > end) {
-              event.classNames = ['fc-event-missed'];
-              event.clickable = false;
+              event.classNames = ['fc-event-missed']
+              event.clickable = false
             }
-
-            event.allDay = event.allDay === true;
-
-            return event;
-          });
-
+    
+            event.allDay = event.allDay === true
+    
+            return event
+          })
+    
           var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             headerToolbar: {
@@ -100,31 +105,31 @@
             eventClick: function (info) {
               if (info.event.extendedProps.clickable) {
                 if (info.event.url) {
-                  window.location.href = info.event.url;
+                  window.location.href = info.event.url
                 }
               } else {
-                info.jsEvent.preventDefault(); // Prevent any action for non-clickable events
+                info.jsEvent.preventDefault() // Prevent any action for non-clickable events
               }
             },
             eventContent: function (arg) {
-              let timeText = '';
+              let timeText = ''
               if (arg.event.allDay) {
-                timeText = 'All day';
+                timeText = 'All day'
               } else if (arg.event.start && arg.event.end) {
-                timeText = arg.timeText;
+                timeText = arg.timeText
               } else {
-                timeText = arg.timeText.split(' - ')[0];
+                timeText = arg.timeText.split(' - ')[0]
               }
-
+    
               return {
                 html: `<div>${timeText} ${arg.event.title}</div>`
-              };
+              }
             }
-          });
-
-          calendar.render();
+          })
+    
+          calendar.render()
         })
-        .catch((error) => console.error('Error fetching events:', error));
-    });
+        .catch((error) => console.error('Error fetching events:', error))
+    })
   </script>
 {% endblock %}

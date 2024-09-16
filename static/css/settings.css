@@ -116,6 +116,7 @@
 .dark-mode h5,
 .dark-mode h6,
 .dark-mode .text-gray-800,
+.dark-mode .text-gray-700,
 .dark-mode .text-gray-600,
 .dark-mode .text-gray-500,
 .dark-mode .text-gray-400 {
@@ -249,6 +250,58 @@ body, p, .list-group-item, .alert {
     --light-text: #ECF0F1;         /* Soft light gray for contrast */
 }
 
+/* Dark Mode Background Colors (Primary, Success, Warning, etc.) */
+.dark-mode .bg-primary {
+    background-color: var(--primary) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-success {
+    background-color: var(--success) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-warning {
+    background-color: var(--warning) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-danger {
+    background-color: var(--danger) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-info {
+    background-color: var(--info) !important;
+    color: var(--primary-text) !important;
+}
+
+/* Hover Effects for Background Colors in Dark Mode */
+.dark-mode .bg-primary:hover {
+    background-color: var(--primary-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-success:hover {
+    background-color: var(--success-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-warning:hover {
+    background-color: var(--warning-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-danger:hover {
+    background-color: var(--danger-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-info:hover {
+    background-color: var(--info-hover) !important;
+    color: var(--primary-text) !important;
+}
+
 /* Button Styling */
 .btn-primary {
     background-color: var(--primary) !important;
@@ -323,87 +376,30 @@ body, p, .list-group-item, .alert {
     border-color: var(--danger-hover) !important;
 }
 
-/* Small Button Customization */
-.btn-sm.bg-secondary {
-    background-color: var(--secondary) !important;
-    border-color: var(--secondary) !important;
-    color: var(--light-text) !important;
-    font-family: 'Poppins', sans-serif;
-}
-
-.btn-sm.bg-secondary:hover {
-    background-color: var(--secondary-hover) !important;
-    border-color: var(--secondary-hover) !important;
-    color: var(--light-text) !important;
-}
-
-.btn-sm.bg-primary {
-    background-color: var(--primary) !important;
-    border-color: var(--primary) !important;
-    color: var(--light-text) !important;
-    font-family: 'Poppins', sans-serif;
-}
-
-.btn-sm.bg-primary:hover {
-    background-color: var(--primary-hover) !important;
-    border-color: var(--primary-hover) !important;
-    color: var(--light-text) !important;
-}
-
-.btn-sm.bg-info {
-    background-color: var(--info) !important;
-    border-color: var(--info) !important;
-    color: var(--light-text) !important;
-    font-family: 'Poppins', sans-serif;
-}
-
-.btn-sm.bg-info:hover {
-    background-color: var(--info-hover) !important;
-    border-color: var(--info-hover) !important;
-    color: var(--light-text) !important;
-}
-
-/* Link Buttons */
-.btn-link.text-light.bg-primary {
+/* Alerts in Dark Mode */
+.dark-mode .alert-primary {
     background-color: var(--primary) !important;
     color: var(--primary-text) !important;
-    text-decoration: none !important;
 }
 
-.btn-link.text-light.bg-primary:hover {
-    background-color: var(--primary-hover) !important;
-    color: var(--primary-text) !important;
-}
-
-/* Alerts */
-.alert-primary {
-    background-color: var(--primary) !important;
-    color: var(--primary-text) !important;
-    font-family: 'Open Sans', sans-serif;
-}
-
-.alert-success {
+.dark-mode .alert-success {
     background-color: var(--success) !important;
     color: var(--primary-text) !important;
-    font-family: 'Open Sans', sans-serif;
 }
 
-.alert-info {
-    background-color: var(--info) !important;
-    color: var(--primary-text) !important;
-    font-family: 'Open Sans', sans-serif;
-}
-
-.alert-warning {
+.dark-mode .alert-warning {
     background-color: var(--warning) !important;
     color: var(--primary-text) !important;
-    font-family: 'Open Sans', sans-serif;
 }
 
-.alert-danger {
+.dark-mode .alert-danger {
     background-color: var(--danger) !important;
     color: var(--primary-text) !important;
-    font-family: 'Open Sans', sans-serif;
+}
+
+.dark-mode .alert-info {
+    background-color: var(--info) !important;
+    color: var(--primary-text) !important;
 }
 
 /* Dark Mode for List Items */
@@ -474,4 +470,3 @@ body, p, .list-group-item, .alert {
 .text-white-50 {
     color: rgba(255, 255, 255, 0.5) !important;
 }
-
