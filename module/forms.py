@@ -26,6 +26,9 @@ class moduleForm(forms.ModelForm):
                 attrs={'class': 'selectpicker form-control', 'data-live-search': 'true', 'data-actions-box': 'true'}
             ),
             'allow_download': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'start_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'end_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            
         }
 
     display_lesson_for_selected_users = forms.ModelMultipleChoiceField(

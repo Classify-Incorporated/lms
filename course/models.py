@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import CustomUser
 from subject.models import Subject
+from django.utils import timezone
 
 class SubjectEnrollment(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -22,6 +23,8 @@ class Retake(models.Model):
     retake_date = models.DateField(auto_now_add=True)
     reason = models.TextField()
 
+    
+
     def __str__(self):
         return f"Retake of {self.subject_enrollment.subject} by {self.subject_enrollment.student} on {self.retake_date}"
 
@@ -31,6 +34,13 @@ class Semester(models.Model):
     school_year = models.PositiveIntegerField()
     start_date = models.DateField()
     end_date = models.DateField()
+    end_semester = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if self.end_semester and not self.end_date == timezone.now().date():
+            self.end_date = timezone.now().date()
+
+        super(Semester, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.semester_name} ({self.start_date} - {self.end_date}) - {self.school_year}"
