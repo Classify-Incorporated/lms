@@ -28,6 +28,7 @@ class moduleForm(forms.ModelForm):
             'allow_download': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'start_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'end_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             
         }
 

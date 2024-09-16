@@ -25,6 +25,7 @@ class Module(models.Model):
     allow_download = models.BooleanField(default=False)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
 
     def __str__(self):
