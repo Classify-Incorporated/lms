@@ -179,43 +179,32 @@ def deleteSubGradebook(request, id):
 def termBookList(request):
     # Get the current date
     current_date = timezone.now().date()
-
-    # Try to get the current semester based on the current date
     current_semester = Semester.objects.filter(start_date__lte=current_date, end_date__gte=current_date).first()
-
-    # Get the selected semester from query parameters (if any)
-    selected_semester_id = request.GET.get('semester', None)
-
-    # If a specific semester is selected, use it; otherwise, use the current semester
-    if selected_semester_id:
-        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
-    else:
-        selected_semester = current_semester
-
-    # Fetch all semesters for the dropdown menu
     semesters = Semester.objects.all()
 
+    view_all_terms = request.GET.get('view_all_terms')
+
     if request.user.profile.role.name.lower() == 'teacher':
-        if selected_semester:
+        if view_all_terms:
+            termbook = TermGradeBookComponents.objects.all().distinct()
+        else:
             termbook = TermGradeBookComponents.objects.filter(
                 teacher=request.user,
-                subjects__subjectenrollment__semester=selected_semester
+                term__semester=current_semester
             ).distinct()
-        else:
-            termbook = TermGradeBookComponents.objects.filter(teacher=request.user).distinct()
     else:
-        if selected_semester:
-            termbook = TermGradeBookComponents.objects.filter(
-                subjects__subjectenrollment__semester=selected_semester
-            ).distinct()
-        else:
+        if view_all_terms:
             termbook = TermGradeBookComponents.objects.all().distinct()
+        else:
+            termbook = TermGradeBookComponents.objects.filter(
+                term__semester=current_semester
+            ).distinct()
 
     return render(request, 'gradebookcomponent/termbook/TermBook.html', {
         'termbook': termbook,
         'semesters': semesters,
-        'selected_semester_id': selected_semester_id,
         'current_semester': current_semester,
+        'view_all_terms': view_all_terms,
     })
 
 #create TermGradeBook
@@ -420,6 +409,7 @@ def studentTotalScore(request, student_id, subject_id):
         
         student_scores_data = []
         term_has_data = False
+        
 
         # Loop through all non-participation activities
         for activity_type in activity_types:

@@ -45,7 +45,7 @@ class enrollStudentView(View):
             if not created:
                 Retake.objects.create(subject_enrollment=subject_enrollment, reason="Retake due to failure or other reason")
 
-        return redirect('subjectDetail', pk=subject.pk)
+        return redirect('subjectEnrollmentList')
 
 # Enrollled Student
 @login_required
@@ -483,14 +483,27 @@ def previousSemestersView(request):
 @login_required
 @permission_required('course.view_term', raise_exception=True)
 def termList(request):
-    if request.user.is_superuser:
-        terms = Term.objects.all() 
+    current_date = timezone.now().date()
+    current_semester = Semester.objects.filter(start_date__lte=current_date, end_date__gte=current_date).first()
+
+    view_all_terms = request.GET.get('view_all_terms')
+
+    if view_all_terms:
+        terms = Term.objects.all()
+
     else:
-        terms = Term.objects.filter(created_by=request.user)
+        terms = Term.objects.filter(semester=current_semester) 
+
+    # if request.user.is_superuser:
+    #     terms = Term.objects.all() 
+    # else:
+    #     terms = Term.objects.filter(created_by=request.user)
+
     form = termForm()
     return render(request, 'course/term/termList.html', {
         'terms': terms,
         'form': form,
+        'view_all_terms': view_all_terms,
     })
 
 # Create Semester
