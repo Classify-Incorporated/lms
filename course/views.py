@@ -21,6 +21,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import permission_required
 from .utils import copy_activities_from_previous_semester
 from datetime import date
+from collections import defaultdict
 
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
@@ -192,10 +193,7 @@ def subjectDetail(request, pk):
         )
 
         # Adjusted module visibility logic
-        modules = Module.objects.filter(subject=subject, term__isnull=True,
-        start_date__isnull=True,
-        end_date__isnull=True,
-        term__semester=selected_semester)
+        modules = Module.objects.filter(subject=subject, term__semester=selected_semester)
         print(f"Modules found: {modules.count()}")
         visible_modules = []
 
@@ -243,6 +241,15 @@ def subjectDetail(request, pk):
                 activities_with_grading_needed.append((activity, ungraded_items.count()))
                 ungraded_items_count += ungraded_items.count()
 
+    activities_by_module = defaultdict(list)
+    for activity in activities:
+        if activity.module:
+            activities_by_module[activity.module.id].append(activity)
+
+    # Attach activities to each module directly in the context
+    for module in modules:
+        module.activities = activities_by_module[module.id]
+
     form = moduleForm()
 
     return render(request, 'course/viewSubjectModule.html', {
@@ -256,7 +263,7 @@ def subjectDetail(request, pk):
         'is_teacher': is_teacher,
         'ungraded_items_count': ungraded_items_count,
         'selected_semester_id': selected_semester_id,
-        'selected_semester': selected_semester,  # Pass selected semester to template
+        'selected_semester': selected_semester,
         'answered_activity_ids': answered_activity_ids,
         'form': form,
     })

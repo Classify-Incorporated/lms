@@ -104,13 +104,15 @@
                     </div>
                     <!-- Display Activities related to this Lesson -->
                     <ul class="list-group list-group-flush mt-3">
-                      {% for activity in activities_by_module.module.id %}
-                        <li class="list-group-item pl-5">
-                          <a href="{% url 'display_question' activity.id %}?semester={{ selected_semester_id }}">{{ activity.activity_name }}</a>
-                        </li>
-                      {% empty %}
+                      {% if module.activities %}
+                        {% for activity in module.activities %}
+                          <li class="list-group-item pl-5">
+                            <a href="{% url 'display_question' activity.id %}?semester={{ selected_semester.id }}">{{ activity.activity_name }}</a>
+                          </li>
+                        {% endfor %}
+                      {% else %}
                         <li class="list-group-item pl-5 text-muted">No activities for this lesson.</li>
-                      {% endfor %}
+                      {% endif %}
                     </ul>
                   </div>
                 </div>

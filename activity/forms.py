@@ -10,7 +10,7 @@ class ActivityForm(forms.ModelForm):
         widgets = {
             'activity_name': forms.TextInput(attrs={'class': 'form-control'}),
             'activity_type': forms.Select(attrs={'class': 'form-control'}),
-            'subject': forms.Select(attrs={'class': 'form-control'}),
+            'subject': forms.HiddenInput(),
             'term': forms.Select(attrs={'class': 'form-control'}),
             'module': forms.Select(attrs={'class': 'form-control'}),
             'start_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
