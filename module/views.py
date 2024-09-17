@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import moduleForm
+from .forms import moduleForm, CopyLessonForm
 from .models import Module, StudentProgress
 from subject.models import Subject
 from roles.decorators import teacher_or_admin_required
@@ -230,3 +230,85 @@ def download_module(request, module_id):
         response = HttpResponse(f.read(), content_type="application/octet-stream")
         response['Content-Disposition'] = f'attachment; filename="{module.file_name}"'
         return response
+
+def get_current_semester():
+    """Returns the current active semester based on the current date."""
+    now = timezone.now().date()
+    try:
+        current_semester = Semester.objects.get(start_date__lte=now, end_date__gte=now)
+        return current_semester
+    except Semester.DoesNotExist:
+        return None 
+    
+
+@login_required
+def copyLessons(request, subject_id):
+    subject = get_object_or_404(Subject, id=subject_id)
+    current_semester = get_current_semester()
+
+    # Get all modules excluding the current semester
+    previous_modules = Module.objects.filter(subject=subject).exclude(term__semester=current_semester).filter(term__isnull=False)
+    
+    # Create a dictionary to organize modules by semester and term
+    modules_by_semester = {}
+    for module in previous_modules:
+        semester = module.term.semester
+        term = module.term
+        if semester not in modules_by_semester:
+            modules_by_semester[semester] = {}
+        if term not in modules_by_semester[semester]:
+            modules_by_semester[semester][term] = []
+        modules_by_semester[semester][term].append(module)
+
+    # Handle form submission
+    if request.method == 'POST':
+        form = CopyLessonForm(request.POST, subject=subject, current_semester=current_semester)
+        if form.is_valid():
+            selected_modules = form.cleaned_data['selected_modules']
+
+            for module in selected_modules:
+                # Duplicate the module and assign it to the new semester
+                new_module = Module.objects.create(
+                    file_name=module.file_name,
+                    file=module.file,
+                    subject=module.subject,
+                    url=module.url,
+                    description=module.description,
+                    allow_download=module.allow_download,
+                )
+                new_module.display_lesson_for_selected_users.set(module.display_lesson_for_selected_users.all())
+                new_module.save()
+
+            messages.success(request, 'Selected lessons have been copied successfully!')
+            return redirect('subjectDetail', pk=subject.id)
+    else:
+        form = CopyLessonForm(subject=subject, current_semester=current_semester)
+
+    return render(request, 'module/copyLessons.html', {
+        'form': form,
+        'modules_by_semester': modules_by_semester,
+        'subject': subject,
+    })
+
+@login_required
+def check_lesson_exists(request, subject_id):
+    if request.method == 'GET' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        lesson_id = request.GET.get('lesson_id')
+        subject = get_object_or_404(Subject, id=subject_id)
+        current_semester = get_current_semester()
+
+        # Get the lesson
+        module = get_object_or_404(Module, id=lesson_id)
+
+        # Check if the lesson already exists in the current semester
+        exists = Module.objects.filter(
+            file_name=module.file_name,
+            subject=subject,
+            term__semester=current_semester
+        ).exists()
+        print(exists)
+
+        # Return a JSON response
+        return JsonResponse({'exists': exists})
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)

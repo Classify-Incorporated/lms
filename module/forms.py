@@ -42,6 +42,7 @@ class moduleForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         current_semester = kwargs.pop('current_semester', None)
+        subject = kwargs.pop('subject', None)
         super().__init__(*args, **kwargs)
 
         # Filter terms based on the current semester
@@ -52,3 +53,69 @@ class moduleForm(forms.ModelForm):
 
         # Remove the default empty option for the term field
         self.fields['term'].empty_label = None
+
+        self.subject = subject
+
+    def clean(self):
+        cleaned_data = super().clean()
+        term = cleaned_data.get('term')
+        file_name = cleaned_data.get('file_name')
+
+        # Ensure both term and file_name exist
+        if term and file_name:
+            # Check for duplication in the current semester
+            existing_module = Module.objects.filter(
+                subject=self.subject,
+                term__semester=term.semester,  # Ensure it's in the same semester
+                file_name=file_name
+            ).exists()
+
+            if existing_module:
+                raise ValidationError(f"A lesson with the name '{file_name}' already exists in the current semester.")
+
+        return cleaned_data
+
+
+class CopyLessonForm(forms.Form):
+    selected_modules = forms.ModelMultipleChoiceField(
+        queryset=Module.objects.none(),
+        widget=forms.CheckboxSelectMultiple(),
+        required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        subject = kwargs.pop('subject', None)
+        current_semester = kwargs.pop('current_semester', None)
+        super().__init__(*args, **kwargs)
+
+        self.subject = subject
+        self.current_semester = current_semester
+
+        # Filter modules to exclude those from the current semester
+        if subject and current_semester:
+            self.fields['selected_modules'].queryset = Module.objects.filter(
+                subject=subject
+            ).exclude(term__semester=current_semester).filter(term__isnull=False)
+
+    def clean_selected_modules(self):
+        selected_modules = self.cleaned_data.get('selected_modules')
+
+        # Get all modules in the current semester
+        existing_modules_in_current_semester = Module.objects.filter(
+            subject=self.subject,
+            term__semester=self.current_semester
+        ).values_list('file_name', flat=True)
+
+        # Check for duplicate modules
+        duplicate_modules = []
+        for module in selected_modules:
+            if module.file_name in existing_modules_in_current_semester:
+                duplicate_modules.append(module.file_name)
+
+        # If duplicates are found, raise a validation error
+        if duplicate_modules:
+            raise ValidationError(
+                f"The following lessons already exist in the current semester: {', '.join(duplicate_modules)}"
+            )
+
+        return selected_modules
