@@ -3,7 +3,7 @@ from .views import (
 
     enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,endSemester,
     previousSemestersView, createTerm,termList,updateTerm,subjectFinishedActivities, selectParticipation,
-    enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, CopyActivitiesView
+    enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, CopyActivitiesView, termActivitiesGraph
 )
 
 urlpatterns = [
@@ -36,4 +36,6 @@ urlpatterns = [
     path('selectParticipation/<int:subject_id>/', selectParticipation, name='selectParticipation'),
     # Copy data from previous semester to new semester
     path('subject/<int:subject_id>/copy_activities/', CopyActivitiesView.as_view(), name='copy_activities'),
+
+    path('termActivitiesGraph/<int:subject_id>/', termActivitiesGraph, name='termActivitiesGraph'),
 ]

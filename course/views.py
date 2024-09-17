@@ -22,6 +22,7 @@ from django.contrib.auth.decorators import permission_required
 from .utils import copy_activities_from_previous_semester
 from datetime import date
 from collections import defaultdict
+from django.http import JsonResponse
 
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
@@ -268,6 +269,55 @@ def subjectDetail(request, pk):
         'form': form,
     })
 
+@login_required
+def termActivitiesGraph(request, subject_id):
+    now = timezone.now()
+    current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+    if not current_semester:
+        return JsonResponse({"error": "No active semester found."}, status=404)
+
+    # Get the subject based on the provided subject_id
+    subject = Subject.objects.filter(id=subject_id).first()
+    if not subject:
+        return JsonResponse({"error": "Subject not found."}, status=404)
+
+    terms = Term.objects.filter(semester=current_semester)
+
+    activity_data = {}
+    term_colors = ['rgba(75, 192, 192, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(153, 102, 255, 0.2)']
+    border_colors = ['rgba(75, 192, 192, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(153, 102, 255, 1)']
+
+    for i, term in enumerate(terms):
+        # Filter activities by term and subject
+        activities = Activity.objects.filter(term=term, subject=subject)
+
+        # Initialize term data for combined completed and missed counts
+        if term.term_name not in activity_data:
+            activity_data[term.term_name] = {
+                'completed': 0,  # Sum of all completed activities in this term
+                'missed': 0,     # Sum of all missed activities in this term
+                'term_color': term_colors[i % len(term_colors)],  # Cycle through term colors
+                'term_border_color': border_colors[i % len(border_colors)]
+            }
+
+        # Loop through activities and sum completed/missed students
+        for activity in activities:
+            total_students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct().count()
+            completed_students = StudentQuestion.objects.filter(activity_question__activity=activity, status=True).values('student').distinct().count()
+            missed_students = total_students - completed_students
+
+            # Add completed and missed counts to the term's total
+            activity_data[term.term_name]['completed'] += completed_students
+            activity_data[term.term_name]['missed'] += -missed_students  # Missed students stored as negative
+
+    # Prepare the JSON response data, summing per term rather than per activity
+    response_data = {
+        'semester': current_semester.semester_name,
+        'subject': subject.subject_name,  # Include subject information
+        'terms': activity_data  # Aggregated data by term
+    }
+
+    return JsonResponse(response_data)
 
 # get all the finished activities
 @login_required
