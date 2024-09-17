@@ -45,7 +45,7 @@ class enrollStudentView(View):
             if not created:
                 Retake.objects.create(subject_enrollment=subject_enrollment, reason="Retake due to failure or other reason")
 
-        return redirect('subjectDetail', pk=subject.pk)
+        return redirect('subjectEnrollmentList')
 
 # Enrollled Student
 @login_required
@@ -188,18 +188,25 @@ def subjectDetail(request, pk):
         upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now())).exclude(
             id__in=StudentQuestion.objects.filter(
                 is_participation=True
-            ).values_list('activity_id', flat=True)  # Exclude participation activities
+            ).values_list('activity_id', flat=True)  
         )
 
         # Adjusted module visibility logic
-        modules = Module.objects.filter(subject=subject)
+        modules = Module.objects.filter(subject=subject, term__isnull=True,
+        start_date__isnull=True,
+        end_date__isnull=True,
+        term__semester=selected_semester)
+        print(f"Modules found: {modules.count()}")
         visible_modules = []
 
         for module in modules:
             if not module.display_lesson_for_selected_users.exists() or user in module.display_lesson_for_selected_users.all():
                 visible_modules.append(module)
+        print(f"Visible modules count: {len(visible_modules)}")
     else:
-        modules = Module.objects.filter(subject=subject)
+        modules = Module.objects.filter( Q(term__semester=selected_semester) |
+        Q(term__isnull=True, start_date__isnull=True, end_date__isnull=True),
+        subject=subject)
         activities = Activity.objects.filter(subject=subject, term__in=terms)
         finished_activities = activities.filter(
             end_time__lte=timezone.localtime(timezone.now())
@@ -483,14 +490,27 @@ def previousSemestersView(request):
 @login_required
 @permission_required('course.view_term', raise_exception=True)
 def termList(request):
-    if request.user.is_superuser:
-        terms = Term.objects.all() 
+    current_date = timezone.now().date()
+    current_semester = Semester.objects.filter(start_date__lte=current_date, end_date__gte=current_date).first()
+
+    view_all_terms = request.GET.get('view_all_terms')
+
+    if view_all_terms:
+        terms = Term.objects.all()
+
     else:
-        terms = Term.objects.filter(created_by=request.user)
+        terms = Term.objects.filter(semester=current_semester) 
+
+    # if request.user.is_superuser:
+    #     terms = Term.objects.all() 
+    # else:
+    #     terms = Term.objects.filter(created_by=request.user)
+
     form = termForm()
     return render(request, 'course/term/termList.html', {
         'terms': terms,
         'form': form,
+        'view_all_terms': view_all_terms,
     })
 
 # Create Semester
