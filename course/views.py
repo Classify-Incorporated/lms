@@ -188,18 +188,25 @@ def subjectDetail(request, pk):
         upcoming_activities = activities.filter(start_time__gt=timezone.localtime(timezone.now())).exclude(
             id__in=StudentQuestion.objects.filter(
                 is_participation=True
-            ).values_list('activity_id', flat=True)  # Exclude participation activities
+            ).values_list('activity_id', flat=True)  
         )
 
         # Adjusted module visibility logic
-        modules = Module.objects.filter(subject=subject)
+        modules = Module.objects.filter(subject=subject, term__isnull=True,
+        start_date__isnull=True,
+        end_date__isnull=True,
+        term__semester=selected_semester)
+        print(f"Modules found: {modules.count()}")
         visible_modules = []
 
         for module in modules:
             if not module.display_lesson_for_selected_users.exists() or user in module.display_lesson_for_selected_users.all():
                 visible_modules.append(module)
+        print(f"Visible modules count: {len(visible_modules)}")
     else:
-        modules = Module.objects.filter(subject=subject)
+        modules = Module.objects.filter( Q(term__semester=selected_semester) |
+        Q(term__isnull=True, start_date__isnull=True, end_date__isnull=True),
+        subject=subject)
         activities = Activity.objects.filter(subject=subject, term__in=terms)
         finished_activities = activities.filter(
             end_time__lte=timezone.localtime(timezone.now())

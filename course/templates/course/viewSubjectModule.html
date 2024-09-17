@@ -20,6 +20,7 @@
             <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
             <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
             <a class="btn btn-info" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
+            <button class="btn btn-info" onclick="openCopyLessonModal('{{ subject.id }}')">Copy Lessons</button>
           </div>
         </div>
       {% endif %}
@@ -150,6 +151,18 @@
   </div>
   <div id="moduleModalBackdrop" class="custom-modal-backdrop"></div>
 
+
+  <!-- Copy Lessons Modal -->
+    <div id="copyLessonModal" class="custom-modal">
+      <div class="custom-modal-header d-flex justify-content-between">
+        <h5 class="text-dark">Copy Lessons</h5>
+        <button class="close-btn" id="closeCopyLessonModalBtn"></button>
+      </div>
+      <div class="custom-modal-body" id="copyLessonModalBody"></div>
+    </div>
+    <div id="copyLessonModalBackdrop" class="custom-modal-backdrop"></div>
+
+
   <!-- Custom Modal for Copying Activities -->
   <div id="copyActivityModal" class="custom-modal">
     <div class="custom-modal-header d-flex justify-content-between">
@@ -214,6 +227,70 @@
       document.getElementById('copyActivityModal').classList.remove('show')
       document.getElementById('copyActivityModalBackdrop').classList.remove('show')
     })
+
+    // Open Copy Lesson Modal
+    function openCopyLessonModal(subjectId) {
+      fetch(`/subject/${subjectId}/copy_lessons/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('copyLessonModalBody').innerHTML = html
+          document.getElementById('copyLessonModal').classList.add('show')
+          document.getElementById('copyLessonModalBackdrop').classList.add('show')
+
+          initializeLessonCheckboxes(subjectId);
+          
+        })
+    }
+
+    // Close Copy Lesson Modal
+    document.getElementById('closeCopyLessonModalBtn').addEventListener('click', function () {
+      document.getElementById('copyLessonModal').classList.remove('show')
+      document.getElementById('copyLessonModalBackdrop').classList.remove('show')
+    });
+
+    // Function to initialize lesson checkboxes
+    function initializeLessonCheckboxes(subjectId) {
+      document.querySelectorAll('.lesson-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          let lessonId = this.value;
+          
+          // Make AJAX request to check if the lesson exists in the current semester
+          fetch(`/subject/${subjectId}/check_lesson_exists/?lesson_id=${lessonId}`, {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            let warningElement = document.getElementById(`duplicate-warning-${lessonId}`);
+            let listItemElement = document.getElementById(`lesson-item-${lessonId}`);
+            
+            if (data.exists) {
+              // If the lesson already exists, show the warning message and disable the checkbox
+              warningElement.style.display = 'inline';
+              checkbox.disabled = true;
+    
+              // Add a gray-out class to the lesson item
+              listItemElement.style.backgroundColor = '#e0e0e0';  // Light gray background
+              listItemElement.style.cursor = 'not-allowed';  // Show not-allowed cursor
+              listItemElement.style.opacity = '0.6';  // Make the text a bit faded
+            } else {
+              // If the lesson doesn't exist, hide the warning message and enable the checkbox
+              warningElement.style.display = 'none';
+              checkbox.disabled = false;
+    
+              // Remove the gray-out class
+              listItemElement.style.backgroundColor = '';
+              listItemElement.style.cursor = 'pointer';  // Normal cursor
+              listItemElement.style.opacity = '1';  // Reset opacity
+            }
+          })
+          .catch(error => console.error('Error:', error));
+        });
+      });
+    }
+
+
   </script>
 
   <!-- Chart.js Script -->
@@ -265,6 +342,7 @@
     const finishedActivitiesLinks = [{% for activity in finished_activities %}'{% if is_student %}{% url "studentActivityView" activity.id %}{% else %}{% url "teacherActivityView" activity.id %}{% endif %}?semester={{ selected_semester_id }}',{% endfor %}];
     createPieChart('finishedActivitiesChart', finishedActivitiesLabels, finishedActivitiesData, finishedActivitiesLinks);
   </script>
+  
 
   <!-- Custom styles to reduce chart size -->
   <style>
