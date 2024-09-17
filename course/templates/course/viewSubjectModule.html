@@ -21,6 +21,7 @@
             <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
             <a class="btn btn-info" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
             <button class="btn btn-info" onclick="openCopyLessonModal('{{ subject.id }}')">Copy Lessons</button>
+            <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-warning">View Students List</a>           
           </div>
         </div>
       {% endif %}
@@ -31,9 +32,10 @@
       <!-- Ongoing Activities Chart -->
       <div class="col-md-3">
         <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white text-center">Ongoing Activities</div>
+          <div class="card-header gradient-header text-white text-center">Ongoing Activities</div>
           <div class="card-body">
             <canvas id="ongoingActivitiesChart" class="activity-chart"></canvas>
+            <p id="noDataOngoing" class="text-center text-muted" style="display: none;">No ongoing activities</p>
           </div>
         </div>
       </div>
@@ -41,9 +43,10 @@
       <!-- Upcoming Activities Chart -->
       <div class="col-md-3">
         <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white text-center">Upcoming Activities</div>
+          <div class="card-header gradient-header text-white text-center">Upcoming Activities</div>
           <div class="card-body">
             <canvas id="upcomingActivitiesChart" class="activity-chart"></canvas>
+            <p id="noDataUpcoming" class="text-center text-muted" style="display: none;">No upcoming activities</p>
           </div>
         </div>
       </div>
@@ -51,9 +54,10 @@
       <!-- Activities to be Graded Chart -->
       <div class="col-md-3">
         <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white text-center">Activities to be Graded</div>
+          <div class="card-header gradient-header text-white text-center">Activities to be Graded</div>
           <div class="card-body">
             <canvas id="activitiesToBeGradedChart" class="activity-chart"></canvas>
+            <p id="noDataGradingNeeded" class="text-center text-muted" style="display: none;">No activities to be graded</p>
           </div>
         </div>
       </div>
@@ -61,33 +65,20 @@
       <!-- Finished Activities Chart -->
       <div class="col-md-3">
         <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white text-center">Completed Activities</div>
+          <div class="card-header gradient-header text-white text-center">Completed Activities</div>
           <div class="card-body">
             <canvas id="finishedActivitiesChart" class="activity-chart"></canvas>
+            <p id="noDataFinished" class="text-center text-muted" style="display: none;">No completed activities</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Student Roster -->
+    <!-- Lessons (Collapsible with Activities) -->
     <div class="row mb-4">
       <div class="col-md-12">
         <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white">Student Roster</div>
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item text-center">
-              <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-outline-primary">View List</a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lessons (Collapsible) -->
-    <div class="row mb-4">
-      <div class="col-md-12">
-        <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white d-flex justify-content-between">
+          <div class="card-header gradient-header text-white d-flex justify-content-between">
             <span>Lessons</span>
           </div>
           <ul class="list-group list-group-flush">
@@ -98,7 +89,7 @@
                   <span>{{ module.file_name }}</span>
                   <i class="fas fa-chevron-down"></i>
                 </a>
-                <!-- Collapsible Content -->
+                <!-- Collapsible Content with Activities -->
                 <div class="collapse" id="lessonActions{{ module.id }}">
                   <div class="mt-2">
                     <div class="d-flex justify-content-end">
@@ -111,6 +102,16 @@
                         <a href="{% url 'download' module.id %}" class="btn btn-info btn-sm ml-2">Download</a>
                       {% endif %}
                     </div>
+                    <!-- Display Activities related to this Lesson -->
+                    <ul class="list-group list-group-flush mt-3">
+                      {% for activity in activities_by_module.module.id %}
+                        <li class="list-group-item pl-5">
+                          <a href="{% url 'display_question' activity.id %}?semester={{ selected_semester_id }}">{{ activity.activity_name }}</a>
+                        </li>
+                      {% empty %}
+                        <li class="list-group-item pl-5 text-muted">No activities for this lesson.</li>
+                      {% endfor %}
+                    </ul>
                   </div>
                 </div>
               </li>
@@ -129,6 +130,7 @@
       </div>
     </div>
   </div>
+
 
   <!-- Custom Modal for Adding Participation -->
   <div id="participationModal" class="custom-modal">
@@ -296,59 +298,84 @@
   <!-- Chart.js Script -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const createPieChart = (chartId, labels, data, links) => {
+    const createPieChart = (chartId, labels, data, links, noDataId) => {
       const ctx = document.getElementById(chartId).getContext('2d');
-      const chart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
-          }],
-        },
-        options: {
-          onClick: (event, array) => {
-            const index = array[0].index;
-            window.location.href = links[index];
+
+      // Check if there's data to display
+      if (data.length > 0) {
+        const chart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: ['#4A90E2', '#F5A623', '#7ED321', '#BD10E0', '#50E3C2', '#FF69B4'],
+            }],
           },
-          responsive: true,
-          maintainAspectRatio: false, // This ensures the pie charts fit in the card
-        },
-      });
+          options: {
+            onClick: (event, array) => {
+              if (array.length) {
+                const index = array[0].index;
+                window.location.href = links[index];
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        });
+      } else {
+        // If no data, hide canvas and display 'No Data' message
+        document.getElementById(chartId).style.display = 'none';
+        document.getElementById(noDataId).style.display = 'block';
+      }
     };
 
     // Ongoing Activities
     const ongoingActivitiesLabels = [{% for activity in ongoing_activities %}'{{ activity.activity_name }}',{% endfor %}];
-    const ongoingActivitiesData = [{% for activity in ongoing_activities %}1,{% endfor %}]; // Use 1 as placeholder
+    const ongoingActivitiesData = [{% for activity in ongoing_activities %}1,{% endfor %}];
     const ongoingActivitiesLinks = [{% for activity in ongoing_activities %}'{% url "display_question" activity.id %}?semester={{ selected_semester_id }}',{% endfor %}];
-    createPieChart('ongoingActivitiesChart', ongoingActivitiesLabels, ongoingActivitiesData, ongoingActivitiesLinks);
+    createPieChart('ongoingActivitiesChart', ongoingActivitiesLabels, ongoingActivitiesData, ongoingActivitiesLinks, 'noDataOngoing');
 
     // Upcoming Activities
     const upcomingActivitiesLabels = [{% for activity in upcoming_activities %}'{{ activity.activity_name }}',{% endfor %}];
     const upcomingActivitiesData = [{% for activity in upcoming_activities %}1,{% endfor %}];
-    const upcomingActivitiesLinks = [{% for activity in upcoming_activities %}'#',{% endfor %}]; // Replace with actual links
-    createPieChart('upcomingActivitiesChart', upcomingActivitiesLabels, upcomingActivitiesData, upcomingActivitiesLinks);
+    const upcomingActivitiesLinks = [{% for activity in upcoming_activities %}'#',{% endfor %}];
+    createPieChart('upcomingActivitiesChart', upcomingActivitiesLabels, upcomingActivitiesData, upcomingActivitiesLinks, 'noDataUpcoming');
 
     // Activities to be Graded
     const gradingNeededLabels = [{% for activity, count in activities_with_grading_needed %}'{{ activity.activity_name }}',{% endfor %}];
     const gradingNeededData = [{% for activity, count in activities_with_grading_needed %}{{ count }},{% endfor %}];
     const gradingNeededLinks = [{% for activity, count in activities_with_grading_needed %}'{% url "grade_essays" activity.id %}?semester={{ selected_semester_id }}',{% endfor %}];
-    createPieChart('activitiesToBeGradedChart', gradingNeededLabels, gradingNeededData, gradingNeededLinks);
+    createPieChart('activitiesToBeGradedChart', gradingNeededLabels, gradingNeededData, gradingNeededLinks, 'noDataGradingNeeded');
 
     // Finished Activities
     const finishedActivitiesLabels = [{% for activity in finished_activities %}'{{ activity.activity_name }}',{% endfor %}];
     const finishedActivitiesData = [{% for activity in finished_activities %}1,{% endfor %}];
     const finishedActivitiesLinks = [{% for activity in finished_activities %}'{% if is_student %}{% url "studentActivityView" activity.id %}{% else %}{% url "teacherActivityView" activity.id %}{% endif %}?semester={{ selected_semester_id }}',{% endfor %}];
-    createPieChart('finishedActivitiesChart', finishedActivitiesLabels, finishedActivitiesData, finishedActivitiesLinks);
+    createPieChart('finishedActivitiesChart', finishedActivitiesLabels, finishedActivitiesData, finishedActivitiesLinks, 'noDataFinished');
   </script>
   
 
-  <!-- Custom styles to reduce chart size -->
+  <!-- Custom styles -->
   <style>
     .activity-chart {
-      height: 200px; /* Adjust as needed to make charts smaller */
-      width: 200px;
+      height: 100px;
+      width: 100px;
+    }
+
+    /* Gradient Header */
+    .gradient-header {
+      background: linear-gradient(135deg, #4A90E2 0%, #F5A623 100%);
+      font-weight: bold;
+    }
+
+    .card {
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .list-group-item.pl-5 {
+      padding-left: 3rem; /* Indentation for related activities */
     }
   </style>
 {% endblock %}
