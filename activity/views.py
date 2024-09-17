@@ -77,10 +77,12 @@ class AddActivityView(View):
 
         terms = Term.objects.filter(
             semester=current_semester,
-            created_by=request.user,
+            # created_by=request.user,
             start_date__lte=now,
             end_date__gte=now
         )
+        print("Terms found:", terms)
+        
 
         students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
         modules = Module.objects.filter(subject=subject) 
@@ -211,7 +213,11 @@ class AddQuizTypeView(View):
 @method_decorator(login_required, name='dispatch')
 class AddQuestionView(View):
     def get(self, request, activity_id, quiz_type_id):
-        activity = get_object_or_404(Activity, id=activity_id)
+        try:
+            activity = Activity.objects.get(id=activity_id)
+        except Activity.DoesNotExist:
+            messages.error(request, 'Activity not found. Please try again.')
+            return redirect('activity_list')
         quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
 
         if quiz_type.name == 'Participation':

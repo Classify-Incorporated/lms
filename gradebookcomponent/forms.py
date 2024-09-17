@@ -199,17 +199,19 @@ class TermGradeBookComponentsForm(forms.ModelForm):
         model = TermGradeBookComponents
         fields = ['term', 'subjects', 'percentage']
         widgets = {
-            'term': forms.Select(attrs={'class': 'form-control selectpicker',
-            'data-actions-box': 'true',
-            'data-live-search': 'true',  # optional: adds a search box
-            'title': 'Select Term',}),
+            'term': forms.Select(attrs={
+                'class': 'form-control selectpicker',
+                'data-actions-box': 'true',
+                'data-live-search': 'true',  # optional: adds a search box
+                'title': 'Select Term',
+            }),
             'percentage': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super(TermGradeBookComponentsForm, self).__init__(*args, **kwargs)
-        
+
         # Add a placeholder or title to the Select field
         self.fields['term'].empty_label = None
 
@@ -219,19 +221,17 @@ class TermGradeBookComponentsForm(forms.ModelForm):
 
         if user and current_semester:
             if user.is_superuser:
-                # Admin users can see all terms and subjects
+                # Admin users can see all terms and subjects in the current semester
                 self.fields['term'].queryset = Term.objects.filter(semester=current_semester)
                 self.fields['subjects'].queryset = Subject.objects.filter(
                     subjectenrollment__semester=current_semester
                 ).distinct()
             else:
-                # For teachers, only show the terms and subjects assigned to them
-                self.fields['term'].queryset = Term.objects.filter(
-                    semester=current_semester,
-                    semester__subjectenrollment__subject__assign_teacher=user
-                ).distinct()
+                # For teachers, only show terms and subjects assigned to them in the current semester
+                self.fields['term'].queryset = Term.objects.filter(semester=current_semester)
 
                 if self.data.get('term'):
+                    # When a term is selected, filter subjects based on the selected term and teacher
                     try:
                         term_id = int(self.data.get('term'))
                         term = Term.objects.get(id=term_id, semester=current_semester)
@@ -242,7 +242,7 @@ class TermGradeBookComponentsForm(forms.ModelForm):
                     except (ValueError, TypeError, Term.DoesNotExist):
                         self.fields['subjects'].queryset = Subject.objects.none()
                 else:
-                    # Default to showing all subjects assigned to the teacher within the current semester if no term is selected yet
+                    # Default to showing all subjects assigned to the teacher in the current semester if no term is selected
                     self.fields['subjects'].queryset = Subject.objects.filter(
                         subjectenrollment__semester=current_semester,
                         assign_teacher=user
@@ -254,6 +254,7 @@ class TermGradeBookComponentsForm(forms.ModelForm):
         percentage = cleaned_data.get('percentage')
 
         if term and percentage:
+            # Get the total percentage already assigned to this term
             existing_percentage = TermGradeBookComponents.objects.filter(term=term).aggregate(
                 total_percentage=Sum('percentage')
             )['total_percentage'] or 0
