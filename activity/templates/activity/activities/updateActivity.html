@@ -6,9 +6,10 @@
 
 {% block content %}
   <h1>Edit Activity: {{ activity.activity_name }}</h1>
-
+  
   <form method="post">
     {% csrf_token %}
+    <input type="hidden" name="subject" value="{{ activity.subject.id }}">
     <div class="form-group">
       <label for="activity_name">Activity Name:</label>
       <input type="text" id="activity_name" name="activity_name" value="{{ form.activity_name.value }}" class="form-control" required />
@@ -18,13 +19,32 @@
       {{ form.activity_type }}
     </div>
     <div class="form-group">
-      <label for="subject">Subject:</label>
-      {{ form.subject }}
-    </div>
-    <div class="form-group">
       <label for="term">Term:</label>
       {{ form.term }}
     </div>
+    <div class="form-group">
+      <label for="module">Select Module:</label>
+      <select id="module" name="module" class="form-control" required>
+        {% for module in modules %}
+          <option value="{{ module.id }}">{{ module.file_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-check">
+      <input type="checkbox" id="remedial" name="remedial" class="form-check-input" />
+      <label for="remedial">Remedial Activity:</label>
+    </div>
+
+    <div class="form-group" id="remedial_students_field" style="display: none;">
+      <label for="remedial_students">Select Students:</label>
+      <select id="remedial_students" name="remedial_students" class="form-control" multiple>
+        {% for student in students %}
+          <option value="{{ student.id }}">{{ student.get_full_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
     <div class="form-group">
       <label for="start_time">Start Time:</label>
       <input type="datetime-local" id="start_time" name="start_time" value="{{ form.start_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
@@ -36,4 +56,25 @@
     <button type="submit" class="btn btn-primary">Save Changes</button>
     <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
   </form>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var remedialCheckbox = document.getElementById('remedial');
+      var remedialStudentField = document.getElementById('remedial_students_field');
+
+      // Show or hide remedial students field based on checkbox state
+      function toggleRemedialStudents() {
+        if (remedialCheckbox.checked) {
+          remedialStudentField.style.display = 'block';
+        } else {
+          remedialStudentField.style.display = 'none';
+        }
+      }
+
+      // Call the function on page load
+      toggleRemedialStudents();
+
+      // Add event listener to the checkbox to toggle visibility dynamically
+      remedialCheckbox.addEventListener('change', toggleRemedialStudents);
+    });
+  </script>
 {% endblock %}

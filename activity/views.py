@@ -77,7 +77,7 @@ class AddActivityView(View):
 
         terms = Term.objects.filter(
             semester=current_semester,
-            # created_by=request.user,
+            created_by=request.user,
             start_date__lte=now,
             end_date__gte=now
         )
@@ -153,31 +153,42 @@ def UpdateActivity(request, activity_id):
 
     if request.method == 'POST':
         form = ActivityForm(request.POST, request.FILES, instance=activity)
+        remedial = request.POST.get('remedial') == 'on'  # Get remedial checkbox value
+        remedial_students_ids = request.POST.getlist('remedial_students', None)  # Get selected students for remedial
+        
         if form.is_valid():
             form.save()
-            # After saving the form, we want to create/update student questions.
-            # Check if start time, end time, or term have been updated
-            if activity.term and activity.start_time and activity.end_time:
-                # Fetch students associated with the subject
-                students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
 
-                # Loop through each student and create/update StudentQuestion
+            # Handle remedial students update
+            if remedial and remedial_students_ids:
+                remedial_students = CustomUser.objects.filter(id__in=remedial_students_ids)
+                activity.remedial_students.set(remedial_students)
+            else:
+                # Clear remedial students if the remedial checkbox is not checked
+                activity.remedial_students.clear()
+
+            # Ensure the activity is updated for all students or specific remedial students
+            if remedial and remedial_students_ids:
+                for student_id in remedial_students_ids:
+                    student = CustomUser.objects.get(id=student_id)
+                    StudentActivity.objects.get_or_create(student=student, activity=activity, term=activity.term)
+            else:
+                students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
                 for student in students:
-                    # Ensure student activity exists
-                    student_activity, created = StudentActivity.objects.get_or_create(
-                        student=student,
-                        activity=activity
-                    )
-                    
-                    # Loop through each question in the activity
+                    StudentActivity.objects.get_or_create(student=student, activity=activity, term=activity.term)
+
+            # Ensure StudentQuestion updates for each student and question in the activity
+            if activity.term and activity.start_time and activity.end_time:
+                students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
+                for student in students:
+                    student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
                     for question in ActivityQuestion.objects.filter(activity=activity):
-                        # Create or update the StudentQuestion for this student and question
                         StudentQuestion.objects.get_or_create(
                             student=student,
                             activity_question=question,
                             activity=activity
                         )
-                        
+
             messages.success(request, 'Activity updated successfully!')
             return redirect('activityList', subject_id=subject.id)
         else:
@@ -187,9 +198,10 @@ def UpdateActivity(request, activity_id):
 
     return render(request, 'activity/activities/updateActivity.html', {
         'form': form,
-        'activity': activity
+        'activity': activity,
+        'modules': Module.objects.filter(subject=subject),
+        'students': CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct(),
     })
-    
 
 # Add quiz type
 @method_decorator(login_required, name='dispatch')
