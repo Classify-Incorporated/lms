@@ -312,3 +312,22 @@ def check_lesson_exists(request, subject_id):
         return JsonResponse({'exists': exists})
     
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def update_module_order(request):
+    if request.method == 'POST':
+        order_data = request.POST.getlist('order[]')  # Get the order array
+        
+        # Update the order of each module
+        for index, module_id in enumerate(order_data):
+            try:
+                module = Module.objects.get(id=module_id)
+                module.order = index  # Set the order field
+                module.save()  # Save the updated module order
+            except Module.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': f'Module with id {module_id} not found'}, status=404)
+
+        return JsonResponse({'status': 'success'})
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)

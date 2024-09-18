@@ -84,7 +84,7 @@
             <span>Lessons &nbsp; <sup>(Sort To Change Orders)</sup></span>
           </div>
           <ul class="list-group list-group-flush" id="lesson-list">
-            {% for module in modules|dictsortreversed:'id' %}
+            {% for module in modules|dictsortreversed:'order' %}
               <li class="list-group-item lesson-item" data-id="{{ module.id }}">
                 <!-- Collapsible Lesson with improved design -->
                 <a class="d-flex justify-content-between align-items-center" data-toggle="collapse" href="#lessonActions{{ module.id }}" role="button" aria-expanded="false" aria-controls="lessonActions{{ module.id }}">
@@ -356,7 +356,7 @@
         const completedData = terms.map(term => data.terms[term].completed);  // Get completed counts for each term
         const missedData = terms.map(term => data.terms[term].missed);  // Get missed counts for each term (negative)
 
-        console.log(termIds);
+
 
         // Create the stacked line chart using the processed data
         createStackedLineChart('finishedActivitiesChart', terms, termIds,  completedData, missedData);
@@ -431,25 +431,17 @@
               }
             },
             onClick: function(evt, elements) {
-              console.log('Clicked elements:', elements);  // Check if elements are captured
+              console.log('Clicked elements:', elements); 
             
               if (elements.length > 0) {
-                const chartElement = elements[0];  // Get the clicked element
+                const chartElement = elements[0];  
+
+                const index = chartElement._index;  
+                const datasetIndex = chartElement._datasetIndex;  
             
-                // Access _index and _datasetIndex directly from chartElement
-                const index = chartElement._index;  // Use _index for the data point index
-                const datasetIndex = chartElement._datasetIndex;  // Use _datasetIndex for dataset (0 = completed, 1 = missed)
-            
-                console.log('Term Index:', index);  // Log the index of the clicked element
-                console.log('Dataset Index:', datasetIndex);  // Log the dataset (completed or missed)
-            
-                const termId = termIds[index];  // Use the index to fetch the correct term ID
-            
-                console.log('Term ID:', termId);  // Log the term ID
-            
+                const termId = termIds[index]; 
                 let activityType = datasetIndex === 0 ? 'completed' : 'missed';
-            
-                // Redirect to the activities page for the selected term and activity type
+          
                 if (termId) {
                   window.location.href = `/displayActivitiesForTerm/${termId}/${activityType}/${subjectId}/`;
                 } else {
