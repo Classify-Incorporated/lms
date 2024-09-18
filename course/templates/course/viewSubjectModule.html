@@ -12,21 +12,6 @@
       </div>
     </div>
 
-    {% if is_teacher %}
-      {% now 'Y-m-d' as today_date %}
-      {% if selected_semester.start_date|date:'Y-m-d' <= today_date and selected_semester.end_date|date:'Y-m-d' >= today_date %}
-        <div class="row justify-content-center mb-4">
-          <div class="col-md-12 justify-content-between">
-            <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
-            <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
-            <a class="btn btn-info" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
-            <button class="btn btn-info" onclick="openCopyLessonModal('{{ subject.id }}')">Copy Lessons</button>
-            <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-warning">View Students List</a>
-          </div>
-        </div>
-      {% endif %}
-    {% endif %}
-
     <!-- Row of Pie Charts inside Cards -->
     <div class="row mb-4">
       <!-- Ongoing Activities Chart -->
@@ -76,12 +61,28 @@
       </div>
     </div>
 
+    {% if is_teacher %}
+      {% now 'Y-m-d' as today_date %}
+      {% if selected_semester.start_date|date:'Y-m-d' <= today_date and selected_semester.end_date|date:'Y-m-d' >= today_date %}
+        <div class="row justify-content-center mb-4">
+          <div class="col-md-12 justify-content-between">
+            <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
+            <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
+            <a class="btn btn-info" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
+            <button class="btn btn-info" onclick="openCopyLessonModal('{{ subject.id }}')">Copy Lessons</button>
+            <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-warning">View Students List</a>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+
     <!-- Lessons (Collapsible with Activities) -->
     <div class="row mb-4">
       <div class="col-md-12">
         <div class="card shadow-sm">
           <div class="card-header gradient-header text-white d-flex justify-content-between">
             <span>Lessons &nbsp; <sup>(Sort To Change Orders)</sup></span>
+            <button id="editButton" class="btn btn-success"><i class="fas fa-edit"></i> Edit</button>
           </div>
           <ul class="list-group list-group-flush" id="lesson-list">
             {% for module in modules|dictsortreversed:'id' %}
@@ -126,9 +127,7 @@
         <!-- Add Lesson Button placed at the end to resemble a timeline -->
         {% if is_teacher %}
           <div class="d-flex justify-content-center mt-4">
-            {% if selected_semester.start_date|date:'Y-m-d' <= today_date and selected_semester.end_date|date:'Y-m-d' >= today_date %}
-              <button class="btn btn-success" onclick="openModuleModal('{{ subject.id }}')">Add Lesson</button>
-            {% endif %}
+            <button id="addLessonButton" class="btn btn-success" onclick="openModuleModal('{{ subject.id }}')" style="display: none;">Add Lesson</button> <!-- Initially hidden -->
           </div>
         {% endif %}
       </div>
@@ -471,19 +470,51 @@
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Initialize SortableJS for the lesson list
-      var sortable = new Sortable(document.getElementById('lesson-list'), {
-        animation: 150,  // Animation duration in milliseconds
-        onEnd: function (/**Event*/evt) {
-          var order = [];
-          document.querySelectorAll('#lesson-list li').forEach(function (item) {
-            order.push(item.getAttribute('data-id'));
-          });
-
-          console.log('New Order:', order);  // Log the new order in the console
+    // Variables to track sorting and SortableJS instance
+    let sortingEnabled = false;
+    let sortable = null;
+  
+    // Event listener for the edit button
+    document.getElementById('editButton').addEventListener('click', function () {
+      if (!sortingEnabled) {
+        sortingEnabled = true;
+        this.innerHTML = 'Save'; // Change button text to "Save"
+        
+        // Show the Add Lesson button when edit is clicked
+        document.getElementById('addLessonButton').style.display = 'block';
+  
+        // Initialize SortableJS for the lesson list
+        sortable = new Sortable(document.getElementById('lesson-list'), {
+          animation: 150,
+          onEnd: function (evt) {
+            var order = [];
+            document.querySelectorAll('#lesson-list li').forEach(function (item) {
+              order.push(item.getAttribute('data-id'));
+            });
+            console.log('New Order:', order); // Log the new order in the console
+          }
+        });
+  
+        alert('You can now sort the lessons.');
+      } else {
+        sortingEnabled = false;
+        this.innerHTML = '<i class="fas fa-edit"></i> Edit'; // Change button back to "Edit" with icon
+  
+        // Hide the Add Lesson button again after saving
+        document.getElementById('addLessonButton').style.display = 'none';
+        
+        // Disable sorting by destroying the SortableJS instance
+        if (sortable) {
+          sortable.destroy();
         }
-      });
+  
+        // Send the new order to the server or handle it here
+        var order = [];
+        document.querySelectorAll('#lesson-list li').forEach(function (item) {
+          order.push(item.getAttribute('data-id'));
+        });
+        console.log('Final Order Saved:', order);
+      }
     });
   </script>
 
