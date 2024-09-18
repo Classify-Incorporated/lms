@@ -194,18 +194,17 @@ def subjectDetail(request, pk):
         )
 
         # Adjusted module visibility logic
-        modules = Module.objects.filter(subject=subject, term__semester=selected_semester)
+        modules = Module.objects.filter(subject=subject, term__semester=selected_semester).order_by('order')
         print(f"Modules found: {modules.count()}")
         visible_modules = []
 
         for module in modules:
             if not module.display_lesson_for_selected_users.exists() or user in module.display_lesson_for_selected_users.all():
                 visible_modules.append(module)
-        print(f"Visible modules count: {len(visible_modules)}")
     else:
         modules = Module.objects.filter( Q(term__semester=selected_semester) |
         Q(term__isnull=True, start_date__isnull=True, end_date__isnull=True),
-        subject=subject)
+        subject=subject).order_by('order')
         activities = Activity.objects.filter(subject=subject, term__in=terms)
         finished_activities = activities.filter(
             end_time__lte=timezone.localtime(timezone.now())
