@@ -26,19 +26,32 @@ class Module(models.Model):
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    order = models.PositiveIntegerField(default=0, editable=False)
 
 
     def __str__(self):
-        return self.file_name
+        return f"{self.file_name} - {self.order}"
     
     def save(self, *args, **kwargs):
         is_new = self.pk is None  # Check if the object is new (not yet saved)
+        
+        # If the object is new (no primary key yet)
+        if is_new:
+            last_order = Module.objects.count() + 1  # Simple auto-increment by counting existing cards
+            self.order = last_order
+        
         super().save(*args, **kwargs)
+
+        # If the object is new, create a SubjectLog entry
         if is_new:
             SubjectLog.objects.create(
                 subject=self.subject,
                 message=f"A new module named '{self.file_name}' has been created for {self.subject.subject_name}."
             )
+
+    
+    class Meta:
+        ordering = ['order']
     
 class StudentProgress(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

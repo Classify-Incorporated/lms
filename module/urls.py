@@ -3,7 +3,8 @@ from .views import (
 
     createModule, updateModule, viewModule, deleteModule, moduleList,
     progressList, module_progress,  detailModuleProgress, download_module,
-    start_module_session, stop_module_session, copyLessons, check_lesson_exists
+    start_module_session, stop_module_session, copyLessons, check_lesson_exists,
+    update_module_order
 )
 
 urlpatterns = [
@@ -21,6 +22,7 @@ urlpatterns = [
     path('stop_module_session/', stop_module_session, name='stop_module_session'),
     path('subject/<int:subject_id>/copy_lessons/', copyLessons, name='copy_lessons'),
     path('subject/<int:subject_id>/check_lesson_exists/', check_lesson_exists, name='check_lesson_exists'),
+    path('update_module_order/', update_module_order, name='update_module_order'),
 
     
 

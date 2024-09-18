@@ -85,15 +85,15 @@
             <button id="editButton" class="btn btn-success"><i class="fas fa-edit"></i> Edit Lesson</button>
           </div>
           <ul class="list-group list-group-flush" id="lesson-list">
-            {% for module in modules|dictsortreversed:'id' %}
+            {% for module in modules %}
               <li class="list-group-item lesson-item" data-id="{{ module.id }}">
                 <!-- Collapsible Lesson with improved design -->
                 <a class="d-flex justify-content-between align-items-center" data-toggle="collapse" href="#lessonActions{{ module.id }}" role="button" aria-expanded="false" aria-controls="lessonActions{{ module.id }}">
-                  <span class="lesson-name">{{ module.file_name }}</span>
+                  <span class="lesson-name">{{ module.file_name }} {{ module.order }}</span>
                   <i class="fas fa-chevron-down"></i>
                 </a>
                 <!-- Collapsible Content with Activities -->
-                <div class="collapse" id="lessonActions{{ module.id }}">
+                <div class="collapse" id="lessonActions{{ module.sort }}">
                   <div class="mt-3">
                     <div class="d-flex justify-content-end">
                       <a href="{% url 'viewModule' module.id %}" class="btn btn-primary btn-sm">View</a>
@@ -478,9 +478,7 @@
     document.getElementById('editButton').addEventListener('click', function () {
       if (!sortingEnabled) {
         sortingEnabled = true;
-        this.innerHTML = 'Save'; // Change button text to "Save"
-        
-        // Show the Add Lesson button when edit is clicked
+        this.innerHTML = 'Save'; 
         document.getElementById('addLessonButton').style.display = 'block';
   
         // Initialize SortableJS for the lesson list
@@ -489,8 +487,11 @@
           onEnd: function (evt) {
             var order = [];
             document.querySelectorAll('#lesson-list li').forEach(function (item) {
-              order.push(item.getAttribute('data-id'));
-            });
+              var id = item.getAttribute('data-id');
+              if (id) {  // Only add valid IDs
+                  order.push(id);
+              }
+          });
             console.log('New Order:', order); // Log the new order in the console
           }
         });
@@ -503,16 +504,42 @@
         document.getElementById('addLessonButton').style.display = 'none';
         
         // Disable sorting by destroying the SortableJS instance
-        if (sortable) {
-          sortable.destroy();
-        }
+        //if (sortable) {
+         // sortable.destroy();
+       // }
   
         // Send the new order to the server or handle it here
         var order = [];
         document.querySelectorAll('#lesson-list li').forEach(function (item) {
-          order.push(item.getAttribute('data-id'));
+            var id = item.getAttribute('data-id');
+            if (id) {  // Only include valid IDs
+                order.push(id);
+            }
         });
-        console.log('Final Order Saved:', order);
+
+
+          fetch('{% url "update_module_order" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ order: order })  // Send the new order as JSON
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Order saved successfully!');
+            } else {
+                alert('Error saving order: ' + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+
+        // Disable sorting by destroying the SortableJS instance
+        if (sortable) {
+            sortable.destroy();
+        }
       }
     });
   </script>

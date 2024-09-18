@@ -312,3 +312,26 @@ def check_lesson_exists(request, subject_id):
         return JsonResponse({'exists': exists})
     
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def update_module_order(request):
+    if request.method == 'POST':
+        print(request.body)
+        try:
+            data = json.loads(request.body)  # Load the JSON data sent from the frontend
+            order_data = data.get('order', [])  # Get the 'order' list from the request
+            
+            # Update the order of each module based on the new order
+            for index, module_id in enumerate(order_data):
+                try:
+                    module = Module.objects.get(id=module_id)
+                    module.order = index  # Update the order field
+                    module.save()  # Save the updated module order
+                except Module.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': f'Module with id {module_id} not found'}, status=404)
+
+            return JsonResponse({'status': 'success'})
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
