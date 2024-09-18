@@ -249,7 +249,7 @@ def subjectDetail(request, pk):
 
     # Attach activities to each module directly in the context
     for module in modules:
-        module.activities = activities_by_module[module.order]
+        module.activities = activities_by_module[module.id]
 
     form = moduleForm()
 
