@@ -360,80 +360,80 @@
       })
       .catch(error => console.error('Error fetching term activities:', error));
 
-// Function to create the stacked line chart
-const createStackedLineChart = (chartId, labels, completedData, missedData, termColors, termBorderColors) => {
-  const ctx = document.getElementById(chartId).getContext('2d');
-
-  const chart = new Chart(ctx, {
-    type: 'line',  // Stacked line chart
-    data: {
-      labels: labels,  // Term names as labels (Prelim, Midterm, Finals)
-      datasets: [
-        {
-          label: 'Completed Students',
-          data: completedData,  // Data for completed students
-          backgroundColor: termColors,
-          borderColor: termBorderColors,
-          borderWidth: 2,
-          fill: true,  // Fill the area below the line for stacking effect
-          pointBackgroundColor: 'rgba(75, 192, 192, 1)',
-          pointRadius: 5,
-          pointHoverRadius: 7
-        },
-        {
-          label: 'Missed Students',
-          data: missedData,  // Data for missed students
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          borderColor: 'rgba(255, 99, 132, 1)',
-          borderWidth: 2,
-          fill: true,  // Fill the area below the line for stacking effect
-          pointBackgroundColor: 'rgba(255, 99, 132, 1)',
-          pointRadius: 5,
-          pointHoverRadius: 7
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          stacked: true,  // Enable stacking on the Y-axis
-          title: {
-            display: true,
-            text: 'Number of Students'
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Terms'
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          display: true
-        },
-        title: {
-          display: true,
-          text: 'Students Completed vs Missed per Term'
-        },
-        tooltip: {
-          callbacks: {
-            label: function(tooltipItem) {
-              return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
+      const createStackedLineChart = (chartId, labels, completedData, missedData) => {
+        const ctx = document.getElementById(chartId).getContext('2d');
+      
+        const chart = new Chart(ctx, {
+          type: 'line',  // Stacked line chart
+          data: {
+            labels: labels,  // Term names as labels (Prelim, Midterm, Finals)
+            datasets: [
+              {
+                label: 'Completed Students',
+                data: completedData,  // Data for completed students
+                backgroundColor: 'rgb(54,162,235)', // Solid blue fill for completed
+                borderColor: 'rgb(54,162,235)',  // Blue border
+                borderWidth: 2,
+                fill: true,  // Fill the area below the line for stacking effect
+                pointBackgroundColor: 'rgb(5,155,255)',
+                pointRadius: 5,
+                pointHoverRadius: 7
+              },
+              {
+                label: 'Missed Students',
+                data: missedData,  // Data for missed students
+                backgroundColor: 'rgb(255,99,132)',  // Solid red fill for missed
+                borderColor: 'rgb(255,99,132)',  // Red border
+                borderWidth: 2,
+                fill: true,  // Fill the area below the line for stacking effect
+                pointBackgroundColor: 'rgb(255,99,132)',
+                pointRadius: 5,
+                pointHoverRadius: 7
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                stacked: true,  // Enable stacking on the Y-axis
+                title: {
+                  display: true,
+                  text: 'Number of Students'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Terms'
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: true
+              },
+              title: {
+                display: true,
+                text: 'Students Completed vs Missed per Term'
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(tooltipItem) {
+                    return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
+                  }
+                }
+              }
             }
           }
-        }
-      }
-    }
-  });
-};
-
-// Call the function to create the chart
-      createStackedLineChart('finishedActivitiesChart', terms, datasets);
+        });
+      };
+      
+      // Call the function to create the chart
+      createStackedLineChart('finishedActivitiesChart', terms, completedData, missedData);
+      
   </script>
 
   <!-- Custom styles -->
