@@ -82,7 +82,7 @@
         <div class="card shadow-sm">
           <div class="card-header gradient-header text-white d-flex justify-content-between">
             <span>Lessons &nbsp; <sup>(Sort To Change Orders)</sup></span>
-            <button id="editButton" class="btn btn-success"><i class="fas fa-edit"></i> Edit</button>
+            <button id="editButton" class="btn btn-success"><i class="fas fa-edit"></i> Edit Lesson</button>
           </div>
           <ul class="list-group list-group-flush" id="lesson-list">
             {% for module in modules|dictsortreversed:'id' %}
@@ -463,10 +463,9 @@
           }
         });
   
-        alert('You can now sort the lessons.');
       } else {
         sortingEnabled = false;
-        this.innerHTML = '<i class="fas fa-edit"></i> Edit'; // Change button back to "Edit" with icon
+        this.innerHTML = '<i class="fas fa-edit"></i> Edit Lesson'; // Change button back to "Edit" with icon
   
         // Hide the Add Lesson button again after saving
         document.getElementById('addLessonButton').style.display = 'none';
