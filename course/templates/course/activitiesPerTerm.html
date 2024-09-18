@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <h1>{{ subject.subject_name }} - {{ term.term_name }} Activities</h1>
+    <h2>{{ activity_type|capfirst }} Activities</h2>
+
+    {% if activities %}
+        <ul>
+            {% for activity in activities %}
+                <li>
+                    {% if request.user.profile.role.name|lower == 'teacher' %}
+                        <!-- Link for teacher -->
+                        <a href="{% url 'teacherActivityView' activity.id %}">{{ activity.activity_name }}  ({{ activity.start_time }} - {{ activity.end_time }})</a>
+                    {% elif request.user.profile.role.name|lower == 'student' %}
+                        <!-- Link for student -->
+                        <a href="{% url 'studentActivityView' activity.id %}">{{ activity.activity_name }}  ({{ activity.start_time }} - {{ activity.end_time }})</a>
+                    {% endif %}
+                   
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No activities found for this term and type.</p>
+    {% endif %}
+
+    <a href="{% url 'subjectDetail' subject.id %}" class="btn btn-primary">Back</a>
+{% endblock %}

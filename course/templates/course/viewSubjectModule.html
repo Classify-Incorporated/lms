@@ -352,15 +352,18 @@
       .then(response => response.json())
       .then(data => {
         const terms = Object.keys(data.terms);  // Get all term names (e.g., ['Prelim', 'Midterm', 'Finals'])
+        const termIds = terms.map(term => data.terms[term].id);
         const completedData = terms.map(term => data.terms[term].completed);  // Get completed counts for each term
         const missedData = terms.map(term => data.terms[term].missed);  // Get missed counts for each term (negative)
 
+        console.log(termIds);
+
         // Create the stacked line chart using the processed data
-        createStackedLineChart('finishedActivitiesChart', terms, completedData, missedData);
+        createStackedLineChart('finishedActivitiesChart', terms, termIds,  completedData, missedData);
       })
       .catch(error => console.error('Error fetching term activities:', error));
 
-      const createStackedLineChart = (chartId, labels, completedData, missedData) => {
+      const createStackedLineChart = (chartId, labels, termIds, completedData, missedData) => {
         const ctx = document.getElementById(chartId).getContext('2d');
       
         const chart = new Chart(ctx, {
@@ -425,6 +428,35 @@
                     return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
                   }
                 }
+              }
+            },
+            onClick: function(evt, elements) {
+              console.log('Clicked elements:', elements);  // Check if elements are captured
+            
+              if (elements.length > 0) {
+                const chartElement = elements[0];  // Get the clicked element
+            
+                // Access _index and _datasetIndex directly from chartElement
+                const index = chartElement._index;  // Use _index for the data point index
+                const datasetIndex = chartElement._datasetIndex;  // Use _datasetIndex for dataset (0 = completed, 1 = missed)
+            
+                console.log('Term Index:', index);  // Log the index of the clicked element
+                console.log('Dataset Index:', datasetIndex);  // Log the dataset (completed or missed)
+            
+                const termId = termIds[index];  // Use the index to fetch the correct term ID
+            
+                console.log('Term ID:', termId);  // Log the term ID
+            
+                let activityType = datasetIndex === 0 ? 'completed' : 'missed';
+            
+                // Redirect to the activities page for the selected term and activity type
+                if (termId) {
+                  window.location.href = `/displayActivitiesForTerm/${termId}/${activityType}/${subjectId}/`;
+                } else {
+                  console.error('Term ID is undefined for index:', index);
+                }
+              } else {
+                console.error('No elements detected on chart click.');
               }
             }
           }

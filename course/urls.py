@@ -3,7 +3,8 @@ from .views import (
 
     enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,endSemester,
     previousSemestersView, createTerm,termList,updateTerm,subjectFinishedActivities, selectParticipation,
-    enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, CopyActivitiesView, termActivitiesGraph
+    enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, CopyActivitiesView, termActivitiesGraph,
+    displayActivitiesForTerm
 )
 
 urlpatterns = [
@@ -31,6 +32,7 @@ urlpatterns = [
     path('createTerm/', createTerm, name='createTerm'),
     path('updateTerm/<int:pk>/', updateTerm, name='updateTerm'),
     path('termList/', termList, name='termList'),
+    path('displayActivitiesForTerm/<int:term_id>/<str:activity_type>/<int:subject_id>/', displayActivitiesForTerm, name='displayActivitiesForTerm'),
 
     # Participation Scores
     path('selectParticipation/<int:subject_id>/', selectParticipation, name='selectParticipation'),
