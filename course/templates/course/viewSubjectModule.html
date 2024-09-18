@@ -81,19 +81,19 @@
       <div class="col-md-12">
         <div class="card shadow-sm">
           <div class="card-header gradient-header text-white d-flex justify-content-between">
-            <span>Lessons</span>
+            <span>Lessons &nbsp; <sup>(Sort To Change Orders)</sup></span>
           </div>
-          <ul class="list-group list-group-flush">
+          <ul class="list-group list-group-flush" id="lesson-list">
             {% for module in modules|dictsortreversed:'id' %}
-              <li class="list-group-item">
-                <!-- Collapsible Lesson -->
-                <a class="d-flex justify-content-between" data-toggle="collapse" href="#lessonActions{{ module.id }}" role="button" aria-expanded="false" aria-controls="lessonActions{{ module.id }}">
-                  <span>{{ module.file_name }}</span>
+              <li class="list-group-item lesson-item" data-id="{{ module.id }}">
+                <!-- Collapsible Lesson with improved design -->
+                <a class="d-flex justify-content-between align-items-center" data-toggle="collapse" href="#lessonActions{{ module.id }}" role="button" aria-expanded="false" aria-controls="lessonActions{{ module.id }}">
+                  <span class="lesson-name">{{ module.file_name }}</span>
                   <i class="fas fa-chevron-down"></i>
                 </a>
                 <!-- Collapsible Content with Activities -->
                 <div class="collapse" id="lessonActions{{ module.id }}">
-                  <div class="mt-2">
+                  <div class="mt-3">
                     <div class="d-flex justify-content-end">
                       <a href="{% url 'viewModule' module.id %}" class="btn btn-primary btn-sm">View</a>
                       {% if is_teacher %}
@@ -372,7 +372,7 @@
             labels: labels,  // Term names as labels (Prelim, Midterm, Finals)
             datasets: [
               {
-                label: 'Completed Students',
+                label: 'Completed',
                 data: completedData,  // Data for completed students
                 backgroundColor: 'rgb(54,162,235)', // Solid blue fill for completed
                 borderColor: 'rgb(54,162,235)',  // Blue border
@@ -383,7 +383,7 @@
                 pointHoverRadius: 7
               },
               {
-                label: 'Missed Students',
+                label: 'Missed',
                 data: missedData,  // Data for missed students
                 backgroundColor: 'rgb(255,99,132)',  // Solid red fill for missed
                 borderColor: 'rgb(255,99,132)',  // Red border
@@ -464,30 +464,87 @@
       };
       
       // Call the function to create the chart
-      createStackedLineChart('finishedActivitiesChart', terms, completedData, missedData);
-      
+      createStackedLineChart('finishedActivitiesChart', terms, completedData, missedData);    
   </script>
 
-  <!-- Custom styles -->
+  <!-- SortableJS for drag-and-drop functionality (Frontend Only) -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Initialize SortableJS for the lesson list
+      var sortable = new Sortable(document.getElementById('lesson-list'), {
+        animation: 150,  // Animation duration in milliseconds
+        onEnd: function (/**Event*/evt) {
+          var order = [];
+          document.querySelectorAll('#lesson-list li').forEach(function (item) {
+            order.push(item.getAttribute('data-id'));
+          });
+
+          console.log('New Order:', order);  // Log the new order in the console
+        }
+      });
+    });
+  </script>
+
+  <!-- Custom styles for lesson items -->
   <style>
-  .activity-chart {
-    height: 100px;
-    width: 100px;
+  .lesson-item {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 15px;
+    transition: background-color 0.3s ease;
   }
 
-  /* Gradient Header */
+  .lesson-item:hover {
+    background-color: #f1f1f1;
+  }
+
+  .lesson-name {
+    font-weight: 500;
+    font-size: 16px;
+    color: #333;
+  }
+
+  /* Chevron icon rotation when collapsed */
+  .collapse.show + .lesson-item i.fas.fa-chevron-down {
+    transform: rotate(180deg);
+  }
+
+  /* Button styling */
+  .btn {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+
+  /* Activity list styling */
+  .list-group-item {
+    background-color: #fff;
+    border: none;
+    padding-left: 20px;
+  }
+
+  .list-group-item.pl-5 {
+    padding-left: 3rem;
+  }
+
   .gradient-header {
     background: linear-gradient(135deg, #4A90E2 0%, #F5A623 100%);
     font-weight: bold;
   }
 
+  /* Styling for lesson actions */
+  .lesson-actions {
+    display: flex;
+    justify-content: end;
+    margin-top: 15px;
+  }
+
   .card {
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .list-group-item.pl-5 {
-    padding-left: 3rem; /* Indentation for related activities */
   }
 </style>
 {% endblock %}
