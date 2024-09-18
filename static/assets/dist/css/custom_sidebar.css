@@ -1,0 +1,55 @@
+.custom-sidebar {
+    background-color: #171F29; /* Background color */
+  }
+  
+  .custom-sidebar .nav-link {
+    color: #FFFFFF; /* Text color */
+  }
+  
+  .custom-sidebar .nav-link:hover {
+    color: #1E90FF; /* Hover text color */
+    background-color: #314455; /* Hover background color */
+  }
+  
+  .custom-sidebar .sidebar-divider {
+    border-color: #314455; /* Divider color */
+  }
+  
+  .custom-sidebar .sidebar-brand-text {
+    color: #FFFFFF; /* Brand text color */
+  }
+  
+  @keyframes shine {
+    0% {
+      background-position: -300px 0;
+    }
+    100% {
+      background-position: 300px 0;
+    }
+  }
+  
+  .custom-sidebar .nav-item.active .nav-link {
+    color: #FFFFFF; /* Active link text color */
+    background-color: #314455; /* Active link background color */
+    border: 2px solid #1E90FF; /* Active link border */
+    border-left: 5px solid #8d8d8d;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .custom-sidebar .nav-item.active .nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -300px;
+    width: 600px; /* Increased width to cover the entire link */
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shine 3s infinite linear;
+  }
+  
+  .custom-sidebar .nav-item.active .nav-link span {
+    font-weight: bold; /* Active link font weight */
+    position: relative; /* Ensure text is above the animation */
+    z-index: 2;
+  }

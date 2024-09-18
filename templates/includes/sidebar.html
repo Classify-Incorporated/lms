@@ -1,168 +1,227 @@
 {% load static %}
 {% load permissions %}
 
-<ul class="navbar-nav sidebar custom-sidebar accordion custom-sidebar-fixed" id="accordionSidebar">
-  <!-- Sidebar - Brand -->
-  <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'dashboard' %}">
-    <div class="sidebar-brand-icon">
-      <img src="{% static 'images/gsu_logo.png' %}" alt="Classify Logo" style="width: 50px; height: 50px; border-radius: 50%;" />
-    </div>
-    <div class="sidebar-brand-text mx-2">Guimaras State University</div>
+<!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-dark-primary custom-sidebar elevation-4 sidebar-no-expand">
+  <!-- Brand Logo -->
+  <a href="{% url 'dashboard' %}" class="brand-link" style="display: flex; align-items: center;">
+    <img src="{% static 'images/gsu_logo.png' %}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" />
+    <span class="brand-text font-weight-bolder">GUIMARAS STATE UNIVERSITY</span>
   </a>
 
-  <!-- Nav Item - Dashboard -->
-  <li class="nav-item mt-2 {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'dashboard' %}">
-      <i class="bx bx-home"></i>
-      <span>Dashboard</span>
-    </a>
-  </li>
-
-  <!-- Profile Section (Permission check) -->
-  {% if user|has_perm:'accounts.view_profile' %}
-    <li class="nav-item {% if request.resolver_match.url_name == 'viewProfile' %}active{% endif %}">
-      <a class="nav-link" href="{% url 'viewProfile' request.user.id %}">
-        <i class="bx bx-user"></i>
-        <span>{{ request.user.first_name|title }} {{ request.user.last_name|title }}</span>
-      </a>
-    </li>
-  {% endif %}
-
-  <!-- Calendar -->
-  <li class="nav-item {% if request.resolver_match.url_name == 'calendars' %}active{% endif %}">
-    <a class="nav-link" href="{% url 'calendars' %}">
-      <i class="bx bx-calendar"></i>
-      <span>Calendar</span>
-    </a>
-  </li>
-
-  <!-- Messages (Permission check) -->
-  {% if user|has_perm:'message.view_message' %}
-    <li class="nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">
-      <a class="nav-link" href="{% url 'inbox' %}">
-        <i class="bx bx-envelope"></i>
-        <span>Messages</span>
-        {% if unread_messages_count > 0 %}
-          <sup><span class="badge badge-danger">{{ unread_messages_count }}</span></sup>
-        {% endif %}
-      </a>
-    </li>
-  {% endif %}
-
-  <!-- Teaching Section -->
-  <li class="nav-item">
-    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
-      <i class="bx bx-chalkboard"></i>
-      <span>Teaching</span>
-    </a>
-    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-      <div class="bg-white py-2 collapse-inner rounded">
-        {% if user|has_perm:'course.view_course' %}
-          <a class="collapse-item" href="{% url 'SubjectList' %}">
-            <i class="bx bx-book"></i>
-            <span>Subject</span>
-          </a>
-        {% endif %}
-        {% if user|has_perm:'gradebookcomponent.view_gradebookcomponents' %}
-          <a class="collapse-item" href="{% url 'studentTotalScoreForActivity' %}">
-            <i class="bx bx-clipboard"></i>
-            <span>Grades</span>
-          </a>
-        {% endif %}
-        {% if user|has_perm:'subject.view_subject' %}
-          <a class="collapse-item" href="{% url 'subject' %}">
-            <i class="bx bx-book"></i>
-            <span>Subject List</span>
-          </a>
-        {% endif %}
-        {% if user|has_perm:'subject.view_subject' %}
-          <a class="collapse-item" href="{% url 'progressList' %}">
-            <i class="bx bx-bar-chart"></i>
-            <span>Activity Progress</span>
-          </a>
-        {% endif %}
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <br />
+    <!-- SidebarSearch Form -->
+    <div class="form-inline">
+      <div class="input-group" data-widget="sidebar-search">
+        <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search" />
+        <div class="input-group-append">
+          <button class="btn btn-sidebar"><i class="fas fa-search fa-fw"></i></button>
+        </div>
       </div>
     </div>
-  </li>
 
-  <!-- Enroll Students (Permission check) -->
-  {% if user|has_perm:'course.view_subjectenrollment' %}
-    <li class="nav-item {% if request.resolver_match.url_name == 'subjectEnrollmentList' %}active{% endif %}">
-      <a class="nav-link" href="{% url 'subjectEnrollmentList' %}">
-        <i class="bx bx-user-plus"></i>
-        <span>Enroll Student</span>
-      </a>
-    </li>
-  {% endif %}
-  <!-- Settings Section -->
-  <li class="nav-item">
-    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-      <i class="bx bx-cog"></i>
-      <span>Settings</span>
-    </a>
-    <div id="collapseOne" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-      <div class="bg-white py-2 collapse-inner rounded">
-        {% if user|has_perm:'roles.view_role' %}
-          <a class="collapse-item" href="{% url 'roleList' %}">
-            <i class="bx bx-user-check"></i>
-            <span>Role</span>
+    <!-- Sidebar Menu -->
+    <nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+        <!-- Calendar -->
+        <li class="nav-item">
+          <a href="{% url 'dashboard' %}" class="nav-link">
+            <i class="ion ion-home nav-icon"></i>
+            <p>Dashboard</p>
           </a>
-        {% endif %}
-        {% if user|has_perm:'course.view_semester' %}
-          <a class="collapse-item" href="{% url 'activityTypeList' %}">
-            <i class="bx bx-bar-chart-alt-2"></i>
-            <span>Activity Type</span>
-          </a>
-        {% endif %}
-        {% if user|has_perm:'course.view_semester' %}
-          <a class="collapse-item" href="{% url 'semesterList' %}">
-            <i class="bx bx-clipboard"></i>
-            <span>Semester</span>
-          </a>
-        {% endif %}
-        {% if user|has_perm:'subject.view_subject' %}
-          <a class="collapse-item" href="{% url 'viewGradeBookComponents' %}">
-            <i class="bx bx-chart"></i>
-            <span>Subject Percentage</span>
-          </a>
-        {% endif %}
-        {% if user|has_perm:'subject.view_subject' %}
-          <a class="collapse-item" href="{% url 'subGradebook' %}">
-            <i class="bx bx-chart"></i>
-            <span>Subject Sub Percentage</span>
-          </a>
-        {% endif %}
-        {% if user|has_perm:'course.view_term' %}
-          <a class="collapse-item" href="{% url 'termList' %}">
-            <i class="bx bx-calendar-event"></i>
-            <span>Term</span>
-          </a>
-        {% endif %}
-        {% if user|has_perm:'subject.view_subject' %}
-          <a class="collapse-item" href="{% url 'termBookList' %}">
-            <i class="bx bx-chart"></i>
-            <span>Term Percentage</span>
-          </a>
-        {% endif %}
-        {% if user|has_perm:'course.view_semester' %}
-          <a class="collapse-item" href="{% url 'student' %}">
-            <i class="bx bx-group"></i>
-            <span>Student List</span>
-          </a>
-        {% endif %}
-        {% if user|has_perm:'course.view_semester' %}
-          <a class="collapse-item" href="{% url 'staff_list' %}">
-            <i class="bx bx-user"></i>
-            <span>Staff List</span>
-          </a>
-        {% endif %}
-      </div>
-    </div>
-  </li>
+        </li>
 
-  <!-- Footer -->
-  <div class="sidebar-footer mt-auto text-center">
-    <hr class="sidebar-divider" />
-    <p style="color: #FCEE54; font-size: 15px; font-weight: 900;">EXCELS AS ONE</p>
+        <!-- Profile Section (Permission check) -->
+        {% if user|has_perm:'accounts.view_profile' %}
+          <li class="nav-item">
+            <a href="{% url 'viewProfile' request.user.id %}" class="nav-link">
+              <i class="ion ion-ios-person nav-icon"></i>
+              <p>{{ request.user.first_name|title }} {{ request.user.last_name|title }}</p>
+            </a>
+          </li>
+        {% endif %}
+
+        <!-- Calendar -->
+        <li class="nav-item">
+          <a href="{% url 'calendars' %}" class="nav-link">
+            <i class="ion ion-ios-calendar nav-icon"></i>
+            <p>Calendar</p>
+          </a>
+        </li>
+
+        <!-- Messages (Permission check) -->
+        {% if user|has_perm:'message.view_message' %}
+          <li class="nav-item">
+            <a href="{% url 'inbox' %}" class="nav-link">
+              <i class="ion ion-chatbox nav-icon"></i>
+              <p>Messages</p>
+              {% if unread_messages_count > 0 %}
+                <span class="badge badge-danger">{{ unread_messages_count }}</span>
+              {% endif %}
+            </a>
+          </li>
+        {% endif %}
+
+        <!-- Teaching Section -->
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="ion ion-ios-bookmarks-outline nav-icon"></i>
+            <p>
+              Teaching
+              <i class="ion ion-chevron-down right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            {% if user|has_perm:'course.view_course' %}
+              <li class="nav-item">
+                <a href="{% url 'SubjectList' %}" class="nav-link">
+                  <i class="ion ion-ios-book nav-icon"></i>
+                  <p>Subjects</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'gradebookcomponent.view_gradebookcomponents' %}
+              <li class="nav-item">
+                <a href="{% url 'studentTotalScoreForActivity' %}" class="nav-link">
+                  <i class="ion ion-android-checkmark-circle nav-icon"></i>
+                  <p>Grades</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'subject.view_subject' %}
+              <li class="nav-item">
+                <a href="{% url 'subject' %}" class="nav-link">
+                  <i class="ion ion-ios-book nav-icon"></i>
+                  <p>Subject List</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'subject.view_subject' %}
+              <li class="nav-item">
+                <a href="{% url 'progressList' %}" class="nav-link">
+                  <i class="ion ion-stats-bars nav-icon"></i>
+                  <p>Activity Progress</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'course.manage_assignments' %}
+              <li class="nav-item">
+                <a href="{% url 'assignmentList' %}" class="nav-link">
+                  <i class="ion ion-ios-paper nav-icon"></i>
+                  <p>Assignments</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'course.manage_exams' %}
+              <li class="nav-item">
+                <a href="{% url 'examList' %}" class="nav-link">
+                  <i class="ion ion-ios-create nav-icon"></i>
+                  <p>Exams</p>
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+        </li>
+
+        <!-- Enroll Students -->
+        {% if user|has_perm:'course.view_subjectenrollment' %}
+          <li class="nav-item">
+            <a href="{% url 'subjectEnrollmentList' %}" class="nav-link">
+              <i class="ion ion-ios-personadd nav-icon"></i>
+              <p>Enroll Students</p>
+            </a>
+          </li>
+        {% endif %}
+
+        <!-- Settings Section -->
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="ion ion-ios-cog nav-icon"></i>
+            <p>
+              Settings
+              <i class="ion ion-chevron-down right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            {% if user|has_perm:'roles.view_role' %}
+              <li class="nav-item">
+                <a href="{% url 'roleList' %}" class="nav-link">
+                  <i class="ion ion-ios-people nav-icon"></i>
+                  <p>Role</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'course.view_semester' %}
+              <li class="nav-item">
+                <a href="{% url 'activityTypeList' %}" class="nav-link">
+                  <i class="ion ion-ios-albums-outline nav-icon"></i>
+                  <p>Activity Type</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'course.view_semester' %}
+              <li class="nav-item">
+                <a href="{% url 'semesterList' %}" class="nav-link">
+                  <i class="ion ion-ios-calendar nav-icon"></i>
+                  <p>Semester</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'subject.view_subject' %}
+              <li class="nav-item">
+                <a href="{% url 'viewGradeBookComponents' %}" class="nav-link">
+                  <i class="ion ion-ios-pie-outline nav-icon"></i>
+                  <p>Subject Percentage</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'subject.view_subject' %}
+              <li class="nav-item">
+                <a href="{% url 'subGradebook' %}" class="nav-link">
+                  <i class="ion ion-ios-pie nav-icon"></i>
+                  <p>Subject Sub Percentage</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'course.view_term' %}
+              <li class="nav-item">
+                <a href="{% url 'termList' %}" class="nav-link">
+                  <i class="ion ion-ios-calendar nav-icon"></i>
+                  <p>Term</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'subject.view_subject' %}
+              <li class="nav-item">
+                <a href="{% url 'termBookList' %}" class="nav-link">
+                  <i class="ion ion-podium nav-icon"></i>
+                  <p>Term Percentage</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'course.view_semester' %}
+              <li class="nav-item">
+                <a href="{% url 'student' %}" class="nav-link">
+                  <i class="ion ion-ios-people nav-icon"></i>
+                  <p>Student List</p>
+                </a>
+              </li>
+            {% endif %}
+            {% if user|has_perm:'course.view_semester' %}
+              <li class="nav-item">
+                <a href="{% url 'staff_list' %}" class="nav-link">
+                  <i class="ion ion-ios-briefcase nav-icon"></i>
+                  <p>Staff List</p>
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+        </li>
+      </ul>
+    </nav>
+    <!-- /.sidebar-menu -->
   </div>
-</ul>
+  <!-- /.sidebar -->
+</aside>
