@@ -95,6 +95,7 @@
     
         var form = modal.find('#quizTypeForm')
         var action = "{% url 'add_question' activity.id 0 %}".replace('0', quizTypeId)
+        console.log(action);
         form.attr('action', action)
     
         var quizTypeFields = modal.find('#quiz-type-fields')

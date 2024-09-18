@@ -289,11 +289,12 @@ def termActivitiesGraph(request, subject_id):
 
     for i, term in enumerate(terms):
         # Filter activities by term and subject
-        activities = Activity.objects.filter(term=term, subject=subject)
+        activities = Activity.objects.filter(term=term, subject=subject, end_time__lt=now)
 
         # Initialize term data for combined completed and missed counts
         if term.term_name not in activity_data:
             activity_data[term.term_name] = {
+                'id': term.id, 
                 'completed': 0,  # Sum of all completed activities in this term
                 'missed': 0,     # Sum of all missed activities in this term
                 'term_color': term_colors[i % len(term_colors)],  # Cycle through term colors
@@ -318,6 +319,31 @@ def termActivitiesGraph(request, subject_id):
     }
 
     return JsonResponse(response_data)
+
+
+def displayActivitiesForTerm(request, subject_id, term_id, activity_type):
+    now = timezone.localtime(timezone.now())
+    
+    # Get the current semester
+    current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+    if not current_semester:
+        return JsonResponse({"error": "No active semester found."}, status=404)
+
+    term = get_object_or_404(Term, id=term_id, semester=current_semester)
+    subject = get_object_or_404(Subject, id=subject_id)
+
+    # Filter activities based on the term, subject, and activity type (completed or missed)
+    if activity_type == 'completed':
+        activities = Activity.objects.filter(term=term, subject=subject, end_time__lt=now)
+    elif activity_type == 'missed':
+        activities = Activity.objects.filter(term=term, subject=subject, end_time__lt=now)
+
+    return render(request, 'course/activitiesPerTerm.html', {
+        'activities': activities,
+        'term': term,
+        'subject': subject,
+        'activity_type': activity_type,
+    })
 
 # get all the finished activities
 @login_required

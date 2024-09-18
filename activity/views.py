@@ -77,7 +77,7 @@ class AddActivityView(View):
 
         terms = Term.objects.filter(
             semester=current_semester,
-            created_by=request.user,
+            #created_by=request.user,
             start_date__lte=now,
             end_date__gte=now
         )
@@ -111,7 +111,7 @@ class AddActivityView(View):
         module = get_object_or_404(Module, id=module_id)
 
         # Validation: Check if the activity name is unique for the semester and assigned teacher
-        if Activity.objects.filter(activity_name=activity_name, term=term, subject__assign_teacher=subject.assign_teacher).exists():
+        if Activity.objects.filter(activity_name=activity_name, term=term, subject=subject, subject__assign_teacher=subject.assign_teacher).exists():
             messages.error(request, 'An activity with this name already exists.')
             return self.get(request, subject_id)
 
@@ -126,6 +126,8 @@ class AddActivityView(View):
             end_time=end_time,
             remedial=remedial
         )
+
+        print("Activity created with ID:", activity.id)
 
         if remedial and remedial_students_ids:
             # Add the remedial students to the activity (as multiple students can be added)
@@ -228,7 +230,7 @@ class AddQuestionView(View):
         try:
             activity = Activity.objects.get(id=activity_id)
         except Activity.DoesNotExist:
-            messages.error(request, 'Activity not found. Please try again.')
+            messages.error(request, 'Activity not found. Please ensure it is created before adding questions.')
             return redirect('activity_list')
         quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
 
@@ -246,8 +248,22 @@ class AddQuestionView(View):
         })
 
     def post(self, request, activity_id, quiz_type_id):
-        activity = get_object_or_404(Activity, id=activity_id)
-        quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
+        # activity = get_object_or_404(Activity, id=activity_id)
+        # quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
+
+        try:
+            activity = Activity.objects.get(id=activity_id)
+            quiz_type = QuizType.objects.get(id=quiz_type_id)
+            # The rest of your logic
+        except Activity.DoesNotExist:
+            messages.error(request, 'Activity does not exist.')
+            return redirect('404')  # Redirect to the correct error page
+        except QuizType.DoesNotExist:
+            messages.error(request, 'Quiz type does not exist.')
+            return redirect('404')  # Redirect to the correct error page
+        except Exception as e:
+            messages.error(request, f"An unexpected error occurred: {str(e)}")
+            return redirect('404')
 
         # Handle participation quiz type
         if quiz_type.name == 'Participation':
