@@ -93,23 +93,39 @@ def inbox(request):
 
     # Get the user's role (Teacher or Student)
     user = request.user
-    instructor_role = Role.objects.get(name='Teacher')
-    student_role = Role.objects.get(name='Student')
+    instructor_role = None
+    student_role = None
+
+    try:
+        instructor_role = Role.objects.get(name='Teacher')
+    except Role.DoesNotExist:
+        pass  # Handle missing 'Teacher' role gracefully
+
+    try:
+        student_role = Role.objects.get(name='Student')
+    except Role.DoesNotExist:
+        pass 
 
     if current_semester:
-        if user.profile.role == instructor_role:
-            # If the user is a teacher, filter subjects where the teacher is assigned for the current semester
-            subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
-        elif user.profile.role == student_role:
-            # If the user is a student, filter subjects where the student is enrolled for the current semester
-            subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
-        else:
-            # If the user is an admin or another role, show all subjects for the current semester
-            subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
+        # Check if the user has a profile and a role
+        if hasattr(user, 'profile') and user.profile.role:
+            user_role = user.profile.role
+            if instructor_role and user_role == instructor_role:
+                # If the user is a teacher, filter subjects where the teacher is assigned
+                subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
+            elif student_role and user_role == student_role:
+                # If the user is a student, filter subjects where the student is enrolled
+                subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
+            else:
+                # If the user is an admin or another role, show all subjects for the current semester
+                subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
 
         # Retrieve all instructors and students for the current semester
-        instructors = CustomUser.objects.filter(profile__role=instructor_role).distinct()
-        students = CustomUser.objects.filter(profile__role=student_role).distinct()
+        if instructor_role:
+            instructors = CustomUser.objects.filter(profile__role=instructor_role).distinct()
+
+        if student_role:
+            students = CustomUser.objects.filter(profile__role=student_role).distinct()
 
     return render(request, 'message/inbox.html', {
         'message_status_list': message_status_list,

@@ -155,16 +155,26 @@ def dashboard(request):
         if user_id:
             user_ids.append(user_id)
 
-    active_users = get_user_model().objects.filter(id__in=user_ids).distinct()
-    active_users_count = active_users.count()
+    active_students = get_user_model().objects.filter(
+        id__in=user_ids, 
+        profile__role__name__iexact='student'
+    ).distinct()
+    
+    active_students_count = active_students.count()
 
     today = timezone.now().date()
     current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
 
     # Get the user's role
     user = request.user
-    is_teacher = user.profile.role.name.lower() == 'teacher'
-    is_student = user.profile.role.name.lower() == 'student'
+    is_teacher = False
+    is_student = False
+
+    # Check if the user has a profile and role
+    if hasattr(user, 'profile') and user.profile.role:
+        role_name = user.profile.role.name.lower()
+        is_teacher = role_name == 'teacher'
+        is_student = role_name == 'student'
 
     if current_semester:
         if is_teacher:
@@ -198,7 +208,7 @@ def dashboard(request):
     articles = fetch_facebook_posts()
 
     context = {
-        'active_users_count': active_users_count,
+        'active_users_count': active_students_count,
         'student_counts': student_counts,
         'subject_count': subject_count,
         'failing_students_count': failing_students_count,
