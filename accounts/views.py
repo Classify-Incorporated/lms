@@ -68,10 +68,11 @@ def updateProfile(request, pk):
         form = profileForm(request.POST,request.FILES, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('student')
+            return redirect('staff_list')
     else:
         form = profileForm(instance=profile)
     return render(request, 'accounts/updateStudentProfile.html', {'form': form,'profile': profile})
+
 
 @login_required
 @permission_required('accounts.delete_profile', raise_exception=True)
@@ -432,6 +433,9 @@ def tools(request):
 
 def createProfile(request):
     return render(request, 'accounts/createStudentProfile.html')
+
+def error(request):
+    return render(request, '404.html')
 
 def sign_out(request):
     auth_logout(request)

@@ -3,7 +3,7 @@ from .views import (
     dashboard, activity_stream,
     assist, tools, sign_out, createProfile, admin_login_view,
 
-    viewProfile, updateProfile, activateProfile, deactivateProfile, student, staff_list,
+    viewProfile, updateProfile, activateProfile, deactivateProfile, student, staff_list, error,
     fetch_facebook_posts
 )
 
@@ -26,6 +26,8 @@ urlpatterns = [
     path('tools/', tools, name='tools'),
     path('sign_out/', sign_out, name='sign_out'),
     path('createProfile/', createProfile, name='createProfile'),
+
+    path('error/', error, name='error'),
 
     path('fetch_facebook_posts/', fetch_facebook_posts, name='fetch_facebook_posts'),
 ]

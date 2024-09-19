@@ -29,15 +29,17 @@
   {% endif %}
 
   <!-- Calendar -->
+  {% if user.profile.role.name|lower != 'admin' %}
   <li class="nav-item {% if request.resolver_match.url_name == 'calendars' %}active{% endif %}">
     <a class="nav-link" href="{% url 'calendars' %}">
       <i class="bx bx-calendar"></i>
       <span>Calendar</span>
     </a>
   </li>
+  {% endif %}
 
   <!-- Messages (Permission check) -->
-  {% if user|has_perm:'message.view_message' %}
+  {% if user|has_perm:'message.view_message' and user.profile.role.name|lower != 'admin' %}
     <li class="nav-item {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">
       <a class="nav-link" href="{% url 'inbox' %}">
         <i class="bx bx-envelope"></i>
@@ -49,7 +51,8 @@
     </li>
   {% endif %}
 
-  <!-- Teaching Section -->
+  <!-- Teaching Section --> 
+   {% if user.profile.role.name|lower != 'admin' %}
   <li class="nav-item">
     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
       <i class="bx bx-chalkboard"></i>
@@ -75,18 +78,24 @@
             <span>Subject List</span>
           </a>
         {% endif %}
-        {% if user|has_perm:'subject.view_subject' %}
+        {% if user|has_perm:'activity.view_activity' and user.profile.role.name|lower != 'admin' %}
           <a class="collapse-item" href="{% url 'progressList' %}">
             <i class="bx bx-bar-chart"></i>
             <span>Activity Progress</span>
           </a>
         {% endif %}
+
+        <a class="collapse-item" href="{% url 'previousSemestersView' %}">
+          <i class="bx bx-clipboard"></i>
+          <span>Archived Semester</span>
+        </a>
       </div>
     </div>
   </li>
+  {% endif %}
 
   <!-- Enroll Students (Permission check) -->
-  {% if user|has_perm:'course.view_subjectenrollment' %}
+  {% if user|has_perm:'course.view_subjectenrollment' and user.profile.role.name|lower != 'admin' %}
     <li class="nav-item {% if request.resolver_match.url_name == 'subjectEnrollmentList' %}active{% endif %}">
       <a class="nav-link" href="{% url 'subjectEnrollmentList' %}">
         <i class="bx bx-user-plus"></i>
@@ -94,8 +103,10 @@
       </a>
     </li>
   {% endif %}
+
   <!-- Settings Section -->
   <li class="nav-item">
+    {% if not user.profile.role.name|lower == 'student' %}
     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
       <i class="bx bx-cog"></i>
       <span>Settings</span>
@@ -108,37 +119,37 @@
             <span>Role</span>
           </a>
         {% endif %}
-        {% if user|has_perm:'course.view_semester' %}
+        {% if user.is_superuser %}
           <a class="collapse-item" href="{% url 'activityTypeList' %}">
             <i class="bx bx-bar-chart-alt-2"></i>
             <span>Activity Type</span>
           </a>
         {% endif %}
-        {% if user|has_perm:'course.view_semester' %}
+        {% if user|has_perm:'course.view_semester' and user.profile.role.name|lower != 'admin'%}
           <a class="collapse-item" href="{% url 'semesterList' %}">
             <i class="bx bx-clipboard"></i>
             <span>Semester</span>
           </a>
         {% endif %}
-        {% if user|has_perm:'subject.view_subject' %}
+        {% if user|has_perm:'subject.view_subject' and user.profile.role.name|lower != 'admin' and user.profile.role.name|lower != 'registrar' %}
           <a class="collapse-item" href="{% url 'viewGradeBookComponents' %}">
             <i class="bx bx-chart"></i>
             <span>Subject Percentage</span>
           </a>
         {% endif %}
-        {% if user|has_perm:'subject.view_subject' %}
+        {% if user|has_perm:'subject.view_subject' and user.profile.role.name|lower != 'admin' and user.profile.role.name|lower != 'registrar' %}
           <a class="collapse-item" href="{% url 'subGradebook' %}">
             <i class="bx bx-chart"></i>
             <span>Subject Sub Percentage</span>
           </a>
         {% endif %}
-        {% if user|has_perm:'course.view_term' %}
+        {% if user|has_perm:'course.view_term' and user.profile.role.name|lower != 'admin' %}
           <a class="collapse-item" href="{% url 'termList' %}">
             <i class="bx bx-calendar-event"></i>
             <span>Term</span>
           </a>
         {% endif %}
-        {% if user|has_perm:'subject.view_subject' %}
+        {% if user|has_perm:'subject.view_subject' and  user.profile.role.name|lower != 'admin' and user.profile.role.name|lower != 'registrar' %}
           <a class="collapse-item" href="{% url 'termBookList' %}">
             <i class="bx bx-chart"></i>
             <span>Term Percentage</span>
@@ -158,6 +169,7 @@
         {% endif %}
       </div>
     </div>
+    {% endif %}
   </li>
 
   <!-- Footer -->

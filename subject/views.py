@@ -17,7 +17,6 @@ from course.models import Semester, SubjectEnrollment
 @login_required
 @permission_required('subject.view_subject', raise_exception=True)
 def subjectList(request):
-    # Get the current date
     today = date.today()
 
     current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
@@ -28,7 +27,10 @@ def subjectList(request):
         else:
             subjects = Subject.objects.filter(id__in=SubjectEnrollment.objects.filter(semester=current_semester).values_list('subject_id', flat=True))
     else:
-        subjects = Subject.objects.none()
+        if request.user.profile.role.name.lower() == 'teacher':
+            subjects = Subject.objects.filter(assign_teacher=request.user)
+        else:
+            subjects = Subject.objects.all()
 
     form = subjectForm()
     return render(request, 'subject/subject.html', {'subjects': subjects, 'form': form})

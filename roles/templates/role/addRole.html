@@ -8,8 +8,18 @@
       <form method="POST" action="{% url 'createRole' %}">
         {% csrf_token %}
         <div class="form-group">
-            <label for="role">Role:</label>
+            <label for="role">Role Name:</label>
             {{ form.name }}
+        </div>
+        
+        <div class="form-group">
+            <label for="source_role_id">Copy Permissions From</label>
+            <select name="source_role_id" id="source_role_id" class="form-control">
+                <option value="">--- Select Role to Copy Permissions From ---</option>
+                {% for role in roles %}
+                    <option value="{{ role.id }}">{{ role.name }}</option>
+                {% endfor %}
+            </select>
         </div>
         
         <div class="form-group">
@@ -81,4 +91,35 @@
         }
     });
   </script>
+
+  <script>
+    document.getElementById('source_role_id').addEventListener('change', function () {
+        const roleId = this.value;
+
+        // If no role is selected, uncheck all permissions
+        if (!roleId) {
+            document.querySelectorAll('.permission-checkbox').forEach(checkbox => checkbox.checked = false);
+            return;
+        }
+
+        // Fetch the permissions for the selected role
+        fetch(`/get_role_permissions/${roleId}/`)
+            .then(response => response.json())
+            .then(data => {
+                // Uncheck all permissions first
+                document.querySelectorAll('.permission-checkbox').forEach(checkbox => checkbox.checked = false);
+
+                // Check the permissions that are in the selected role
+                data.permissions.forEach(permission => {
+                    const checkbox = document.querySelector(`input[value="${permission.id}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching permissions:', error);
+            });
+    });
+</script>
 {% endblock %}

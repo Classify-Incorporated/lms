@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    createRole, updateRole, deleteRole, roleList, viewRole
+    createRole, updateRole, deleteRole, roleList, viewRole, get_role_permissions
 )
 
 urlpatterns = [
@@ -9,5 +9,7 @@ urlpatterns = [
     path('createRole/', createRole, name='createRole'), 
     path('updateRole/<int:pk>/', updateRole, name='updateRole'),
     path('deleteRole/<int:pk>/', deleteRole, name='deleteRole'),
+    path('get_role_permissions/<int:role_id>/', get_role_permissions, name='get_role_permissions'),
+    
     
 ]

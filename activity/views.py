@@ -110,6 +110,14 @@ class AddActivityView(View):
         term = get_object_or_404(Term, id=term_id)
         module = get_object_or_404(Module, id=module_id)
 
+        start_time = timezone.make_aware(timezone.datetime.strptime(start_time, '%Y-%m-%dT%H:%M'))
+        end_time = timezone.make_aware(timezone.datetime.strptime(end_time, '%Y-%m-%dT%H:%M'))
+
+        # Validation: Ensure that start_time is before end_time
+        if start_time >= end_time:
+            messages.error(request, 'End time must be after start time.')
+            return self.get(request, subject_id)
+
         # Validation: Check if the activity name is unique for the semester and assigned teacher
         if Activity.objects.filter(activity_name=activity_name, term=term, subject=subject, subject__assign_teacher=subject.assign_teacher).exists():
             messages.error(request, 'An activity with this name already exists.')
@@ -220,6 +228,7 @@ class AddQuizTypeView(View):
         })
 
     def post(self, request, activity_id):
+        activity = get_object_or_404(Activity, id=activity_id)
         quiz_type_id = request.POST.get('quiz_type')
         return redirect('add_question', activity_id=activity_id, quiz_type_id=quiz_type_id)
 
@@ -257,13 +266,13 @@ class AddQuestionView(View):
             # The rest of your logic
         except Activity.DoesNotExist:
             messages.error(request, 'Activity does not exist.')
-            return redirect('404')  # Redirect to the correct error page
+            return redirect('error')  # Redirect to the correct error page
         except QuizType.DoesNotExist:
             messages.error(request, 'Quiz type does not exist.')
-            return redirect('404')  # Redirect to the correct error page
+            return redirect('error')  # Redirect to the correct error page
         except Exception as e:
             messages.error(request, f"An unexpected error occurred: {str(e)}")
-            return redirect('404')
+            return redirect('error')
 
         # Handle participation quiz type
         if quiz_type.name == 'Participation':
