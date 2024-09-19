@@ -69,7 +69,7 @@
 
 /* Sidebar in Dark Mode */
 .dark-mode .sidebar {
-    background-color: #343a40;
+    background-color: #090E14;
     color: #ffffff;
     box-shadow: 4px 0 8px rgba(255, 255, 255, 0.1);
     border-right: 1px solid rgba(255, 255, 255, 0.2);
@@ -471,4 +471,36 @@ h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
 
 .text-white-50 {
     color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary) !important; /* Default: #007bff */
+}
+
+.bg-secondary {
+    background-color: var(--secondary) !important; /* Default: #6c757d */
+}
+
+.bg-success {
+    background-color: var(--success) !important; /* Default: #28a745 */
+}
+
+.bg-danger {
+    background-color: var(--danger) !important; /* Default: #dc3545 */
+}
+
+.bg-warning {
+    background-color: var(--warning) !important; /* Default: #ffc107 */
+}
+
+.bg-info {
+    color: var(--info) !important; /* Default: #17a2b8 */
+}
+
+.bg-light {
+    background-color: var(--light-text) !important; /* Default: #f8f9fa */
+}
+
+.bg-dark {
+    background-color: #343a40 !important; /* Default: #343a40 */
 }

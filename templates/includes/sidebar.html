@@ -17,7 +17,7 @@
       <div class="input-group" data-widget="sidebar-search">
         <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search" />
         <div class="input-group-append">
-          <button class="btn btn-sidebar"><i class="fas fa-search fa-fw"></i></button>
+          <button class="btn btn-sidebar"><i class="bx bx-search"></i></button>
         </div>
       </div>
     </div>
@@ -28,7 +28,7 @@
         <!-- Calendar -->
         <li class="nav-item">
           <a href="{% url 'dashboard' %}" class="nav-link">
-            <i class="ion ion-home nav-icon"></i>
+            <i class="bx bx-home nav-icon"></i>
             <p>Dashboard</p>
           </a>
         </li>
@@ -37,7 +37,7 @@
         {% if user|has_perm:'accounts.view_profile' %}
           <li class="nav-item">
             <a href="{% url 'viewProfile' request.user.id %}" class="nav-link">
-              <i class="ion ion-ios-person nav-icon"></i>
+              <i class="bx bx-user nav-icon"></i>
               <p>{{ request.user.first_name|title }} {{ request.user.last_name|title }}</p>
             </a>
           </li>
@@ -46,7 +46,7 @@
         <!-- Calendar -->
         <li class="nav-item">
           <a href="{% url 'calendars' %}" class="nav-link">
-            <i class="ion ion-ios-calendar nav-icon"></i>
+            <i class="bx bx-calendar nav-icon"></i>
             <p>Calendar</p>
           </a>
         </li>
@@ -55,7 +55,7 @@
         {% if user|has_perm:'message.view_message' %}
           <li class="nav-item">
             <a href="{% url 'inbox' %}" class="nav-link">
-              <i class="ion ion-chatbox nav-icon"></i>
+              <i class="bx bx-chat nav-icon"></i>
               <p>Messages</p>
               {% if unread_messages_count > 0 %}
                 <span class="badge badge-danger">{{ unread_messages_count }}</span>
@@ -67,17 +67,17 @@
         <!-- Teaching Section -->
         <li class="nav-item">
           <a href="#" class="nav-link">
-            <i class="ion ion-ios-bookmarks-outline nav-icon"></i>
+            <i class="bx bx-book-open nav-icon"></i>
             <p>
               Teaching
-              <i class="ion ion-chevron-down right"></i>
+              <i class="bx bx-chevron-down right"></i>
             </p>
           </a>
           <ul class="nav nav-treeview">
             {% if user|has_perm:'course.view_course' %}
               <li class="nav-item">
                 <a href="{% url 'SubjectList' %}" class="nav-link">
-                  <i class="ion ion-ios-book nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Subjects</p>
                 </a>
               </li>
@@ -85,7 +85,7 @@
             {% if user|has_perm:'gradebookcomponent.view_gradebookcomponents' %}
               <li class="nav-item">
                 <a href="{% url 'studentTotalScoreForActivity' %}" class="nav-link">
-                  <i class="ion ion-android-checkmark-circle nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Grades</p>
                 </a>
               </li>
@@ -93,7 +93,7 @@
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
                 <a href="{% url 'subject' %}" class="nav-link">
-                  <i class="ion ion-ios-book nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Subject List</p>
                 </a>
               </li>
@@ -101,7 +101,7 @@
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
                 <a href="{% url 'progressList' %}" class="nav-link">
-                  <i class="ion ion-stats-bars nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Activity Progress</p>
                 </a>
               </li>
@@ -113,7 +113,7 @@
         {% if user|has_perm:'course.view_subjectenrollment' %}
           <li class="nav-item">
             <a href="{% url 'subjectEnrollmentList' %}" class="nav-link">
-              <i class="ion ion-ios-personadd nav-icon"></i>
+              <i class="bx bx-user-plus nav-icon"></i>
               <p>Enroll Students</p>
             </a>
           </li>
@@ -122,17 +122,17 @@
         <!-- Settings Section -->
         <li class="nav-item">
           <a href="#" class="nav-link">
-            <i class="ion ion-ios-cog nav-icon"></i>
+            <i class="bx bx-cog nav-icon"></i>
             <p>
               Settings
-              <i class="ion ion-chevron-down right"></i>
+              <i class="bx bx-chevron-down right"></i>
             </p>
           </a>
           <ul class="nav nav-treeview">
             {% if user|has_perm:'roles.view_role' %}
               <li class="nav-item">
                 <a href="{% url 'roleList' %}" class="nav-link">
-                  <i class="ion ion-ios-people nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Role</p>
                 </a>
               </li>
@@ -140,7 +140,7 @@
             {% if user|has_perm:'course.view_semester' %}
               <li class="nav-item">
                 <a href="{% url 'activityTypeList' %}" class="nav-link">
-                  <i class="ion ion-ios-albums-outline nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Activity Type</p>
                 </a>
               </li>
@@ -148,7 +148,7 @@
             {% if user|has_perm:'course.view_semester' %}
               <li class="nav-item">
                 <a href="{% url 'semesterList' %}" class="nav-link">
-                  <i class="ion ion-ios-calendar nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Semester</p>
                 </a>
               </li>
@@ -156,7 +156,7 @@
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
                 <a href="{% url 'viewGradeBookComponents' %}" class="nav-link">
-                  <i class="ion ion-ios-pie-outline nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Subject Percentage</p>
                 </a>
               </li>
@@ -164,7 +164,7 @@
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
                 <a href="{% url 'subGradebook' %}" class="nav-link">
-                  <i class="ion ion-ios-pie nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Subject Sub Percentage</p>
                 </a>
               </li>
@@ -172,7 +172,7 @@
             {% if user|has_perm:'course.view_term' %}
               <li class="nav-item">
                 <a href="{% url 'termList' %}" class="nav-link">
-                  <i class="ion ion-ios-calendar nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Term</p>
                 </a>
               </li>
@@ -180,7 +180,7 @@
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
                 <a href="{% url 'termBookList' %}" class="nav-link">
-                  <i class="ion ion-podium nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Term Percentage</p>
                 </a>
               </li>
@@ -188,7 +188,7 @@
             {% if user|has_perm:'course.view_semester' %}
               <li class="nav-item">
                 <a href="{% url 'student' %}" class="nav-link">
-                  <i class="ion ion-ios-people nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Student List</p>
                 </a>
               </li>
@@ -196,7 +196,7 @@
             {% if user|has_perm:'course.view_semester' %}
               <li class="nav-item">
                 <a href="{% url 'staff_list' %}" class="nav-link">
-                  <i class="ion ion-ios-briefcase nav-icon"></i>
+                  <i class="bx bx-circle nav-icon"></i>
                   <p>Staff List</p>
                 </a>
               </li>
