@@ -1,5 +1,5 @@
 .custom-sidebar {
-    background-color: #171F29; /* Background color */
+    background-color: #090E14; /* Background color */
   }
   
   .custom-sidebar .nav-link {
@@ -13,6 +13,10 @@
   
   .custom-sidebar .sidebar-divider {
     border-color: #314455; /* Divider color */
+  }
+
+  .custom-sidebar .brand-link{
+    background-color: #23262D;
   }
   
   .custom-sidebar .sidebar-brand-text {
@@ -28,9 +32,9 @@
     }
   }
   
-  .custom-sidebar .nav-item.active .nav-link {
+  .custom-sidebar .nav-link.active .nav-link {
     color: #FFFFFF; /* Active link text color */
-    background-color: #314455; /* Active link background color */
+    background-color: #314455 !important; /* Active link background color */
     border: 2px solid #1E90FF; /* Active link border */
     border-left: 5px solid #8d8d8d;
     position: relative;
