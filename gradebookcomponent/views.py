@@ -558,7 +558,9 @@ def studentTotalScoreApi(request):
         students = CustomUser.objects.filter(id=user.id)
         subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
     else:
-        return JsonResponse({'error': 'Unauthorized access.'}, status=403)
+        # For all other roles: Show all students and subjects
+        students = CustomUser.objects.filter(profile__role__name__iexact='student')
+        subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
 
     selected_subject_id = request.GET.get('subject', 'all')
 

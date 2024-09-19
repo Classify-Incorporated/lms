@@ -8,7 +8,7 @@ from .decorators import admin_required
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponse
+from django.http import JsonResponse
 
 #Role List
 @login_required
@@ -49,6 +49,7 @@ def viewRole(request, role_id):
 
 # Create role
 @login_required
+@admin_required
 def createRole(request):
     if request.method == 'POST':
         form = roleForm(request.POST)
@@ -59,6 +60,11 @@ def createRole(request):
             permissions = Permission.objects.filter(id__in=selected_permissions)
 
             role.permissions.set(permissions)
+
+            source_role_id = request.POST.get('source_role_id')
+            if source_role_id:
+                source_role = get_object_or_404(Role, id=source_role_id)
+                role.permissions.set(source_role.permissions.all())
             
             messages.success(request, 'Role created successfully!')
             return redirect('roleList')
@@ -83,6 +89,7 @@ def createRole(request):
 
 # Update Role
 @login_required
+@admin_required
 def updateRole(request, pk):
     role_obj = get_object_or_404(Role, pk=pk)
     
@@ -126,3 +133,11 @@ def deleteRole(request, pk):
     role.delete()
     return redirect('roleList')
 
+
+@login_required
+@admin_required
+def get_role_permissions(request, role_id):
+    role = get_object_or_404(Role, id=role_id)
+    permissions = role.permissions.all()
+    permission_data = [{'id': perm.id, 'codename': perm.codename} for perm in permissions]
+    return JsonResponse({'permissions': permission_data})

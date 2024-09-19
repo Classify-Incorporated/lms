@@ -5,7 +5,7 @@
   right: 0;
   top: 0;
   height: 100%;
-  width: calc(100% - 1500px); /* Adjust based on sidebar width */
+  width: calc(100% - 500px); /* Adjust based on sidebar width */
   background-color: white;
   box-shadow: -2px 0 5px rgba(0,0,0,0.5);
   transform: translateX(100%);

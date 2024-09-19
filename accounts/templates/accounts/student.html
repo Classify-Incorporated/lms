@@ -18,7 +18,7 @@
               <th>Name</th>
               <th>Email</th>
               <th>Year Level</th>
-              <th>Major</th>
+              <th>Course</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -29,7 +29,7 @@
                 <td>{{ profiles.first_name }} {{ profiles.last_name }}</td>
                 <td>{{ profiles.user.email }}</td>
                 <td>{{ profiles.grade_year_level }}</td>
-                <td>{{ profiles.major }}</td>
+                <td>{{ profiles.course }}</td>
                 <td>
                   <div class="dropdown">
                     <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ profiles.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
