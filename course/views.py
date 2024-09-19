@@ -500,6 +500,7 @@ def semesterList(request):
         'semesters': semesters, 'form': form,
     })
 
+
 # Create Semester
 @login_required
 @permission_required('course.add_semester', raise_exception=True)
