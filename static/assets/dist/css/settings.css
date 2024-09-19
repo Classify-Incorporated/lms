@@ -35,8 +35,14 @@
 .dark-mode .navbar {
     background-color: #343a40;
     color: #ffffff;
-    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid #343A40;
+}
+
+/* Navbar in Dark Mode */
+.dark-mode .main-footer {
+    background-color: #343a40;
+    color: #ffffff;
+    border-top: 1px solid #343A40;
 }
 
 .dark-mode .navbar .nav-link {
@@ -67,22 +73,17 @@
     color: #ffffff;
 }
 
-/* Sidebar in Dark Mode */
-.dark-mode .sidebar {
-    background-color: #090E14;
-    color: #ffffff;
-    box-shadow: 4px 0 8px rgba(255, 255, 255, 0.1);
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-}
-
 .dark-mode .sidebar a {
     color: #ffffff;
 }
 
-/* Content Wrapper in Dark Mode */
+/* Circular Gradient similar to the provided design */
 .dark-mode .content-wrapper {
-    background-color: #343a40;
+    background: radial-gradient(circle, rgb(77,109,122) 20%, rgba(40,48,65,1) 100%);
     color: #ffffff;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 /* Cards in Dark Mode */
@@ -183,39 +184,10 @@
     color: #ffffff;
 }
 
-/* Footer in Dark Mode */
-.dark-mode .sticky-footer {
-    background-color: #343a40;
-    color: #ffffff;
-}
-
 .dark-mode .sticky-footer a {
     color: #7473DF;
 }
 
-/* Fixed Header and Footer */
-.fixed-top {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1030;
-}
-
-.footer-fixed {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    z-index: 1030;
-}
-
-.no-border {
-    border-bottom: none !important;
-}
-
-/* Dropdown Adjustments */
-.dropdown-legacy {
-    margin-top: -1rem;
-}
 
 /* Small Text */
 .text-sm {
@@ -230,10 +202,9 @@
 
 /* Typography */
 h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Raleway', sans-serif;
     font-weight: 500;
 }
-
 
 :root {
     --primary: #4A90E2;            /* Modern vibrant blue */
