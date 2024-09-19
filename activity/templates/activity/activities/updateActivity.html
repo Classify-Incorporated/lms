@@ -5,57 +5,91 @@
 {% endblock %}
 
 {% block content %}
-  <h1>Edit Activity: {{ activity.activity_name }}</h1>
-  
-  <form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="subject" value="{{ activity.subject.id }}">
-    <div class="form-group">
-      <label for="activity_name">Activity Name:</label>
-      <input type="text" id="activity_name" name="activity_name" value="{{ form.activity_name.value }}" class="form-control" required />
-    </div>
-    <div class="form-group">
-      <label for="activity_type">Activity Type:</label>
-      {{ form.activity_type }}
-    </div>
-    <div class="form-group">
-      <label for="term">Term:</label>
-      {{ form.term }}
-    </div>
-    <div class="form-group">
-      <label for="module">Select Module:</label>
-      <select id="module" name="module" class="form-control" required>
-        {% for module in modules %}
-          <option value="{{ module.id }}">{{ module.file_name }}</option>
-        {% endfor %}
-      </select>
+  <div class="content-wrapper">
+    <!-- Content Header -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <h1 class="h3 mb-4 text-gray-800">Edit Activity: {{ activity.activity_name }}</h1>
+      </div>
     </div>
 
-    <div class="form-check">
-      <input type="checkbox" id="remedial" name="remedial" class="form-check-input" />
-      <label for="remedial">Remedial Activity:</label>
-    </div>
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <!-- Activity Edit Form -->
+        <div class="card shadow mb-4">
+          <div class="card-body">
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="subject" value="{{ activity.subject.id }}">
 
-    <div class="form-group" id="remedial_students_field" style="display: none;">
-      <label for="remedial_students">Select Students:</label>
-      <select id="remedial_students" name="remedial_students" class="form-control" multiple>
-        {% for student in students %}
-          <option value="{{ student.id }}">{{ student.get_full_name }}</option>
-        {% endfor %}
-      </select>
-    </div>
+              <!-- Activity Name -->
+              <div class="form-group">
+                <label for="activity_name">Activity Name:</label>
+                <input type="text" id="activity_name" name="activity_name" value="{{ form.activity_name.value }}" class="form-control" required />
+              </div>
 
-    <div class="form-group">
-      <label for="start_time">Start Time:</label>
-      <input type="datetime-local" id="start_time" name="start_time" value="{{ form.start_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
-    </div>
-    <div class="form-group">
-      <label for="end_time">End Time:</label>
-      <input type="datetime-local" id="end_time" name="end_time" value="{{ form.end_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
-    </div>
-    <button type="submit" class="btn btn-primary">Save Changes</button>
-    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
-  </form>
+              <!-- Activity Type -->
+              <div class="form-group">
+                <label for="activity_type">Activity Type:</label>
+                {{ form.activity_type }}
+              </div>
+
+              <!-- Term -->
+              <div class="form-group">
+                <label for="term">Term:</label>
+                {{ form.term }}
+              </div>
+
+              <!-- Module Selection -->
+              <div class="form-group">
+                <label for="module">Select Module:</label>
+                <select id="module" name="module" class="form-control" required>
+                  {% for module in modules %}
+                    <option value="{{ module.id }}" {% if module.id == form.module.value %}selected{% endif %}>{{ module.file_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Remedial Activity -->
+              <div class="form-check mb-3">
+                <input type="checkbox" id="remedial" name="remedial" class="form-check-input" {% if form.remedial.value %}checked{% endif %} />
+                <label for="remedial" class="form-check-label">Remedial Activity</label>
+              </div>
+
+              <!-- Remedial Students Selection -->
+              <div class="form-group" id="remedial_students_field" style="display: none;">
+                <label for="remedial_students">Select Students:</label>
+                <select id="remedial_students" name="remedial_students" class="form-control" multiple>
+                  {% for student in students %}
+                    <option value="{{ student.id }}" {% if student.id in form.remedial_students.value %}selected{% endif %}>{{ student.get_full_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Start Time -->
+              <div class="form-group">
+                <label for="start_time">Start Time:</label>
+                <input type="datetime-local" id="start_time" name="start_time" value="{{ form.start_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
+              </div>
+
+              <!-- End Time -->
+              <div class="form-group">
+                <label for="end_time">End Time:</label>
+                <input type="datetime-local" id="end_time" name="end_time" value="{{ form.end_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
+              </div>
+
+              <!-- Buttons -->
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+              <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Script for showing/hiding remedial students selection -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       var remedialCheckbox = document.getElementById('remedial');

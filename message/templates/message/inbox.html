@@ -4,120 +4,124 @@
   Inbox
 {% endblock %}
 {% block content %}
-  <h1 class="h3 mb-2 text-gray-800">Inbox</h1>
-
-  <div class="row">
-    <div class="col-md-2">
-      <button class="btn btn-primary mb-3 w-100" id="openSendMessageModalBtn"><i class="fas fa-pencil-alt"></i> Compose</button>
-      <div class="list-group">
-        <a href="{% url 'inbox' %}" class="list-group-item list-group-item-action d-flex align-items-center">
-          <i class="fas fa-inbox mr-2"></i>
-          <span>Inbox</span>
-          <span class="badge badge-primary badge-pill ml-auto" id="unreadCountBadge">{{ unread_messages_count }}</span>
-        </a>
-        <a href="{% url 'sent' %}" class="list-group-item list-group-item-action d-flex align-items-center">
-          <i class="fas fa-envelope mr-2"></i>
-          <span>Sent</span>
-        </a>
-        <a href="{% url 'trash' %}" class="list-group-item list-group-item-action d-flex align-items-center">
-          <i class="fas fa-trash mr-2"></i>
-          <span>Trash</span>
-        </a>
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Inbox</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item">
+                <a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active">Inbox</li>
+            </ol>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="col-md-10">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Inbox</h5>
-          <input type="text" id="searchMail" class="form-control w-25" placeholder="Search Mail" />
-        </div>
-        <div class="card-body p-0">
-          <table class="table table-hover">
-            <thead class="text-center">
-              <tr>
-                <div class="d-flex align-items-center">
-                  <input type="checkbox" id="selectAll" class="ml-3 mb-3 mt-3" />
-                  <div class="toolbar" id="toolbar" style="display: none;">
-                    <button class="btn btn-sm btn-trash ml-1" data-toggle="tooltip" title="Trash"><i class="fas fa-trash"></i></button>
-                    <button class="btn btn-sm ml-1" data-toggle="tooltip" title="Mark as Read"><i class="fas fa-envelope-open"></i></button>
-                    <button class="btn btn-sm ml-1" data-toggle="tooltip" title="Archive"><i class="fas fa-archive"></i></button>
-                    <button class="btn btn-sm ml-1" data-toggle="tooltip" title="Report Spam"><i class="fas fa-exclamation-triangle"></i></button>
-                  </div>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-2">
+            <button class="btn btn-primary mb-3 w-100" id="openSendMessageModalBtn"><i class="fas fa-pencil-alt"></i> Compose</button>
+            <div class="list-group">
+              <a href="{% url 'inbox' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                <i class="fas fa-inbox mr-2"></i>
+                <span>Inbox</span>
+                <span class="badge badge-primary badge-pill ml-auto" id="unreadCountBadge">{{ unread_messages_count }}</span>
+              </a>
+              <a href="{% url 'sent' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                <i class="fas fa-envelope mr-2"></i>
+                <span>Sent</span>
+              </a>
+              <a href="{% url 'trash' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                <i class="fas fa-trash mr-2"></i>
+                <span>Trash</span>
+              </a>
+            </div>
+          </div>
+          <div class="col-md-10">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Inbox</h5>
+                <input type="text" id="searchMail" class="form-control w-25 ml-auto" placeholder="Search Mail" />
+              </div>
+              <div class="card-body p-0">
+                <table class="table table-hover">
+                  <thead class="text-center">
+                    <tr>
+                      <div class="d-flex align-items-center">
+                        <input type="checkbox" id="selectAll" class="ml-3 mb-3 mt-3" />
+                        <div class="toolbar" id="toolbar" style="display: none;">
+                          <button class="btn btn-sm btn-trash ml-1" data-toggle="tooltip" title="Trash"><i class="fas fa-trash"></i></button>
+                          <button class="btn btn-sm ml-1" data-toggle="tooltip" title="Mark as Read"><i class="fas fa-envelope-open"></i></button>
+                          <button class="btn btn-sm ml-1" data-toggle="tooltip" title="Archive"><i class="fas fa-archive"></i></button>
+                          <button class="btn btn-sm ml-1" data-toggle="tooltip" title="Report Spam"><i class="fas fa-exclamation-triangle"></i></button>
+                        </div>
+                      </div>
+                    </tr>
+                  </thead>
+                  <tbody id="messageTable" class="text-center">
+                    {% if message_status_list %}
+                      {% for item in message_status_list %}
+                        <tr class="message-row {% if not item.read and item.message.sender != request.user %}unread{% endif %}" data-id="{{ item.message.id }}">
+                          <td>
+                            <input type="checkbox" class="selectItem" />
+                          </td>
+                          <td class="text-left">{{ item.message.sender }}</td>
+                          <td class="text-left">
+                            <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">{{ item.message.subject }} - {{ item.message.body|striptags|truncatewords:5 }}</a>
+                          </td>
+                          <td>
+                            {% if item.message.sender != request.user %}
+                              <span class="badge {% if item.read %}
+                                  
+                                   badge-success
+
+                                {% else %}
+                                  
+                                   badge-warning
+
+                                {% endif %}">
+                                {% if item.read %}
+                                  Read
+                                {% else %}
+                                  Unread
+                                {% endif %}
+                              </span>
+                            {% endif %}
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    {% else %}
+                      <tr>
+                        <td colspan="5">No matching records found</td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+              <!-- Card Footer -->
+              <div class="card-footer d-flex justify-content-between align-items-center">
+                <div>
+                  <button class="btn btn-secondary"><i class="fas fa-arrow-left"></i></button>
+                  <button class="btn btn-secondary"><i class="fas fa-arrow-right"></i></button>
                 </div>
-              </tr>
-            </thead>
-            <tbody id="messageTable" class="text-center">
-              {% if message_status_list %}
-                {% for item in message_status_list %}
-                  <tr class="message-row {% if not item.read and item.message.sender != request.user %}unread{% endif %}" data-id="{{ item.message.id }}">
-                    <td>
-                      <input type="checkbox" class="selectItem" />
-                    </td>
-                    <td class="text-left">{{ item.message.sender }}</td>
-                    <td class="text-left">
-                      <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">{{ item.message.subject }} - {{ item.message.body|striptags|truncatewords:5 }}</a>
-                    </td>
-                    <td>
-                      {% if item.message.sender != request.user %}
-                        <span class="badge {% if item.read %}
-                            
-                            
-                            
-                            
-                            
-                            
-                          badge-success
-
-
-
-
-
-
-                          {% else %}
-                            
-                            
-                            
-                            
-                            
-                            
-                          badge-warning
-
-
-
-
-
-
-                          {% endif %}">
-                          {% if item.read %}
-                            Read
-                          {% else %}
-                            Unread
-                          {% endif %}
-                        </span>
-                      {% endif %}
-                    </td>
-                  </tr>
-                {% endfor %}
-              {% else %}
-                <tr>
-                  <td colspan="5">No matching records found</td>
-                </tr>
-              {% endif %}
-            </tbody>
-          </table>
-        </div>
-        <!-- Card Footer -->
-        <div class="card-footer d-flex justify-content-between align-items-center">
-          <div>
-            <button class="btn btn-secondary"><i class="fas fa-arrow-left"></i></button>
-            <button class="btn btn-secondary"><i class="fas fa-arrow-right"></i></button>
-          </div>
-          <div>
-            <span>Showing {{ message_status_list|length }} messages</span>
+                <div>
+                  <span>Showing {{ message_status_list|length }} messages</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 
   <!-- Include the modals -->
@@ -189,12 +193,10 @@
       const messageIds = Array.from(selectedMessages).map((item) => item.closest('tr').dataset.id)
     
       if (messageIds.length > 0) {
-        // Create a new FormData object
         const formData = new FormData()
         formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
         messageIds.forEach((id) => formData.append('message_ids[]', id))
     
-        // Send the request to trash the messages
         fetch("{% url 'trash_messages' %}", {
           method: 'POST',
           body: formData
@@ -205,7 +207,7 @@
               messageIds.forEach((id) => {
                 document.querySelector(`tr[data-id="${id}"]`).remove()
               })
-              toggleToolbar() // Hide toolbar if no items are selected
+              toggleToolbar()
             } else {
               alert('An error occurred while trying to trash messages.')
             }
@@ -227,7 +229,6 @@
       document.getElementById('sendMessageModalBackdrop').classList.remove('show')
     })
     
-    // Open View Message Modal
     document.querySelectorAll('.viewMessageLink').forEach(function (element) {
       element.addEventListener('click', function (event) {
         event.preventDefault()
@@ -248,11 +249,10 @@
           document.getElementById('viewMessageContent').innerHTML = data
           document.getElementById('viewMessageModal').classList.add('show')
           document.getElementById('viewMessageModalBackdrop').classList.add('show')
-          updateUnreadCount() // Update unread count after fetching message content
+          updateUnreadCount()
         })
     }
     
-    // Click row to view message
     document.querySelectorAll('.message-row').forEach(function (row) {
       row.addEventListener('click', function (event) {
         if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'A') {
@@ -262,7 +262,6 @@
       })
     })
     
-    // Event listener for the select all checkbox
     document.getElementById('selectAll').addEventListener('change', function () {
       const checkboxes = document.querySelectorAll('.selectItem')
       checkboxes.forEach((checkbox) => {
@@ -272,7 +271,6 @@
       toggleToolbar()
     })
     
-    // Event listener for individual checkboxes
     document.querySelectorAll('.selectItem').forEach(function (checkbox) {
       checkbox.addEventListener('change', function () {
         toggleHighlightRow(checkbox)
@@ -280,7 +278,6 @@
       })
     })
     
-    // Toggle toolbar visibility
     function toggleToolbar() {
       const toolbar = document.getElementById('toolbar')
       const checkboxes = document.querySelectorAll('.selectItem')
@@ -288,7 +285,6 @@
       toolbar.style.display = anyChecked ? 'flex' : 'none'
     }
     
-    // Toggle row highlight
     function toggleHighlightRow(checkbox) {
       const row = checkbox.closest('tr')
       if (checkbox.checked) {
@@ -303,7 +299,6 @@
       const rows = document.querySelectorAll('#messageTable .message-row')
       let hasVisibleRow = false
     
-      // Remove any existing "No matching records found" row
       const existingNoRecordsRow = document.querySelector('#messageTable .no-records')
       if (existingNoRecordsRow) {
         existingNoRecordsRow.remove()
@@ -312,9 +307,8 @@
       rows.forEach((row) => {
         const subject = row.querySelector('td:nth-child(3) a').textContent.toLowerCase()
         const sender = row.querySelector('td:nth-child(2)').textContent.toLowerCase()
-        const body = row.querySelector('td:nth-child(4)').textContent.toLowerCase()
     
-        if (subject.includes(searchValue) || sender.includes(searchValue) || body.includes(searchValue)) {
+        if (subject.includes(searchValue) || sender.includes(searchValue)) {
           row.style.display = ''
           hasVisibleRow = true
         } else {
@@ -322,16 +316,14 @@
         }
       })
     
-      // Add "No matching records found" row if no rows are visible
       if (!hasVisibleRow) {
         const noRecordsRow = document.createElement('tr')
-        noRecordsRow.className = 'no-records' // Add a class for identification
+        noRecordsRow.className = 'no-records'
         noRecordsRow.innerHTML = '<td colspan="5">No matching records found</td>'
         document.querySelector('#messageTable').appendChild(noRecordsRow)
       }
     }
     
-    // Event listener for search input
     document.getElementById('searchMail').addEventListener('input', filterMessages)
   </script>
 

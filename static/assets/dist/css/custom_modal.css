@@ -1,0 +1,77 @@
+ /* Custom Modal Styles */
+ .custom-modal {
+  position: fixed; /* Stay in place */
+  z-index: 1050; /* Sit on top */
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: calc(100% - 1000px); /* Adjust based on sidebar width */
+  background-color: white;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out, visibility 1s; /* Increased duration for smoother animation */
+}
+
+.custom-modal.show {
+  display: block;
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.custom-modal-backdrop {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Black background */
+  z-index: 1040; /* Below the modal */
+  opacity: 0;
+  transition: opacity 0.8s ease-out; /* Increased duration for smoother animation */
+}
+
+.custom-modal-backdrop.show {
+  display: block;
+  opacity: 1;
+}
+
+.custom-modal-header, .custom-modal-footer {
+  padding: 15px;
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+
+.custom-modal-body {
+  padding: 15px;
+  overflow-y: auto;
+  height: calc(100% - 120px); /* Adjust based on header and footer height */
+}
+
+.close-btn {
+  position: absolute;
+  left: -17px; /* Adjust position */
+  top: 20px; /* Adjust to align vertically */
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #e74c3c; /* Red background */
+  color: white;
+  border: none;
+  width: 34px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transform: translateX(-50%); /* Adjust positioning to be centered */
+}
+
+.close-btn:before {
+  content: "\2715"; /* Unicode character for 'x' */
+}
+

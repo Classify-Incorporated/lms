@@ -1,0 +1,566 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  {{ subject.subject_name }}
+{% endblock %}
+{% block content %}
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">{{ subject.subject_name }}</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item">
+                <a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active">{{ subject.subject_name }}</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row justify-content-center mb-4">
+          <div class="col-md-12">
+            <p class="text-muted">Explore activities, lessons, and more for {{ subject.subject_name }}.</p>
+          </div>
+        </div>
+
+        <!-- Row of Pie Charts inside Cards -->
+        <div class="row mb-4">
+          <!-- Ongoing Activities Chart -->
+          <div class="col-md-4">
+            <div class="card shadow-sm">
+              <div class="card-header gradient-header text-white text-center">Ongoing Activities</div>
+              <div class="card-body" style="height: 200px;">
+                <canvas id="ongoingActivitiesChart" class="activity-chart"></canvas>
+                <p id="noDataOngoing" class="text-center text-muted" style="display: none;">No ongoing activities</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upcoming Activities Chart -->
+          <div class="col-md-4">
+            <div class="card shadow-sm">
+              <div class="card-header gradient-header text-white text-center">Upcoming Activities</div>
+              <div class="card-body" style="height: 200px;">
+                <canvas id="upcomingActivitiesChart" class="activity-chart"></canvas>
+                <p id="noDataUpcoming" class="text-center text-muted" style="display: none;">No upcoming activities</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activities to be Graded Chart -->
+          <div class="col-md-4">
+            <div class="card shadow-sm">
+              <div class="card-header gradient-header text-white text-center">Activities to be Graded</div>
+              <div class="card-body" style="height: 200px;">
+                <canvas id="activitiesToBeGradedChart" class="activity-chart"></canvas>
+                <p id="noDataGradingNeeded" class="text-center text-muted" style="display: none;">No activities to be graded</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Completed Activities Chart -->
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <div class="card shadow-sm">
+              <div class="card-header gradient-header text-white text-center">Completed Activities</div>
+              <div class="card-body" style="height: 300px;">
+                <canvas id="finishedActivitiesChart" class="activity-chart"></canvas>
+                <p id="noDataFinished" class="text-center text-muted" style="display: none;">No completed activities</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teacher's section -->
+        {% if is_teacher %}
+          {% now 'Y-m-d' as today_date %}
+          {% if selected_semester.start_date|date:'Y-m-d' <= today_date and selected_semester.end_date|date:'Y-m-d' >= today_date %}
+            <div class="row justify-content-center mb-4">
+              <div class="col-md-12 justify-content-between">
+                <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
+                <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
+                <a class="btn btn-info" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
+                <button class="btn btn-info" onclick="openCopyLessonModal('{{ subject.id }}')">Copy Lessons</button>
+                <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-warning">View Students List</a>
+              </div>
+            </div>
+          {% endif %}
+        {% endif %}
+
+        <!-- Lessons (Collapsible with Activities) -->
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <div class="card shadow-sm">
+              <div class="card-header gradient-header text-white d-flex justify-content-between">
+                <span>Lessons &nbsp; <sup>(Sort To Change Orders)</sup></span>
+                <button id="editButton" class="btn btn-success ml-auto"><i class="fas fa-edit"></i> Edit Lesson</button>
+              </div>
+              <ul class="list-group list-group-flush" id="lesson-list">
+                {% for module in modules %}
+                  <li class="list-group-item lesson-item" data-id="{{ module.id }}">
+                    <!-- Collapsible Lesson with improved design -->
+                    <a class="d-flex justify-content-between align-items-center" data-toggle="collapse" href="#lessonActions{{ module.id }}" role="button" aria-expanded="false" aria-controls="lessonActions{{ module.id }}">
+                      <span class="lesson-name">{{ module.file_name }} {{ module.order }}</span>
+                      <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <!-- Collapsible Content with Activities -->
+                    <div class="collapse" id="lessonActions{{ module.sort }}">
+                      <div class="mt-3">
+                        <div class="d-flex justify-content-end">
+                          <a href="{% url 'viewModule' module.id %}" class="btn btn-primary btn-sm">View</a>
+                          {% if is_teacher %}
+                            <a href="{% url 'updateModule' module.id %}" class="btn btn-secondary btn-sm ml-2">Update</a>
+                            <a href="javascript:void(0);" onclick="if(confirm('Are you sure?')) window.location.href='{% url 'deleteModule' module.id %}';" class="btn btn-danger btn-sm ml-2">Delete</a>
+                          {% endif %}
+                          {% if module.allow_download %}
+                            <a href="{% url 'download' module.id %}" class="btn btn-info btn-sm ml-2">Download</a>
+                          {% endif %}
+                        </div>
+                        <!-- Display Activities related to this Lesson -->
+                        <ul class="list-group list-group-flush mt-3">
+                          {% if module.activities %}
+                            {% for activity in module.activities %}
+                              <li class="list-group-item pl-5">
+                                <a href="{% url 'display_question' activity.id %}?semester={{ selected_semester.id }}">{{ activity.activity_name }}</a>
+                              </li>
+                            {% endfor %}
+                          {% else %}
+                            <li class="list-group-item pl-5 text-muted">No activities for this lesson.</li>
+                          {% endif %}
+                        </ul>
+                      </div>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+
+            <!-- Add Lesson Button -->
+            {% if is_teacher %}
+              <div class="d-flex justify-content-center mt-4">
+                <button id="addLessonButton" class="btn btn-success" onclick="openModuleModal('{{ subject.id }}')" style="display: none;">Add Lesson</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Custom Modal for Adding Participation -->
+  <div id="participationModal" class="custom-modal">
+    <div class="custom-modal-header d-flex justify-content-between">
+      <h5>Select Participation Details</h5>
+      <button class="close-btn" id="closeParticipationModalBtn"></button>
+    </div>
+    <div class="custom-modal-body" id="participationModalBody"></div>
+  </div>
+  <div id="participationModalBackdrop" class="custom-modal-backdrop"></div>
+
+  <!-- Custom Modal for Adding Module -->
+  <div id="moduleModal" class="custom-modal">
+    <div class="custom-modal-header d-flex justify-content-between">
+      <h5 class="text-dark">Add Lesson</h5>
+
+      <button class="close-btn" id="closeModuleModalBtn"></button>
+    </div>
+    <div class="custom-modal-body" id="moduleModalBody"></div>
+  </div>
+  <div id="moduleModalBackdrop" class="custom-modal-backdrop"></div>
+
+  <!-- Copy Lessons Modal -->
+  <div id="copyLessonModal" class="custom-modal">
+    <div class="custom-modal-header d-flex justify-content-between">
+      <h5 class="text-dark">Copy Lessons</h5>
+      <button class="close-btn" id="closeCopyLessonModalBtn"></button>
+    </div>
+    <div class="custom-modal-body" id="copyLessonModalBody"></div>
+  </div>
+  <div id="copyLessonModalBackdrop" class="custom-modal-backdrop"></div>
+
+  <!-- Custom Modal for Copying Activities -->
+  <div id="copyActivityModal" class="custom-modal">
+    <div class="custom-modal-header d-flex justify-content-between">
+      <h5 class="text-dark">Copy Activities</h5>
+      <button class="close-btn" id="closeCopyActivityModalBtn"></button>
+    </div>
+    <div class="custom-modal-body" id="copyActivityModalBody"></div>
+  </div>
+  <div id="copyActivityModalBackdrop" class="custom-modal-backdrop"></div>
+
+  <script>
+    function openParticipationModal(subjectId) {
+      fetch(`/participationScoresView/${subjectId}/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('participationModalBody').innerHTML = html
+          document.getElementById('participationModal').classList.add('show')
+          document.getElementById('participationModalBackdrop').classList.add('show')
+        })
+    }
+    
+    function openModuleModal(subjectId) {
+      fetch(`/createModule/${subjectId}/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('moduleModalBody').innerHTML = html
+          document.getElementById('moduleModal').classList.add('show')
+          document.getElementById('moduleModalBackdrop').classList.add('show')
+    
+          // Initialize or refresh selectpicker after loading the modal content
+          $('.selectpicker').selectpicker('refresh')
+    
+          // Add file input label update functionality after the modal content loads
+          document.querySelector('.custom-file-input').addEventListener('change', function (e) {
+            var fileName = e.target.files[0].name
+            e.target.nextElementSibling.innerText = fileName // Update the label with the file name
+          })
+        })
+    }
+    
+    document.getElementById('closeParticipationModalBtn').addEventListener('click', function () {
+      document.getElementById('participationModal').classList.remove('show')
+      document.getElementById('participationModalBackdrop').classList.remove('show')
+    })
+    
+    document.getElementById('closeModuleModalBtn').addEventListener('click', function () {
+      document.getElementById('moduleModal').classList.remove('show')
+      document.getElementById('moduleModalBackdrop').classList.remove('show')
+    })
+    
+    function openCopyActivityModal(subjectId) {
+      fetch(`/subject/${subjectId}/copy_activities/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('copyActivityModalBody').innerHTML = html
+          document.getElementById('copyActivityModal').classList.add('show')
+          document.getElementById('copyActivityModalBackdrop').classList.add('show')
+        })
+    }
+    
+    document.getElementById('closeCopyActivityModalBtn').addEventListener('click', function () {
+      document.getElementById('copyActivityModal').classList.remove('show')
+      document.getElementById('copyActivityModalBackdrop').classList.remove('show')
+    })
+    
+    // Open Copy Lesson Modal
+    function openCopyLessonModal(subjectId) {
+      fetch(`/subject/${subjectId}/copy_lessons/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('copyLessonModalBody').innerHTML = html
+          document.getElementById('copyLessonModal').classList.add('show')
+          document.getElementById('copyLessonModalBackdrop').classList.add('show')
+    
+          initializeLessonCheckboxes(subjectId)
+        })
+    }
+    
+    // Close Copy Lesson Modal
+    document.getElementById('closeCopyLessonModalBtn').addEventListener('click', function () {
+      document.getElementById('copyLessonModal').classList.remove('show')
+      document.getElementById('copyLessonModalBackdrop').classList.remove('show')
+    })
+    
+    // Function to initialize lesson checkboxes
+    function initializeLessonCheckboxes(subjectId) {
+      document.querySelectorAll('.lesson-checkbox').forEach((checkbox) => {
+        checkbox.addEventListener('change', function () {
+          let lessonId = this.value
+    
+          // Make AJAX request to check if the lesson exists in the current semester
+          fetch(`/subject/${subjectId}/check_lesson_exists/?lesson_id=${lessonId}`, {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              let warningElement = document.getElementById(`duplicate-warning-${lessonId}`)
+              let listItemElement = document.getElementById(`lesson-item-${lessonId}`)
+    
+              if (data.exists) {
+                // If the lesson already exists, show the warning message and disable the checkbox
+                warningElement.style.display = 'inline'
+                checkbox.disabled = true
+    
+                // Add a gray-out class to the lesson item
+                listItemElement.style.backgroundColor = '#e0e0e0' // Light gray background
+                listItemElement.style.cursor = 'not-allowed' // Show not-allowed cursor
+                listItemElement.style.opacity = '0.6' // Make the text a bit faded
+              } else {
+                // If the lesson doesn't exist, hide the warning message and enable the checkbox
+                warningElement.style.display = 'none'
+                checkbox.disabled = false
+    
+                // Remove the gray-out class
+                listItemElement.style.backgroundColor = ''
+                listItemElement.style.cursor = 'pointer' // Normal cursor
+                listItemElement.style.opacity = '1' // Reset opacity
+              }
+            })
+            .catch((error) => console.error('Error:', error))
+        })
+      })
+    }
+  </script>
+
+  <!-- Chart.js Script -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const createPieChart = (chartId, labels, data, links, noDataId) => {
+      const ctx = document.getElementById(chartId).getContext('2d');
+
+      // Check if there's data to display
+      if (data.length > 0) {
+        const chart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: ['#4A90E2', '#F5A623', '#7ED321', '#BD10E0', '#50E3C2', '#FF69B4'],
+            }],
+          },
+          options: {
+            onClick: (event, array) => {
+              if (array.length) {
+                const index = array[0].index;
+                window.location.href = links[index];
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        });
+      } else {
+        // If no data, hide canvas and display 'No Data' message
+        document.getElementById(chartId).style.display = 'none';
+        document.getElementById(noDataId).style.display = 'block';
+      }
+    };
+
+    // Ongoing Activities
+    const ongoingActivitiesLabels = [{% for activity in ongoing_activities %}'{{ activity.activity_name }}',{% endfor %}];
+    const ongoingActivitiesData = [{% for activity in ongoing_activities %}1,{% endfor %}];
+    const ongoingActivitiesLinks = [{% for activity in ongoing_activities %}'{% url "display_question" activity.id %}?semester={{ selected_semester_id }}',{% endfor %}];
+    createPieChart('ongoingActivitiesChart', ongoingActivitiesLabels, ongoingActivitiesData, ongoingActivitiesLinks, 'noDataOngoing');
+
+    // Upcoming Activities
+    const upcomingActivitiesLabels = [{% for activity in upcoming_activities %}'{{ activity.activity_name }}',{% endfor %}];
+    const upcomingActivitiesData = [{% for activity in upcoming_activities %}1,{% endfor %}];
+    const upcomingActivitiesLinks = [{% for activity in upcoming_activities %}'#',{% endfor %}];
+    createPieChart('upcomingActivitiesChart', upcomingActivitiesLabels, upcomingActivitiesData, upcomingActivitiesLinks, 'noDataUpcoming');
+
+    // Activities to be Graded
+    const gradingNeededLabels = [{% for activity, count in activities_with_grading_needed %}'{{ activity.activity_name }}',{% endfor %}];
+    const gradingNeededData = [{% for activity, count in activities_with_grading_needed %}{{ count }},{% endfor %}];
+    const gradingNeededLinks = [{% for activity, count in activities_with_grading_needed %}'{% url "grade_essays" activity.id %}?semester={{ selected_semester_id }}',{% endfor %}];
+    createPieChart('activitiesToBeGradedChart', gradingNeededLabels, gradingNeededData, gradingNeededLinks, 'noDataGradingNeeded');
+
+    const subjectId = {{ subject.id }};
+
+    fetch("{% url 'termActivitiesGraph' 0 %}".replace('0', subjectId))
+      .then(response => response.json())
+      .then(data => {
+        const terms = Object.keys(data.terms);  // Get all term names (e.g., ['Prelim', 'Midterm', 'Finals'])
+        const completedData = terms.map(term => data.terms[term].completed);  // Get completed counts for each term
+        const missedData = terms.map(term => data.terms[term].missed);  // Get missed counts for each term (negative)
+
+        // Create the stacked line chart using the processed data
+        createStackedLineChart('finishedActivitiesChart', terms, completedData, missedData);
+      })
+      .catch(error => console.error('Error fetching term activities:', error));
+
+      const createStackedLineChart = (chartId, labels, completedData, missedData) => {
+        const ctx = document.getElementById(chartId).getContext('2d');
+      
+        const chart = new Chart(ctx, {
+          type: 'line',  // Stacked line chart
+          data: {
+            labels: labels,  // Term names as labels (Prelim, Midterm, Finals)
+            datasets: [
+              {
+                label: 'Completed',
+                data: completedData,  // Data for completed students
+                backgroundColor: 'rgb(54,162,235)', // Solid blue fill for completed
+                borderColor: 'rgb(54,162,235)',  // Blue border
+                borderWidth: 2,
+                fill: true,  // Fill the area below the line for stacking effect
+                pointBackgroundColor: 'rgb(5,155,255)',
+                pointRadius: 5,
+                pointHoverRadius: 7
+              },
+              {
+                label: 'Missed',
+                data: missedData,  // Data for missed students
+                backgroundColor: 'rgb(255,99,132)',  // Solid red fill for missed
+                borderColor: 'rgb(255,99,132)',  // Red border
+                borderWidth: 2,
+                fill: true,  // Fill the area below the line for stacking effect
+                pointBackgroundColor: 'rgb(255,99,132)',
+                pointRadius: 5,
+                pointHoverRadius: 7
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                stacked: true,  // Enable stacking on the Y-axis
+                title: {
+                  display: true,
+                  text: 'Number of Students'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Terms'
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: true
+              },
+              title: {
+                display: true,
+                text: 'Students Completed vs Missed per Term'
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(tooltipItem) {
+                    return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      };
+      
+      // Call the function to create the chart
+      createStackedLineChart('finishedActivitiesChart', terms, completedData, missedData);    
+  </script>
+
+  <!-- SortableJS for drag-and-drop functionality (Frontend Only) -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+
+  <script>
+    // Variables to track sorting and SortableJS instance
+    let sortingEnabled = false;
+    let sortable = null;
+  
+    // Event listener for the edit button
+    document.getElementById('editButton').addEventListener('click', function () {
+      if (!sortingEnabled) {
+        sortingEnabled = true;
+        this.textContent = 'Save'; // Change button text to "Save"
+  
+        // Initialize SortableJS for the lesson list
+        sortable = new Sortable(document.getElementById('lesson-list'), {
+          animation: 150,
+          onEnd: function (evt) {
+            var order = [];
+            document.querySelectorAll('#lesson-list li').forEach(function (item) {
+              order.push(item.getAttribute('data-id'));
+            });
+            console.log('New Order:', order); // Log the new order in the console
+          }
+        });
+  
+      } else {
+        sortingEnabled = false;
+        this.textContent = 'Edit'; // Change button text back to "Edit"
+        
+        // Disable sorting by destroying the SortableJS instance
+        if (sortable) {
+          sortable.destroy();
+        }
+  
+        // Send the new order to the server or handle it here
+        var order = [];
+        document.querySelectorAll('#lesson-list li').forEach(function (item) {
+          order.push(item.getAttribute('data-id'));
+        });
+        console.log('Final Order Saved:', order);
+      }
+    });
+  </script>
+
+  <!-- Custom styles for lesson items -->
+  <style>
+  .lesson-item {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 15px;
+    transition: background-color 0.3s ease;
+  }
+
+  .lesson-item:hover {
+    background-color: #f1f1f1;
+  }
+
+  .lesson-name {
+    font-weight: 500;
+    font-size: 16px;
+    color: #333;
+  }
+
+  /* Chevron icon rotation when collapsed */
+  .collapse.show + .lesson-item i.fas.fa-chevron-down {
+    transform: rotate(180deg);
+  }
+
+  /* Button styling */
+  .btn {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+
+  /* Activity list styling */
+  .list-group-item {
+    background-color: #fff;
+    border: none;
+    padding-left: 20px;
+  }
+
+  .list-group-item.pl-5 {
+    padding-left: 3rem;
+  }
+
+  .gradient-header {
+    background: linear-gradient(135deg, #4A90E2 0%, #F5A623 100%);
+    font-weight: bold;
+  }
+
+  /* Styling for lesson actions */
+  .lesson-actions {
+    display: flex;
+    justify-content: end;
+    margin-top: 15px;
+  }
+
+  .card {
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+</style>
+{% endblock %}
