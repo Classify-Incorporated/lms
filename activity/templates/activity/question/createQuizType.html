@@ -1,106 +1,130 @@
 {% extends 'base.html' %}
-
 {% block title %}
-  Add
+  Add Activity
 {% endblock %}
-
 {% block content %}
-  <h1> {{ activity.activity_name }}</h1>
-
-  <div class="dropdown">
-    <button class="btn btn-primary dropdown-toggle mb-3" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Add</button>
-    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-      {% for quiz_type in quiz_types %}
-        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#quizTypeModal" data-id="{{ quiz_type.id }}" data-name="{{ quiz_type.name }}">{{ quiz_type.name }}</a>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Modal -->
-  <div class="modal fade" id="quizTypeModal" tabindex="-1" role="dialog" aria-labelledby="quizTypeModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="quizTypeModalLabel">Add</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        </div>
-        <div class="modal-body">
-          <form id="quizTypeForm" method="post" action="" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div id="quiz-type-fields"></div>
-
-            <!-- CSV file input, visible only for Multiple Choice -->
-            <div class="form-group" id="csv-file-upload" style="display: none;">
-              <label for="csv_file">Import Questions from CSV:</label>
-              <input type="file" id="csv_file" name="csv_file" accept=".csv" class="form-control" />
+  <div class="content-wrapper">
+    <!-- Content Header -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Add Activity</h1>
           </div>
-
-            <button type="submit" class="btn btn-primary">Add</button>
-          </form>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Add Activity</li>
+            </ol>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <h2>Existing Questions</h2>
-  <table class="table">
-      <thead>
-          <tr>
+    <!-- Main Content -->
+    <section class="content">
+      <div class="container-fluid">
+        <h1>{{ activity.activity_name }}</h1>
+
+        <!-- Add Question Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-primary dropdown-toggle mb-3" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Add
+          </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            {% for quiz_type in quiz_types %}
+              <a class="dropdown-item" href="#" data-toggle="modal" data-target="#quizTypeModal" data-id="{{ quiz_type.id }}" data-name="{{ quiz_type.name }}">{{ quiz_type.name }}</a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Modal for Adding Questions -->
+        <div class="modal fade" id="quizTypeModal" tabindex="-1" role="dialog" aria-labelledby="quizTypeModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="quizTypeModalLabel">Add</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form id="quizTypeForm" method="post" action="" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <div id="quiz-type-fields"></div>
+
+                  <!-- CSV file input, visible only for Multiple Choice -->
+                  <div class="form-group" id="csv-file-upload" style="display: none;">
+                    <label for="csv_file">Import Questions from CSV:</label>
+                    <input type="file" id="csv_file" name="csv_file" accept=".csv" class="form-control" />
+                  </div>
+
+                  <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Existing Questions Table -->
+        <h2>Existing Questions</h2>
+        <table class="table">
+          <thead>
+            <tr>
               <th>#</th>
               <th>Question</th>
               <th>Points</th>
               <th>Quiz Type</th>
               <th>Actions</th>
-          </tr>
-      </thead>
-      <tbody>
-          {% for question in questions %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for question in questions %}
               <tr>
-                  <td>{{ forloop.counter }}</td>
-                  <td>{{ question.question_text }}</td>
-                  <td>{{ question.score }}</td>
-                  <td>{{ question.quiz_type }}</td>
-                  <td>
-                      <a href="{% url 'edit_question' activity.id forloop.counter0 %}" class="btn btn-sm btn-warning">Edit</a>
-                      <form action="{% url 'delete_temp_question' activity.id forloop.counter0 %}" method="post" style="display:inline;">
-                          {% csrf_token %}
-                          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this question?');">Delete</button>
-                      </form>
-                  </td>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ question.question_text }}</td>
+                <td>{{ question.score }}</td>
+                <td>{{ question.quiz_type }}</td>
+                <td>
+                  <a href="{% url 'edit_question' activity.id forloop.counter0 %}" class="btn btn-sm btn-warning">Edit</a>
+                  <form action="{% url 'delete_temp_question' activity.id forloop.counter0 %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this question?');">Delete</button>
+                  </form>
+                </td>
               </tr>
-          {% endfor %}
-      </tbody>
-  </table>
+            {% endfor %}
+          </tbody>
+        </table>
 
-  <form method="post" action="{% url 'save_all_questions' activity.id %}" enctype="multipart/form-data">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-success">Save All Questions</button>
-    <a href="{% url 'SubjectList' %}" class="btn btn-secondary">Back</a>
-  </form>
+        <!-- Save All Questions Form -->
+        <form method="post" action="{% url 'save_all_questions' activity.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success">Save All Questions</button>
+          <a href="{% url 'SubjectList' %}" class="btn btn-secondary">Back</a>
+        </form>
+      </div>
+    </section>
+  </div>
 
+  <!-- Script -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       $('#quizTypeModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget)
-        var quizTypeId = button.data('id')
+        var button = $(event.relatedTarget);
+        var quizTypeId = button.data('id');
+        var quizTypeName = button.data('name');
+        var modal = $(this);
+        modal.find('.modal-title').text('Add Question for ' + quizTypeName);
 
-        if (!quizTypeId) {
-          console.error("quizTypeId is undefined or null");
-          return;  // Exit if no quizTypeId
-      }
-      
-        var quizTypeName = button.data('name')
-        var modal = $(this)
-        modal.find('.modal-title').text('Add Question for ' + quizTypeName)
-    
-        var form = modal.find('#quizTypeForm')
-        var action = "{% url 'add_question' activity.id 0 %}".replace('0', quizTypeId)
-        console.log(action);
-        form.attr('action', action)
-    
-        var quizTypeFields = modal.find('#quiz-type-fields')
-        quizTypeFields.empty()
+        var form = modal.find('#quizTypeForm');
+        var action = "{% url 'add_question' activity.id 0 %}".replace('0', quizTypeId);
+        form.attr('action', action);
+
+        var quizTypeFields = modal.find('#quiz-type-fields');
+        quizTypeFields.empty();
         
+        // Add common fields for most question types
         if (quizTypeName !== 'Participation') {
           quizTypeFields.append(`
             <div class="form-group">
@@ -114,7 +138,8 @@
           `);
         }
 
-        if (quizTypeName == 'Multiple Choice') {
+        // Handle Multiple Choice question type
+        if (quizTypeName === 'Multiple Choice') {
           quizTypeFields.append(`
             <div id="choices">
               <div class="form-group">
@@ -127,22 +152,13 @@
             </div>
             <button type="button" class="btn btn-secondary mb-2" onclick="addChoice()">Add Choice</button>
           `);
-          // Show the CSV file upload field
           document.getElementById('csv-file-upload').style.display = 'block';
-
-          // Disable manual question/choice input when CSV is selected
-          document.getElementById('csv_file').addEventListener('change', function () {
-            if (this.files.length > 0) {
-              $('#quiz-type-fields').find('input, textarea').prop('disabled', true);  // Disable manual inputs
-            } else {
-              $('#quiz-type-fields').find('input, textarea').prop('disabled', false);  // Enable manual inputs
-            }
-          });
-
         } else {
-          document.getElementById('csv-file-upload').style.display = 'none';  // Hide CSV input for other types
+          document.getElementById('csv-file-upload').style.display = 'none';
         }
-          if (quizTypeName == 'True/False') {
+
+        // Other quiz type-specific fields
+        if (quizTypeName === 'True/False') {
           quizTypeFields.append(`
             <div class="form-group">
               <label for="correct_answer">Correct Answer:</label>
@@ -151,9 +167,10 @@
                 <option value="False">False</option>
               </select>
             </div>
-          `)
-        } 
-        if (quizTypeName == 'Matching') {
+          `);
+        }
+
+        if (quizTypeName === 'Matching') {
           quizTypeFields.append(`
             <div id="matching_pairs">
               <div class="form-group">
@@ -165,27 +182,28 @@
               </div>
             </div>
             <button type="button" class="btn btn-secondary mb-2" onclick="addMatchingPair()">Add Pair</button>
-          `)
-        } 
-        if (quizTypeName == 'Calculated Numeric' || quizTypeName == 'Fill in the Blank') {
+          `);
+        }
+
+        if (quizTypeName === 'Calculated Numeric' || quizTypeName === 'Fill in the Blank') {
           quizTypeFields.append(`
             <div class="form-group">
               <label for="correct_answer">Correct Answer:</label>
               <input type="text" id="correct_answer" name="correct_answer" class="form-control" required>
             </div>
-          `)
-        } 
-        if (quizTypeName == 'Document') {
+          `);
+        }
+
+        if (quizTypeName === 'Document') {
           quizTypeFields.append(`
             <div class="form-group">
               <label for="document_file">Upload Document:</label>
               <input type="file" id="document_file" name="document_file" class="form-control">
             </div>
-          `)
+          `);
         }
-        
-        // Handle Participation quiz type separately
-        if (quizTypeName == 'Participation') {
+
+        if (quizTypeName === 'Participation') {
           quizTypeFields.append(`
             <div class="form-group">
               <label for="max_score">Maximum Score:</label>
@@ -199,84 +217,80 @@
                   <th>Points</th>
                 </tr>
               </thead>
-              <tbody id="participation-students">
-              </tbody>
+              <tbody id="participation-students"></tbody>
             </table>
-          `)
-
-          fetch(`/participation_scores/{{ activity.id }}`).then((response) => {
-            return response.json();
-          }).then((data) => {
+          `);
+          fetch(`/participation_scores/{{ activity.id }}`)
+            .then(response => response.json())
+            .then(data => {
               const studentsTable = document.getElementById('participation-students');
-              data.students.forEach((student) => {
-                  const row = document.createElement('tr');
-                  row.innerHTML = `
-                      <td>${student.name}</td>
-                      <td><input type="number" name="score_${student.id}" class="form-control" required></td>
-                  `;
-                  studentsTable.appendChild(row);
+              data.students.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${student.name}</td><td><input type="number" name="score_${student.id}" class="form-control" required></td>`;
+                studentsTable.appendChild(row);
               });
-          });
+            });
         }
-      })
-    })
+      });
 
-    function addChoice() {
-      const choiceCount = document.querySelectorAll('input[name="choices"]').length
-      const choiceIndex = choiceCount
-      const choiceContainer = document.createElement('div')
-      choiceContainer.classList.add('input-group', 'mb-3')
+      // Add choice for Multiple Choice questions
+      window.addChoice = function() {
+        const choiceIndex = document.querySelectorAll('input[name="choices"]').length;
+        const choiceContainer = document.createElement('div');
+        choiceContainer.classList.add('input-group', 'mb-3');
 
-      const radioInput = document.createElement('input')
-      radioInput.type = 'radio'
-      radioInput.name = 'correct_answer'
-      radioInput.value = choiceIndex
-      radioInput.required = true
+        const radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.name = 'correct_answer';
+        radioInput.value = choiceIndex;
+        radioInput.required = true;
 
-      const textInput = document.createElement('input')
-      textInput.type = 'text'
-      textInput.name = 'choices'
-      textInput.classList.add('form-control', 'ml-2')
-      textInput.placeholder = `Choice ${choiceIndex + 1}`
-      textInput.required = true
+        const textInput = document.createElement('input');
+        textInput.type = 'text';
+        textInput.name = 'choices';
+        textInput.classList.add('form-control', 'ml-2');
+        textInput.placeholder = `Choice ${choiceIndex + 1}`;
+        textInput.required = true;
 
-      const deleteButton = document.createElement('button')
-      deleteButton.type = 'button'
-      deleteButton.classList.add('btn', 'btn-danger', 'btn-sm', 'ml-2')
-      deleteButton.textContent = 'Delete'
-      deleteButton.onclick = function () {
-        choiceContainer.remove()
-      }
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.classList.add('btn', 'btn-danger', 'btn-sm', 'ml-2');
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = function () {
+          choiceContainer.remove();
+        };
 
-      choiceContainer.appendChild(radioInput)
-      choiceContainer.appendChild(textInput)
-      choiceContainer.appendChild(deleteButton)
+        choiceContainer.appendChild(radioInput);
+        choiceContainer.appendChild(textInput);
+        choiceContainer.appendChild(deleteButton);
 
-      document.getElementById('choices').appendChild(choiceContainer)
-    }
+        document.getElementById('choices').appendChild(choiceContainer);
+      };
 
-    function addMatchingPair() {
-      const pairContainer = document.createElement('div')
-      pairContainer.classList.add('input-group', 'mb-3')
+      // Add matching pair for Matching questions
+      window.addMatchingPair = function() {
+        const pairContainer = document.createElement('div');
+        pairContainer.classList.add('input-group', 'mb-3');
 
-      const leftInput = document.createElement('input')
-      leftInput.type = 'text'
-      leftInput.name = 'matching_left'
-      leftInput.classList.add('form-control')
-      leftInput.placeholder = 'Left side'
-      leftInput.required = true
+        const leftInput = document.createElement('input');
+        leftInput.type = 'text';
+        leftInput.name = 'matching_left';
+        leftInput.classList.add('form-control');
+        leftInput.placeholder = 'Left side';
+        leftInput.required = true;
 
-      const rightInput = document.createElement('input')
-      rightInput.type = 'text'
-      rightInput.name = 'matching_right'
-      rightInput.classList.add('form-control')
-      rightInput.placeholder = 'Right side'
-      rightInput.required = true
+        const rightInput = document.createElement('input');
+        rightInput.type = 'text';
+        rightInput.name = 'matching_right';
+        rightInput.classList.add('form-control');
+        rightInput.placeholder = 'Right side';
+        rightInput.required = true;
 
-      pairContainer.appendChild(leftInput)
-      pairContainer.appendChild(rightInput)
+        pairContainer.appendChild(leftInput);
+        pairContainer.appendChild(rightInput);
 
-      document.getElementById('matching_pairs').appendChild(pairContainer)
-    }
+        document.getElementById('matching_pairs').appendChild(pairContainer);
+      };
+    });
   </script>
 {% endblock %}

@@ -4,63 +4,86 @@
   Semester
 {% endblock %}
 {% block content %}
-  <h1 class="h3 mb-2 text-gray-800">Semester</h1>
-
-  <!-- DataTales Example -->
-  <div class="card shadow mb-4">
-    <div class="card-header py-3">
-      <button class="btn btn-primary" id="openAddModalBtn">Add Semester</button>
-    </div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
-          <thead>
-            <tr>
-              <th>Semester</th>
-              <th>Start Date - End Date</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for semester in semesters %}
-              <tr>
-                <td>{{ semester.semester_name }}</td>
-                <td>{{ semester.start_date }} - {{ semester.end_date }}</td>
-                <td>
-                  <div class="dropdown">
-                    <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ semester.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ semester.id }}">
-                      <a class="dropdown-item" href="javascript:void(0);" onclick="openEditModal({{ semester.id }})"><i class="fas fa-edit"></i> Edit</a>
-                      <a class="dropdown-item" href="{% url 'endSemester' semester.id %}">
-                        <i class="fas fa-stop"></i> End Semester
-                      </a>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Semester</h1>
+          </div>
+          <!-- Breadcrumb Navigation -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item">
+                <a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active">Semester</li>
+            </ol>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Main Content -->
+    <section class="content">
+      <div class="container-fluid">
+        <!-- DataTales Example -->
+        <div class="card shadow mb-4">
+          <div class="card-header py-3">
+            <button class="btn btn-primary" id="openAddModalBtn">Add Semester</button>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>Semester</th>
+                    <th>Start Date - End Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for semester in semesters %}
+                    <tr>
+                      <td>{{ semester.semester_name }}</td>
+                      <td>{{ semester.start_date }} - {{ semester.end_date }}</td>
+                      <td>
+                        <div class="dropdown">
+                          <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ semester.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
+                          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ semester.id }}">
+                            <a class="dropdown-item" href="javascript:void(0);" onclick="openEditModal({{ semester.id }})"><i class="fas fa-edit"></i> Edit</a>
+                            <a class="dropdown-item" href="{% url 'endSemester' semester.id %}"><i class="fas fa-stop"></i> End Semester</a>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Semester Modal (loaded from external file) -->
+        {% include 'course/semester/createSemester.html' %}
+
+        <!-- Edit Semester Modal -->
+        <div id="editModal" class="custom-modal">
+          <div class="custom-modal-header">
+            <button class="close-btn" id="closeEditModalBtn"></button>
+            <h5>Edit Semester</h5>
+          </div>
+          <div class="custom-modal-body" id="editModalBody">
+            <!-- The content will be loaded dynamically here -->
+          </div>
+        </div>
+        <div id="editModalBackdrop" class="custom-modal-backdrop"></div>
+      </div>
+    </section>
   </div>
 
-  <!-- Add Semester Modal (loaded from external file) -->
-  {% include 'course/semester/createSemester.html' %}
-
-  <!-- Edit Semester Modal -->
-  <div id="editModal" class="custom-modal">
-    <div class="custom-modal-header">
-      <button class="close-btn" id="closeEditModalBtn"></button>
-      <h5>Edit Semester</h5>
-    </div>
-    <div class="custom-modal-body" id="editModalBody">
-      <!-- The content will be loaded dynamically here -->
-    </div>
-  </div>
-  <div id="editModalBackdrop" class="custom-modal-backdrop"></div>
-
-  <!-- Separate Scripts for Each Modal -->
+  <!-- Scripts for Modal Interaction -->
   <script>
     // Script to open the Add Semester modal (loaded from external file)
     document.getElementById('openAddModalBtn').addEventListener('click', function () {

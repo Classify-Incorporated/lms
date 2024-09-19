@@ -5,86 +5,98 @@
 {% endblock %}
 
 {% block content %}
-  <h1>{{ activity.activity_name }}</h1>
-
-  {% if is_teacher %}
-    <!-- Display only questions and correct answers for teachers -->
-    {% for question in questions %}
-      <div class="form-group">
-        <label>{{ forloop.counter }}. {{ question.question_text }}</label>
-        {% if question.quiz_type.name == 'Multiple Choice' %}
-          <p>Correct Answer: {{ question.correct_answer }}</p>
-        {% elif question.quiz_type.name == 'True/False' %}
-          <p>Correct Answer: {{ question.correct_answer }}</p>
-        {% elif question.quiz_type.name == 'Essay' %}
-          <p>Essay Question (No specific correct answer displayed)</p>
-        {% elif question.quiz_type.name == 'Matching' %}
-          <ul>
-            {% for pair in question.pairs %}
-              <li>{{ pair.left }} -> {{ pair.right }}</li>
-            {% endfor %}
-          </ul>
-        {% elif question.quiz_type.name == 'Calculated Numeric' %}
-          <p>Correct Answer: {{ question.correct_answer }}</p>
-        {% elif question.quiz_type.name == 'Document' %}
-          <p>
-            Uploaded Document: <a href="{{ question.correct_answer.url }}" target="_blank">View Document</a>
-          </p>
-        {% else %}
-          <p>Correct Answer: {{ question.correct_answer }}</p>
-        {% endif %}
+  <div class="content-wrapper">
+    <!-- Content Header -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <h1 class="h3 mb-4 text-gray-800">{{ activity.activity_name }}</h1>
       </div>
-    {% endfor %}
-    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
-  {% elif is_student %}
-    <!-- Display interactive form for students to answer the questions -->
-    <form method="post" action="{% url 'submit_answers' activity.id %}" enctype="multipart/form-data">
-      {% csrf_token %}
-      {% for question in questions %}
-        <div class="form-group">
-          <label>{{ forloop.counter }}. {{ question.question_text }}</label>
-          {% if question.quiz_type.name == 'Multiple Choice' %}
-            {% for choice in question.choices.all %}
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="choice_{{ choice.id }}" value="{{ choice.choice_text }}" />
-                <label class="form-check-label" for="choice_{{ choice.id }}">{{ choice.choice_text }}</label>
+    </div>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        {% if is_teacher %}
+          <!-- Display only questions and correct answers for teachers -->
+          {% for question in questions %}
+            <div class="form-group">
+              <label>{{ forloop.counter }}. {{ question.question_text }}</label>
+              {% if question.quiz_type.name == 'Multiple Choice' %}
+                <p>Correct Answer: {{ question.correct_answer }}</p>
+              {% elif question.quiz_type.name == 'True/False' %}
+                <p>Correct Answer: {{ question.correct_answer }}</p>
+              {% elif question.quiz_type.name == 'Essay' %}
+                <p>Essay Question (No specific correct answer displayed)</p>
+              {% elif question.quiz_type.name == 'Matching' %}
+                <ul>
+                  {% for pair in question.pairs %}
+                    <li>{{ pair.left }} -> {{ pair.right }}</li>
+                  {% endfor %}
+                </ul>
+              {% elif question.quiz_type.name == 'Calculated Numeric' %}
+                <p>Correct Answer: {{ question.correct_answer }}</p>
+              {% elif question.quiz_type.name == 'Document' %}
+                <p>
+                  Uploaded Document: <a href="{{ question.correct_answer.url }}" target="_blank">View Document</a>
+                </p>
+              {% else %}
+                <p>Correct Answer: {{ question.correct_answer }}</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+        {% elif is_student %}
+          <!-- Display interactive form for students to answer the questions -->
+          <form method="post" action="{% url 'submit_answers' activity.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for question in questions %}
+              <div class="form-group">
+                <label>{{ forloop.counter }}. {{ question.question_text }}</label>
+                {% if question.quiz_type.name == 'Multiple Choice' %}
+                  {% for choice in question.choices.all %}
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="choice_{{ choice.id }}" value="{{ choice.choice_text }}" />
+                      <label class="form-check-label" for="choice_{{ choice.id }}">{{ choice.choice_text }}</label>
+                    </div>
+                  {% endfor %}
+                {% elif question.quiz_type.name == 'True/False' %}
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="true_{{ question.id }}" value="True" />
+                    <label class="form-check-label" for="true_{{ question.id }}">True</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="false_{{ question.id }}" value="False" />
+                    <label class="form-check-label" for="false_{{ question.id }}">False</label>
+                  </div>
+                {% elif question.quiz_type.name == 'Essay' %}
+                  <textarea name="question_{{ question.id }}" class="form-control"></textarea>
+                {% elif question.quiz_type.name == 'Matching' %}
+                  <div class="form-group">
+                    <label>Match the pairs:</label>
+                    {% for pair in question.pairs %}
+                      <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="{{ pair.left }}" readonly />
+                        <input type="text" name="matching_right_{{ question.id }}" class="form-control" placeholder="Match for {{ pair.left }}" />
+                        <input type="hidden" name="matching_left_{{ question.id }}" value="{{ pair.left }}" />
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% elif question.quiz_type.name == 'Calculated Numeric' %}
+                  <input type="number" name="question_{{ question.id }}" class="form-control" />
+                {% elif question.quiz_type.name == 'Document' %}
+                  <div class="form-group">
+                    <label for="document_file_{{ question.id }}">Upload Document:</label>
+                    <input type="file" id="document_file_{{ question.id }}" name="question_{{ question.id }}" class="form-control" />
+                  </div>
+                {% else %}
+                  <input type="text" name="question_{{ question.id }}" class="form-control" />
+                {% endif %}
               </div>
             {% endfor %}
-          {% elif question.quiz_type.name == 'True/False' %}
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="true_{{ question.id }}" value="True" />
-              <label class="form-check-label" for="true_{{ question.id }}">True</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="false_{{ question.id }}" value="False" />
-              <label class="form-check-label" for="false_{{ question.id }}">False</label>
-            </div>
-          {% elif question.quiz_type.name == 'Essay' %}
-            <textarea name="question_{{ question.id }}" class="form-control"></textarea>
-          {% elif question.quiz_type.name == 'Matching' %}
-            <div class="form-group">
-              <label>Match the pairs:</label>
-              {% for pair in question.pairs %}
-                <div class="input-group mb-3">
-                  <input type="text" class="form-control" value="{{ pair.left }}" readonly />
-                  <input type="text" name="matching_right_{{ question.id }}" class="form-control" placeholder="Match for {{ pair.left }}" />
-                  <input type="hidden" name="matching_left_{{ question.id }}" value="{{ pair.left }}" />
-                </div>
-              {% endfor %}
-            </div>
-          {% elif question.quiz_type.name == 'Calculated Numeric' %}
-            <input type="number" name="question_{{ question.id }}" class="form-control" />
-          {% elif question.quiz_type.name == 'Document' %}
-            <div class="form-group">
-              <label for="document_file_{{ question.id }}">Upload Document:</label>
-              <input type="file" id="document_file_{{ question.id }}" name="question_{{ question.id }}" class="form-control" />
-            </div>
-          {% else %}
-            <input type="text" name="question_{{ question.id }}" class="form-control" />
-          {% endif %}
-        </div>
-      {% endfor %}
-      <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-  {% endif %}
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        {% endif %}
+      </div>
+    </section>
+  </div>
 {% endblock %}

@@ -4,64 +4,89 @@
   Student
 {% endblock %}
 {% block content %}
-  <h1 class="h3 mb-2 text-gray-800">Student</h1>
-
-  <!-- DataTales Example -->
-  <div class="card shadow mb-4">
-    <div id="openModalBtn"></div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Year Level</th>
-              <th>Major</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for profiles in profiles %}
-              <tr>
-                <td>{{ profiles.identification }}</td>
-                <td>{{ profiles.first_name }} {{ profiles.last_name }}</td>
-                <td>{{ profiles.user.email }}</td>
-                <td>{{ profiles.grade_year_level }}</td>
-                <td>{{ profiles.major }}</td>
-                <td>
-                  <div class="dropdown">
-                    <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ profiles.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ profiles.id }}">
-                      <a class="dropdown-item" href="{% url 'viewProfile' profiles.id %}"><i class="fas fa-eye"></i> View</a>
-                      <a class="dropdown-item" href="javascript:void(0);" onclick="openEditModal({{ profiles.id }})"><i class="fas fa-edit"></i> Update</a>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Student</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item">
+                <a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active">Student</li>
+            </ol>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Main Content -->
+    <section class="content">
+      <div class="container-fluid">
+        <!-- DataTales Example -->
+        <div class="card shadow mb-4">
+          <div id="openModalBtn"></div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Year Level</th>
+                    <th>Major</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for profiles in profiles %}
+                    <tr>
+                      <td>{{ profiles.identification }}</td>
+                      <td>{{ profiles.first_name }} {{ profiles.last_name }}</td>
+                      <td>{{ profiles.user.email }}</td>
+                      <td>{{ profiles.grade_year_level }}</td>
+                      <td>{{ profiles.major }}</td>
+                      <td>
+                        <div class="dropdown">
+                          <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ profiles.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
+                          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ profiles.id }}">
+                            <a class="dropdown-item" href="{% url 'viewProfile' profiles.id %}"><i class="fas fa-eye"></i> View</a>
+                            <a class="dropdown-item" href="javascript:void(0);" onclick="openEditModal({{ profiles.id }})"><i class="fas fa-edit"></i> Update</a>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add User Modal (included from an external template) -->
+        {% include 'accounts/createStudentProfile.html' %}
+
+        <!-- Edit Student Profile Modal -->
+        <div id="editModal" class="custom-modal">
+          <div class="custom-modal-header">
+            <button class="close-btn" id="closeEditModalBtn"></button>
+            <h5>Edit Student Profile</h5>
+          </div>
+          <div class="custom-modal-body" id="editModalBody">
+            <!-- The content will be loaded dynamically here -->
+          </div>
+        </div>
+        <div id="editModalBackdrop" class="custom-modal-backdrop"></div>
+      </div>
+    </section>
   </div>
 
-  <!-- Include the modal for adding users -->
-  {% include 'accounts/createStudentProfile.html' %}
-
-  <!-- Custom Modal for Editing Student Profile -->
-  <div id="editModal" class="custom-modal">
-    <div class="custom-modal-header">
-      <button class="close-btn" id="closeEditModalBtn"></button>
-      <h5>Edit Student Profile</h5>
-    </div>
-    <div class="custom-modal-body" id="editModalBody">
-      <!-- The content will be loaded dynamically here -->
-    </div>
-  </div>
-  <div id="editModalBackdrop" class="custom-modal-backdrop"></div>
-
+  <!-- JavaScript for Modal and Selectpicker -->
   <script>
     // Script to open the add user modal
     document.getElementById('openModalBtn').addEventListener('click', function () {

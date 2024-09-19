@@ -1,4 +1,6 @@
-/* settings.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Open+Sans:wght@300;400;600&display=swap');
+
+/* Modal Right Positioning */
 .modal.right .modal-dialog {
     position: absolute;
     top: 0;
@@ -23,16 +25,13 @@
     opacity: 0.5;
 }
 
+/* General Styling for Dark Mode */
 .dark-mode {
     background-color: #343a40;
     color: #ffffff;
 }
 
-.dark-mode .brand-link {
-    background-color: #343a40;
-    color: #ffffff;
-}
-
+/* Navbar in Dark Mode */
 .dark-mode .navbar {
     background-color: #343a40;
     color: #ffffff;
@@ -62,6 +61,13 @@
     color: #ffffff;
 }
 
+/* Sidebar in Dark Mode */
+.dark-mode .main-sidebar {
+    background-color: #343a40;
+    color: #ffffff;
+}
+
+/* Sidebar in Dark Mode */
 .dark-mode .sidebar {
     background-color: #343a40;
     color: #ffffff;
@@ -73,11 +79,13 @@
     color: #ffffff;
 }
 
+/* Content Wrapper in Dark Mode */
 .dark-mode .content-wrapper {
     background-color: #343a40;
     color: #ffffff;
 }
 
+/* Cards in Dark Mode */
 .dark-mode .card {
     background-color: #454d55;
     color: #ffffff;
@@ -88,15 +96,12 @@
     color: #ffffff;
 }
 
-.dark-mode .viewMessageLink {
-    color: #ffffff !important;
-}
-
 .dark-mode .card-header {
     background-color: #454d55;
     color: #ffffff;
 }
 
+/* Tables in Dark Mode */
 .dark-mode .table {
     background-color: #454d55;
     color: #ffffff;
@@ -108,23 +113,23 @@
     color: #ffffff;
 }
 
+/* Text in Dark Mode */
 .dark-mode p,
 .dark-mode h1,
 .dark-mode h2,
 .dark-mode h3,
 .dark-mode h4,
 .dark-mode h5,
-.dark-mode h6 {
-    color: #ffffff;
-}
-
+.dark-mode h6,
 .dark-mode .text-gray-800,
+.dark-mode .text-gray-700,
 .dark-mode .text-gray-600,
 .dark-mode .text-gray-500,
 .dark-mode .text-gray-400 {
     color: #ffffff !important;
 }
 
+/* Modals in Dark Mode */
 .dark-mode .modal-content {
     background-color: #343a40;
     color: #ffffff;
@@ -141,6 +146,7 @@
     color: #ffffff;
 }
 
+/* Custom Modal in Dark Mode */
 .dark-mode .custom-modal {
     background-color: #343a40;
     color: #ffffff;
@@ -156,12 +162,7 @@
     color: #ffffff;
 }
 
-/* Change bg-white to dark mode background */
-.dark-mode .bg-white {
-    background-color: #343a40 !important;
-    color: #ffffff !important;
-}
-
+/* Form Controls in Dark Mode */
 .dark-mode .custom-modal .form-control {
     background-color: #454d55;
     color: #ffffff;
@@ -172,17 +173,7 @@
     border-color: #007bff;
 }
 
-/* Set a visible color for non-active dropdown items */
-.dark-mode .nav-sidebar .nav-item .nav-treeview .nav-link {
-    color: #b0b0b0; /* Set a lighter but visible color for non-active items */
-}
-
-/* Ensure the active dropdown item remains distinct */
-.dark-mode .nav-sidebar .nav-item .nav-treeview .nav-link.active {
-    color: #ffffff; /* Keep the active item white */
-    background-color: #737474; /* Set a background color to highlight the active item */
-}
-
+/* Button Colors in Dark Mode */
 .dark-mode .custom-modal .close-btn {
     color: #ffffff;
 }
@@ -192,6 +183,7 @@
     color: #ffffff;
 }
 
+/* Footer in Dark Mode */
 .dark-mode .sticky-footer {
     background-color: #343a40;
     color: #ffffff;
@@ -201,7 +193,7 @@
     color: #7473DF;
 }
 
-/* Additional styles for fixed header and footer */
+/* Fixed Header and Footer */
 .fixed-top {
     position: fixed;
     top: 0;
@@ -220,29 +212,263 @@
     border-bottom: none !important;
 }
 
+/* Dropdown Adjustments */
 .dropdown-legacy {
     margin-top: -1rem;
 }
 
-/* Small text classes */
+/* Small Text */
 .text-sm {
     font-size: 0.875rem !important;
 }
 
-/* Specific classes for small text in different elements */
-.text-sm .navbar {
-    font-size: 0.875rem !important;
-}
-
-.text-sm .brand-link {
-    font-size: 0.875rem !important;
-}
-
+.text-sm .navbar,
+.text-sm .brand-link,
 .text-sm .nav-sidebar {
     font-size: 0.875rem !important;
 }
 
-/* Add additional CSS rules for other elements as needed */
+/* Typography */
+h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+}
 
 
+:root {
+    --primary: #4A90E2;            /* Modern vibrant blue */
+    --primary-hover: #357ABD;      /* Slightly darker blue for hover */
+    --secondary: #7F8C8D;          /* Sophisticated muted gray */
+    --secondary-hover: #5D6D6E;    /* Darker shade for hover */
+    --success: #2ECC71;            /* Fresh, energetic green */
+    --success-hover: #27AE60;      /* Darker green for hover */
+    --info: #16A085;               /* Calm teal */
+    --info-hover: #138D75;         /* Deeper teal for hover */
+    --warning: #F39C12;            /* Bright, engaging orange */
+    --warning-hover: #E67E22;      /* Warmer orange for hover */
+    --danger: #E74C3C;             /* Bold, striking red */
+    --danger-hover: #C0392B;       /* Darker red for hover */
+    --primary-text: #ffffff;       /* Modern dark blue for text */
+    --light-text: #ECF0F1;         /* Soft light gray for contrast */
+}
 
+/* Dark Mode Background Colors (Primary, Success, Warning, etc.) */
+.dark-mode .bg-primary {
+    background-color: var(--primary) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-success {
+    background-color: var(--success) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-warning {
+    background-color: var(--warning) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-danger {
+    background-color: var(--danger) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-info {
+    background-color: var(--info) !important;
+    color: var(--primary-text) !important;
+}
+
+/* Hover Effects for Background Colors in Dark Mode */
+.dark-mode .bg-primary:hover {
+    background-color: var(--primary-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-success:hover {
+    background-color: var(--success-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-warning:hover {
+    background-color: var(--warning-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-danger:hover {
+    background-color: var(--danger-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .bg-info:hover {
+    background-color: var(--info-hover) !important;
+    color: var(--primary-text) !important;
+}
+
+/* Button Styling */
+.btn-primary {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Poppins', sans-serif;
+}
+
+.btn-secondary {
+    background-color: var(--secondary) !important;
+    border-color: var(--secondary) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Poppins', sans-serif;
+}
+
+.btn-success {
+    background-color: var(--success) !important;
+    border-color: var(--success) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Poppins', sans-serif;
+}
+
+.btn-info {
+    background-color: var(--info) !important;
+    border-color: var(--info) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Poppins', sans-serif;
+}
+
+.btn-warning {
+    background-color: var(--warning) !important;
+    border-color: var(--warning) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Poppins', sans-serif;
+}
+
+.btn-danger {
+    background-color: var(--danger) !important;
+    border-color: var(--danger) !important;
+    color: var(--primary-text) !important;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Button Hover Effects */
+.btn-primary:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--secondary-hover) !important;
+    border-color: var(--secondary-hover) !important;
+}
+
+.btn-success:hover {
+    background-color: var(--success-hover) !important;
+    border-color: var(--success-hover) !important;
+}
+
+.btn-info:hover {
+    background-color: var(--info-hover) !important;
+    border-color: var(--info-hover) !important;
+}
+
+.btn-warning:hover {
+    background-color: var(--warning-hover) !important;
+    border-color: var(--warning-hover) !important;
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-hover) !important;
+    border-color: var(--danger-hover) !important;
+}
+
+/* Alerts in Dark Mode */
+.dark-mode .alert-primary {
+    background-color: var(--primary) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .alert-success {
+    background-color: var(--success) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .alert-warning {
+    background-color: var(--warning) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .alert-danger {
+    background-color: var(--danger) !important;
+    color: var(--primary-text) !important;
+}
+
+.dark-mode .alert-info {
+    background-color: var(--info) !important;
+    color: var(--primary-text) !important;
+}
+
+/* Dark Mode for List Items */
+.dark-mode .list-group-item {
+    background-color: #343a40;
+    border-color: #555555;
+    color: #ffffff;
+}
+
+/* Dark Mode Button Styling */
+.dark-mode .btn-primary,
+.dark-mode .btn-secondary,
+.dark-mode .btn-success,
+.dark-mode .btn-info,
+.dark-mode .btn-warning,
+.dark-mode .btn-danger {
+    color: #ffffff;
+}
+
+.text-primary {
+    color: var(--primary) !important; /* Default: #007bff */
+}
+
+.text-secondary {
+    color: var(--secondary) !important; /* Default: #6c757d */
+}
+
+.text-success {
+    color: var(--success) !important; /* Default: #28a745 */
+}
+
+.text-danger {
+    color: var(--danger) !important; /* Default: #dc3545 */
+}
+
+.text-warning {
+    color: var(--warning) !important; /* Default: #ffc107 */
+}
+
+.text-info {
+    color: var(--info) !important; /* Default: #17a2b8 */
+}
+
+.text-light {
+    color: var(--light-text) !important; /* Default: #f8f9fa */
+}
+
+.text-dark {
+    color: #343a40 !important; /* Default: #343a40 */
+}
+
+.text-body {
+    color: #212529 !important; /* Default: #212529 */
+}
+
+.text-muted {
+    color: #6c757d !important; /* Default: #6c757d */
+}
+
+.text-white {
+    color: #ffffff !important; /* Default: #ffffff */
+}
+
+.text-black-50 {
+    color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.text-white-50 {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
