@@ -57,13 +57,32 @@ class Profile(models.Model):
     #Academic Information
     identification = models.CharField(max_length=255, null=True, blank=True)
     YEAR_LEVEL_CHOICES = [
-        ('College 1st Year', 'College 1st Year'),
-        ('College 2nd Year', 'College 2nd Year'),
-        ('College 3rd Year', 'College 3rd Year'),
-        ('College 4th Year', 'College 4th Year'),
+        ('1st Year College', '1st Year College'),
+        ('2nd Year College', '2nd Year College'),
+        ('3rd Year College', '3rd Year College'),
+        ('4th Year College', '4th Year College'),
     ]
     grade_year_level = models.CharField(max_length=255, choices=YEAR_LEVEL_CHOICES, null=True, blank=True)
-    major = models.CharField(max_length=255, null=True, blank=True)
+    COURSE_CHOICES = [
+        ('BSIT','Bachelor of Science in Information Technology'),
+        ('BSIS', 'Bachelor of Science in Information System'),
+        ('BSBA', 'Bachelor of Science in Business Administration'),
+        ('BSA', 'Bachelor of Science in Accountancy'),
+        ('BSCE', 'Bachelor of Science in Civil Engineering'),
+        ('BSEE', 'Bachelor of Science in Electrical Engineering'),
+        ('BSED', 'Bachelor of Science in Education'),
+        ('BSTM', 'Bachelor of Science in Tourism Management'),
+        ('BSHM', 'Bachelor of Science in Hospitality Management'),
+        ('BSCS', 'Bachelor of Science in Computer Science'),
+        ('BSComE', 'Bachelor of Science in Computer Engineering'),
+    ]
+    course = models.CharField(max_length=255, choices=COURSE_CHOICES, null=True, blank=True)
+    DEPARTMENT_CHOICES = [
+        ('Registrar', 'Registrar'),
+        ('Admin', 'Admin'),
+        ('HR', 'Human Resource'),
+    ]
+    department = models.CharField(max_length=255, choices=DEPARTMENT_CHOICES, null=True, blank=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

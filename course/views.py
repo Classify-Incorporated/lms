@@ -282,6 +282,10 @@ def termActivitiesGraph(request, subject_id):
 
     terms = Term.objects.filter(semester=current_semester)
 
+    user = request.user
+    is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
+    is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
+
     activity_data = {}
     term_colors = ['rgba(75, 192, 192, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(153, 102, 255, 0.2)']
     border_colors = ['rgba(75, 192, 192, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(153, 102, 255, 1)']
@@ -301,14 +305,29 @@ def termActivitiesGraph(request, subject_id):
             }
 
         # Loop through activities and sum completed/missed students
-        for activity in activities:
-            total_students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct().count()
-            completed_students = StudentQuestion.objects.filter(activity_question__activity=activity, status=True).values('student').distinct().count()
-            missed_students = total_students - completed_students
+        if is_teacher:
+            for activity in activities:
+                total_students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct().count()
+                completed_students = StudentQuestion.objects.filter(activity_question__activity=activity, status=True).values('student').distinct().count()
+                missed_students = total_students - completed_students
 
-            # Add completed and missed counts to the term's total
-            activity_data[term.term_name]['completed'] += completed_students
-            activity_data[term.term_name]['missed'] += -missed_students  # Missed students stored as negative
+                # Add completed and missed counts to the term's total
+                activity_data[term.term_name]['completed'] += completed_students
+                activity_data[term.term_name]['missed'] += -missed_students  # Missed students stored as negative
+
+        elif is_student:
+            for activity in activities:
+                completed_student = StudentQuestion.objects.filter(
+                    student=user,  # Filter by logged-in student
+                    activity_question__activity=activity,
+                    status=True
+                ).exists()
+
+                # Increment completed or missed count for the student
+                if completed_student:
+                    activity_data[term.term_name]['completed'] += 1
+                else:
+                    activity_data[term.term_name]['missed'] += -1
 
     # Prepare the JSON response data, summing per term rather than per activity
     response_data = {

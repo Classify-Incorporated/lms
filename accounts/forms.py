@@ -14,7 +14,7 @@ class CustomLoginForm(forms.Form):
 class profileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['user', 'role', 'student_status', 'first_name', 'last_name', 'date_of_birth', 'student_photo', 'gender', 'nationality', 'address', 'phone_number', 'identification', 'grade_year_level', 'major']
+        fields = ['user', 'role', 'student_status', 'first_name', 'last_name', 'date_of_birth', 'student_photo', 'gender', 'nationality', 'address', 'phone_number', 'identification', 'grade_year_level', 'course','department']
         widgets = {
             'user': forms.Select(attrs={'class': 'form-control'}),
             'role': forms.Select(attrs={'class': 'form-control'}),
@@ -37,7 +37,8 @@ class profileForm(forms.ModelForm):
                 'data-live-search': 'true',
                 'title': "Select Grade Year Level"
             }),
-            'major': forms.TextInput(attrs={'class': 'form-control'}),
+            'course': forms.Select(attrs={'class': 'form-control'}),
+            'department': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
