@@ -44,31 +44,59 @@
       max-width: none;
       margin: 0 auto;
     }
+    
+    /* Adjust card size */
+    .card {
+      max-width: 50%; /* Set a smaller max width */
+      margin: 0 auto; /* Center the card */
+    }
+    
+    .card-body {
+      padding: 15px; /* Adjust padding for a smaller, compact card */
+    }
+    
+    /* Override header text color */
+    .fc-col-header-cell-cushion {
+      color: black !important; /* Black text color */
+      font-weight: normal; /* Light font weight */
+    }
+    
     .fc-event-finished {
       background-color: lightslategray !important;
       color: white !important;
     }
+    
     .fc-event-upcoming {
       background-color: orange !important;
       color: white !important;
     }
+    
     .fc-event-ongoing {
       background-color: green !important;
       color: white !important;
     }
+    
     .fc-event-missed {
       background-color: red !important;
       color: white !important;
     }
+    
     .fc-event-answered {
       background-color: #6c757d !important; /* Secondary color */
       color: white !important;
     }
+    
     .fc .fc-event .fc-event-main {
       outline: none !important;
     }
+    
     .fc-event-dot {
       display: none !important;
+    }
+    
+    /* Add spacing and subtle border styling */
+    .fc-daygrid-day-top {
+      padding: 5px !important;
     }
   </style>
 

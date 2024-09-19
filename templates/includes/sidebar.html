@@ -2,11 +2,11 @@
 {% load permissions %}
 
 <!-- Main Sidebar Container -->
-<aside class="main-sidebar sidebar-dark-primary custom-sidebar elevation-4 sidebar-no-expand">
+<aside class="main-sidebar custom-sidebar elevation-4 sidebar-no-expand sidebar-dark-secondary">
   <!-- Brand Logo -->
   <a href="{% url 'dashboard' %}" class="brand-link" style="display: flex; align-items: center;">
     <img src="{% static 'assets/dist/images/gsu_logo.png' %}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" />
-    <span class="brand-text font-weight-bolder">GUIMARAS STATE UNIVERSITY</span>
+    <span class="brand-text font-weight-bold">GUIMARAS STATE UNIVERSITY</span>
   </a>
 
   <!-- Sidebar -->
@@ -25,10 +25,10 @@
     <!-- Sidebar Menu -->
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-        <!-- Calendar -->
+        <!-- Dashboard -->
         <li class="nav-item">
-          <a href="{% url 'dashboard' %}" class="nav-link">
-            <i class="bx bx-home nav-icon"></i>
+          <a href="{% url 'dashboard' %}" class="nav-link d-flex align-items-center">
+            <i class="bx bx-home nav-icon mr-2"></i>
             <p>Dashboard</p>
           </a>
         </li>
@@ -36,8 +36,8 @@
         <!-- Profile Section (Permission check) -->
         {% if user|has_perm:'accounts.view_profile' %}
           <li class="nav-item">
-            <a href="{% url 'viewProfile' request.user.id %}" class="nav-link">
-              <i class="bx bx-user nav-icon"></i>
+            <a href="{% url 'viewProfile' request.user.id %}" class="nav-link d-flex align-items-center">
+              <i class="bx bx-user nav-icon mr-2"></i>
               <p>{{ request.user.first_name|title }} {{ request.user.last_name|title }}</p>
             </a>
           </li>
@@ -45,8 +45,8 @@
 
         <!-- Calendar -->
         <li class="nav-item">
-          <a href="{% url 'calendars' %}" class="nav-link">
-            <i class="bx bx-calendar nav-icon"></i>
+          <a href="{% url 'calendars' %}" class="nav-link d-flex align-items-center">
+            <i class="bx bx-calendar nav-icon mr-2"></i>
             <p>Calendar</p>
           </a>
         </li>
@@ -54,8 +54,8 @@
         <!-- Messages (Permission check) -->
         {% if user|has_perm:'message.view_message' %}
           <li class="nav-item">
-            <a href="{% url 'inbox' %}" class="nav-link">
-              <i class="bx bx-chat nav-icon"></i>
+            <a href="{% url 'inbox' %}" class="nav-link d-flex align-items-center">
+              <i class="bx bx-chat nav-icon mr-2"></i>
               <p>Messages</p>
               {% if unread_messages_count > 0 %}
                 <span class="badge badge-danger">{{ unread_messages_count }}</span>
@@ -66,42 +66,41 @@
 
         <!-- Teaching Section -->
         <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="bx bx-book-open nav-icon"></i>
+          <a href="#" class="nav-link d-flex align-items-center">
+            <i class="bx bx-book-open nav-icon mr-2"></i>
             <p>
-              Teaching
-              <i class="bx bx-chevron-down right"></i>
+              Teaching <i class="bx bx-chevron-down right"></i>
             </p>
           </a>
           <ul class="nav nav-treeview">
             {% if user|has_perm:'course.view_course' %}
               <li class="nav-item">
-                <a href="{% url 'SubjectList' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'SubjectList' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Subjects</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'gradebookcomponent.view_gradebookcomponents' %}
               <li class="nav-item">
-                <a href="{% url 'studentTotalScoreForActivity' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'studentTotalScoreForActivity' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Grades</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
-                <a href="{% url 'subject' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'subject' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Subject List</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
-                <a href="{% url 'progressList' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'progressList' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Activity Progress</p>
                 </a>
               </li>
@@ -112,8 +111,8 @@
         <!-- Enroll Students -->
         {% if user|has_perm:'course.view_subjectenrollment' %}
           <li class="nav-item">
-            <a href="{% url 'subjectEnrollmentList' %}" class="nav-link">
-              <i class="bx bx-user-plus nav-icon"></i>
+            <a href="{% url 'subjectEnrollmentList' %}" class="nav-link d-flex align-items-center">
+              <i class="bx bx-user-plus nav-icon mr-2"></i>
               <p>Enroll Students</p>
             </a>
           </li>
@@ -121,82 +120,81 @@
 
         <!-- Settings Section -->
         <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="bx bx-cog nav-icon"></i>
+          <a href="#" class="nav-link d-flex align-items-center">
+            <i class="bx bx-cog nav-icon mr-2"></i>
             <p>
-              Settings
-              <i class="bx bx-chevron-down right"></i>
+              Settings <i class="bx bx-chevron-down right"></i>
             </p>
           </a>
           <ul class="nav nav-treeview">
             {% if user|has_perm:'roles.view_role' %}
               <li class="nav-item">
-                <a href="{% url 'roleList' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'roleList' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Role</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'course.view_semester' %}
               <li class="nav-item">
-                <a href="{% url 'activityTypeList' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'activityTypeList' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Activity Type</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'course.view_semester' %}
               <li class="nav-item">
-                <a href="{% url 'semesterList' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'semesterList' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Semester</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
-                <a href="{% url 'viewGradeBookComponents' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'viewGradeBookComponents' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Subject Percentage</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
-                <a href="{% url 'subGradebook' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'subGradebook' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Subject Sub Percentage</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'course.view_term' %}
               <li class="nav-item">
-                <a href="{% url 'termList' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'termList' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Term</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
-                <a href="{% url 'termBookList' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'termBookList' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Term Percentage</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'course.view_semester' %}
               <li class="nav-item">
-                <a href="{% url 'student' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'student' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Student List</p>
                 </a>
               </li>
             {% endif %}
             {% if user|has_perm:'course.view_semester' %}
               <li class="nav-item">
-                <a href="{% url 'staff_list' %}" class="nav-link">
-                  <i class="bx bx-circle nav-icon"></i>
+                <a href="{% url 'staff_list' %}" class="nav-link d-flex align-items-center">
+                  <i class="bx bx-circle nav-icon mr-2"></i>
                   <p>Staff List</p>
                 </a>
               </li>
