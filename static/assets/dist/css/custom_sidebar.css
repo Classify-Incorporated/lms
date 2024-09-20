@@ -1,9 +1,14 @@
 .custom-sidebar {
-    background-color: #171F29; /* Background color */
+    background-color: #343A40; /* Background color */
   }
   
   .custom-sidebar .nav-link {
     color: #FFFFFF; /* Text color */
+  }
+
+  .custom-sidebar .nav-sidebar .nav-item > .nav-link.active {
+    background-color: #648f5a !important;  /* Example: #4CAF50 */
+    color: #ffffff !important;  /* Example: #FFFFFF */
   }
   
   .custom-sidebar .nav-link:hover {
@@ -16,7 +21,8 @@
   }
 
   .custom-sidebar .brand-link{
-    background-color: #23262D;
+    background-color: #343A40;
+    color: #ffffff;
   }
   
   .custom-sidebar .sidebar-brand-text {

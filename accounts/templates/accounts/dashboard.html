@@ -4,13 +4,44 @@
   Dashboard
 {% endblock %}
 {% block content %}
+  <style>
+    .custom-card .card {
+      border: none;
+      border-radius: 15px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .custom-card .text-dark {
+      color: #3a5634; /* Dark green for the title */
+      font-weight: 600;
+    }
+    
+    .custom-card .h5 {
+      font-size: 1.5rem;
+      color: #2e7d32; /* Dark green for number */
+    }
+    
+    .custom-card .wave {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+    }
+    
+    .custom-card svg {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <div class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Dashboard</h1>
+            <h1 style="font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; color: #555555;">{{ greeting }}, {{ user_name }}!</h1>
+            <p style="font-family: 'Roboto', sans-serif; font-size: 1.2rem; color: #777777;">Welcome to the GSU Learning Management System</p>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -27,87 +58,104 @@
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
-        <h1 class="h3 mb-4 text-gray-800">
+        <h3 class="mb-4">
           {% if current_semester %}
             {{ current_semester.semester_name }} - School Year {{ current_semester.school_year }}
           {% else %}
             No Active Semester
           {% endif %}
-        </h1>
+        </h3>
 
-        <div class="row">
+        <div class="row custom-card">
+          <!-- Students Enrolled Card -->
           <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card shadow h-100 py-2">
+            <div class="card shadow h-100 py-2 position-relative" style="background-color: #98B48D;">
               <div class="card-body">
                 <div class="row no-gutters align-items-center">
                   <div class="col mr-2">
-                    <div class="text-sm font-weight-bold text-uppercase text-gray-700 mb-1">Students Enrolled</div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_users_count }}</div>
+                    <div class="text-sm text-uppercase mb-1 text-success">Students Enrolled</div>
+                    <div class="h5 mb-0 font-weight-bold text-success">{{ active_users_count }}</div>
                   </div>
                   <div class="col-auto">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #6a86e0, #4369d0);">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #89AD80, #6A8E6B);">
                       <i class="fas fa-user-check text-white"></i>
                     </div>
                   </div>
                 </div>
               </div>
+              <!-- Wave effect at the bottom of the card -->
+              <svg class="wave" height="40px" width="100%" viewBox="0 0 100 20" preserveAspectRatio="none">
+                <path d="M0 20 Q 50 0 100 20 Z" fill="#6A8E6B" />
+              </svg>
             </div>
           </div>
 
+          <!-- Subjects For This Semester Card -->
           <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card shadow h-100 py-2">
+            <div class="card shadow h-100 py-2 position-relative" style="background-color: #F2C77F;">
               <div class="card-body">
                 <div class="row no-gutters align-items-center">
                   <div class="col mr-2">
-                    <div class="text-sm font-weight-bold text-uppercase text-gray-700 mb-1">Subjects For This Semester</div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ subject_count }}</div>
+                    <div class="text-sm text-uppercase text-warning mb-1">Subjects For This Semester</div>
+                    <div class="h5 mb-0 font-weight-bold text-warning">{{ subject_count }}</div>
                   </div>
                   <div class="col-auto">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #6a86e0, #4369d0);">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #E7B572, #C89A58);">
                       <i class="fas fa-book text-white"></i>
                     </div>
                   </div>
                 </div>
               </div>
+              <svg class="wave" height="40px" width="100%" viewBox="0 0 100 20" preserveAspectRatio="none">
+                <path d="M0 20 Q 50 0 100 20 Z" fill="#C89A58" />
+              </svg>
             </div>
           </div>
 
+          <!-- Failing Students Card -->
           <div class="col-xl-3 col-md-6 mb-4">
             <a href="{% url 'failingStudentsPerSubject' %}" style="text-decoration: none;">
-              <div class="card shadow h-100 py-2">
+              <div class="card shadow h-100 py-2 position-relative" style="background-color: #D68D8D;">
                 <div class="card-body">
                   <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                      <div class="text-sm font-weight-bold text-uppercase text-gray-700 mb-1">Failing Students</div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800">{{ failing_students_count }}</div>
+                      <div class="text-sm text-uppercase text-danger mb-1">Failing Students</div>
+                      <div class="h5 mb-0 font-weight-bold text-danger">{{ failing_students_count }}</div>
                     </div>
                     <div class="col-auto">
-                      <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #6a86e0, #4369d0);">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #AF8585, #8F6464);">
                         <i class="fas fa-user-times text-white"></i>
                       </div>
                     </div>
                   </div>
                 </div>
+                <svg class="wave" height="40px" width="100%" viewBox="0 0 100 20" preserveAspectRatio="none">
+                  <path d="M0 20 Q 50 0 100 20 Z" fill="#8F6464" />
+                </svg>
               </div>
             </a>
           </div>
 
+          <!-- Excelling Students Card -->
           <div class="col-xl-3 col-md-6 mb-4">
             <a href="{% url 'excellingStudentsPerSubject' %}" style="text-decoration: none;">
-              <div class="card shadow h-100 py-2">
+              <div class="card shadow h-100 py-2 position-relative" style="background-color: #A793B4;">
                 <div class="card-body">
                   <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                      <div class="text-sm font-weight-bold text-uppercase text-gray-700 mb-1">Excelling Students</div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800">{{ excelling_students_count }}</div>
+                      <div class="text-sm text-uppercase text-info mb-1">Excelling Students</div>
+                      <div class="h5 mb-0 font-weight-bold text-info">{{ excelling_students_count }}</div>
                     </div>
                     <div class="col-auto">
-                      <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #6a86e0, #4369d0);">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #A788AF, #84628E);">
                         <i class="fas fa-user-check text-white"></i>
                       </div>
                     </div>
                   </div>
                 </div>
+                <svg class="wave" height="40px" width="100%" viewBox="0 0 100 20" preserveAspectRatio="none">
+                  <path d="M0 20 Q 50 0 100 20 Z" fill="#84628E" />
+                </svg>
               </div>
             </a>
           </div>
@@ -115,8 +163,8 @@
 
         <div class="row">
           <div class="col-xl-8 col-lg-7">
-            <div class="card shadow mb-4" style="overflow: hidden; border-radius: 15px;">
-              <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <div class="card shadow mb-4" style="overflow: hidden; border-radius: 10px;">
+              <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-success">
                 <h6 class="m-0 text-gray-800">Campus News</h6>
               </div>
               <div class="card-body p-0 m-3">
@@ -128,7 +176,7 @@
                           <div class="row no-gutters">
                             <div class="col-md-12 position-relative">
                               {% if article.image_url %}
-                                <img src="{{ article.image_url }}" class="d-block w-100" alt="Post Image" style="height: 348px; object-fit: cover; opacity: 0.9; border-radius: 10px;" />
+                                <img src="{{ article.image_url }}" class="d-block w-100" alt="Post Image" style="height: 400px; object-fit: cover; opacity: 0.9; border-radius: 10px;" />
                               {% else %}
                                 <img src="{% static 'images/gsu_logo.png' %}" class="d-block w-100" alt="Default Image" style="height: 380px; object-fit: cover; opacity: 0.9; border-radius: 5px;" />
                               {% endif %}
@@ -171,18 +219,8 @@
 
           <div class="col-xl-4 col-lg-5">
             <div class="card shadow mb-4">
-              <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+              <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-success">
                 <h6 class="m-0 text-gray-800">Enrolled Student by Subject</h6>
-                <div class="dropdown no-arrow">
-                  <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i></a>
-                  <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-                    <div class="dropdown-header">Dropdown Header:</div>
-                    <a class="dropdown-item" href="#">Action</a>
-                    <a class="dropdown-item" href="#">Another action</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#">Something else here</a>
-                  </div>
-                </div>
               </div>
               <div class="card-body">
                 <div class="chart-pie pt-4 pb-2">
@@ -201,7 +239,7 @@
         <div class="row">
           <div class="col-lg-6 mb-4">
             <div class="card shadow mb-4">
-              <div class="card-header py-3">
+              <div class="card-header py-3 bg-success">
                 <h6 class="m-0 text-gray-800">Learning Projects</h6>
               </div>
               <div class="card-body" style="height: 350px;">
@@ -231,12 +269,12 @@
 
           <div class="col-lg-6 mb-4">
             <div class="card shadow mb-4">
-              <div class="card-header py-3">
+              <div class="card-header py-3 bg-success">
                 <h6 class="m-0 text-gray-800">Active Students in the Last 7 Days</h6>
               </div>
-              <div class="card-body" style="height: 350px;">
+              <div class="card-body" style="height: 350px; display: flex;">
                 <div class="chart-bar">
-                  <canvas id="activeStudentsChart"></canvas>
+                  <canvas id="activeStudentsChart" style="width: 150%; height: 100%;"></canvas>
                 </div>
               </div>
             </div>
@@ -248,44 +286,44 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    // Function to get CSS variable value
+    function getCSSVariableValue(variable) {
+      return getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+    }
+  
     const ctxDoughnut = document.getElementById('myPieChart').getContext('2d');
-    const myDoughnutChart = new Chart(ctxDoughnut, {
-      type: 'doughnut',
+    const myPieChart = new Chart(ctxDoughnut, {
+      type: 'pie',  // Change 'doughnut' to 'pie' for a full pie chart
       data: {
         labels: [
-          {% for subject in student_counts %}
-            "{{ subject.subject__subject_name }}",
+          {% for subject in student_counts %} 
+            "{{ subject.subject__subject_name }}", 
           {% endfor %}
         ],
         datasets: [{
           data: [
-            {% for subject in student_counts %}
-              {{ subject.student_count }},
+            {% for subject in student_counts %} 
+              {{ subject.student_count }}, 
             {% endfor %}
           ],
           backgroundColor: [
-            'rgba(78, 115, 223, 0.5)',  // Blue
-            'rgba(28, 200, 138, 0.5)',  // Green
-            'rgba(54, 185, 204, 0.5)',  // Aqua
-            'rgba(255, 99, 132, 0.5)',  // Red
-            'rgba(255, 159, 64, 0.5)',  // Orange
-            'rgba(255, 205, 86, 0.5)',  // Yellow
-            'rgba(75, 192, 192, 0.5)',  // Teal
-            'rgba(153, 102, 255, 0.5)', // Purple
-            'rgba(201, 203, 207, 0.5)', // Grey
+            getCSSVariableValue('--primary'),     // Vibrant blue
+            getCSSVariableValue('--success'),     // Fresh green
+            getCSSVariableValue('--info'),        // Calm teal
+            getCSSVariableValue('--warning'),     // Bright orange
+            getCSSVariableValue('--danger'),      // Striking red
+            getCSSVariableValue('--secondary'),   // Muted gray
           ],
           hoverBackgroundColor: [
-            'rgba(78, 115, 223, 1)',  // Blue
-            'rgba(28, 200, 138, 1)',  // Green
-            'rgba(54, 185, 204, 1)',  // Aqua
-            'rgba(255, 99, 132, 1)',  // Red
-            'rgba(255, 159, 64, 1)',  // Orange
-            'rgba(255, 205, 86, 1)',  // Yellow
-            'rgba(75, 192, 192, 1)',  // Teal
-            'rgba(153, 102, 255, 1)', // Purple
-            'rgba(201, 203, 207, 1)', // Grey
+            getCSSVariableValue('--primary-hover'),   // Darker blue
+            getCSSVariableValue('--success-hover'),   // Darker green
+            getCSSVariableValue('--info-hover'),      // Deeper teal
+            getCSSVariableValue('--warning-hover'),   // Warmer orange
+            getCSSVariableValue('--danger-hover'),    // Darker red
+            getCSSVariableValue('--secondary-hover'), // Darker gray
           ],
-          hoverBorderColor: "rgba(234, 236, 244, 1)",
+          borderColor: '#FFFFFF',  // White border for a clean look
+          borderWidth: 2,  // Slightly thicker border for emphasis
         }]
       },
       options: {
@@ -301,9 +339,14 @@
           caretPadding: 10,
         },
         legend: {
-          display: false
+          display: true,
+          position: 'bottom',  // Move the legend below the chart
+          labels: {
+            fontColor: '#5a5c69',  // Custom font color for the legend
+            fontSize: 14,  // Increase the font size for better readability
+            usePointStyle: true,  // Use circle markers in the legend
+          },
         },
-        cutoutPercentage: 80,
       },
     });
   </script>

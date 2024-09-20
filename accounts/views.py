@@ -22,6 +22,8 @@ from course.models import Term,  StudentParticipationScore
 from activity.models import Activity, ActivityType, StudentQuestion
 from django.db.models import Sum
 from django.contrib.auth.decorators import permission_required
+from datetime import datetime
+from django.utils import timezone
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -143,7 +145,6 @@ def fetch_facebook_posts():
     else:
         return []
 
-
 @login_required
 def dashboard(request):
     sessions = Session.objects.filter(expire_date__gte=timezone.now())
@@ -159,7 +160,7 @@ def dashboard(request):
         id__in=user_ids, 
         profile__role__name__iexact='student'
     ).distinct()
-    
+
     active_students_count = active_students.count()
 
     today = timezone.now().date()
@@ -204,8 +205,16 @@ def dashboard(request):
         failing_students_count = 0
         excelling_students_count = 0
 
-    
     articles = fetch_facebook_posts()
+
+    # Determine the current time and set the greeting
+    current_hour = datetime.now().hour
+    if current_hour < 12:
+        greeting = "Good Morning"
+    elif 12 <= current_hour < 18:
+        greeting = "Good Afternoon"
+    else:
+        greeting = "Good Evening"
 
     context = {
         'active_users_count': active_students_count,
@@ -213,10 +222,14 @@ def dashboard(request):
         'subject_count': subject_count,
         'failing_students_count': failing_students_count,
         'excelling_students_count': excelling_students_count,
-        'current_semester': current_semester, 
+        'current_semester': current_semester,
         'articles': articles,
+        'greeting': greeting,
+        'user_name': user.first_name or user.username,  # Use the first name or username
     }
+
     return render(request, 'accounts/dashboard.html', context)
+
 
 
 def get_failing_students_count(current_semester, user):

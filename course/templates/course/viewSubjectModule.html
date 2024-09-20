@@ -38,7 +38,7 @@
           <!-- Ongoing Activities Chart -->
           <div class="col-md-4">
             <div class="card shadow-sm">
-              <div class="card-header gradient-header text-white text-center">Ongoing Activities</div>
+              <div class="card-header gradient-header bg-success text-center">Ongoing Activities</div>
               <div class="card-body" style="height: 200px;">
                 <canvas id="ongoingActivitiesChart" class="activity-chart"></canvas>
                 <p id="noDataOngoing" class="text-center text-muted" style="display: none;">No ongoing activities</p>
@@ -49,7 +49,7 @@
           <!-- Upcoming Activities Chart -->
           <div class="col-md-4">
             <div class="card shadow-sm">
-              <div class="card-header gradient-header text-white text-center">Upcoming Activities</div>
+              <div class="card-header gradient-header bg-success text-center">Upcoming Activities</div>
               <div class="card-body" style="height: 200px;">
                 <canvas id="upcomingActivitiesChart" class="activity-chart"></canvas>
                 <p id="noDataUpcoming" class="text-center text-muted" style="display: none;">No upcoming activities</p>
@@ -60,7 +60,7 @@
           <!-- Activities to be Graded Chart -->
           <div class="col-md-4">
             <div class="card shadow-sm">
-              <div class="card-header gradient-header text-white text-center">Activities to be Graded</div>
+              <div class="card-header gradient-header bg-success text-center">Activities to be Graded</div>
               <div class="card-body" style="height: 200px;">
                 <canvas id="activitiesToBeGradedChart" class="activity-chart"></canvas>
                 <p id="noDataGradingNeeded" class="text-center text-muted" style="display: none;">No activities to be graded</p>
@@ -73,7 +73,7 @@
         <div class="row mb-4">
           <div class="col-md-12">
             <div class="card shadow-sm">
-              <div class="card-header gradient-header text-white text-center">Completed Activities</div>
+              <div class="card-header gradient-header bg-success text-center">Completed Activities</div>
               <div class="card-body" style="height: 300px;">
                 <canvas id="finishedActivitiesChart" class="activity-chart"></canvas>
                 <p id="noDataFinished" class="text-center text-muted" style="display: none;">No completed activities</p>
@@ -88,8 +88,8 @@
           {% if selected_semester.start_date|date:'Y-m-d' <= today_date and selected_semester.end_date|date:'Y-m-d' >= today_date %}
             <div class="row justify-content-center mb-4">
               <div class="col-md-12 justify-content-between">
-                <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-primary">Add Activity</a>
-                <a href="{% url 'activityList' subject.id %}" class="btn btn-secondary">Activity List</a>
+                <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-success">Add Activity</a>
+                <a href="{% url 'activityList' subject.id %}" class="btn btn-primary">Activity List</a>
                 <a class="btn btn-info" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
                 <button class="btn btn-info" onclick="openCopyLessonModal('{{ subject.id }}')">Copy Lessons</button>
                 <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-warning">View Students List</a>
@@ -102,7 +102,7 @@
         <div class="row mb-4">
           <div class="col-md-12">
             <div class="card shadow-sm">
-              <div class="card-header gradient-header text-white d-flex justify-content-between">
+              <div class="card-header bg-success d-flex justify-content-between">
                 <span>Lessons &nbsp; <sup>(Sort To Change Orders)</sup></span>
                 <button id="editButton" class="btn btn-success ml-auto"><i class="fas fa-edit"></i> Edit Lesson</button>
               </div>
@@ -115,7 +115,7 @@
                       <i class="fas fa-chevron-down"></i>
                     </a>
                     <!-- Collapsible Content with Activities -->
-                    <div class="collapse" id="lessonActions{{ module.sort }}">
+                    <div class="collapse" id="lessonActions{{ module.id }}">
                       <div class="mt-3">
                         <div class="d-flex justify-content-end">
                           <a href="{% url 'viewModule' module.id %}" class="btn btn-primary btn-sm">View</a>
@@ -544,11 +544,6 @@
 
   .list-group-item.pl-5 {
     padding-left: 3rem;
-  }
-
-  .gradient-header {
-    background: linear-gradient(135deg, #4A90E2 0%, #F5A623 100%);
-    font-weight: bold;
   }
 
   /* Styling for lesson actions */
