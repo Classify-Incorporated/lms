@@ -77,12 +77,51 @@
     color: #ffffff;
 }
 
+
+.dark-mode .custom-sidebar .nav-link p{
+    color: #ffffff; /* Text color */
+  }
+
+ .dark-mode .custom-sidebar .nav-link.active p{
+    color: #ffffff; /* Text color */
+    font-weight: 500;
+  }
+
+ .dark-mode .custom-sidebar .nav-link i{
+    color: #ffffff; /* Text color */
+  }
+
+ .dark-mode .custom-sidebar .nav-link.active i{
+    color: #ffffff; /* Text color */
+    font-weight: 500;
+  }
+
+.dark-mode .custom-sidebar .brand-link{
+    background-color: #343a40;
+    color: #ffffff;
+  }
+  /* Remove border from the input field */
+.form-control-sidebar {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Optional: Remove border from the search button as well */
+.btn-sidebar {
+    border: 1px solid #8AA17C;
+    box-shadow: none !important;
+}
+
+  /* Optional: Remove border from the search button as well */
+.btn-sidebar {
+    border: 1px solid #8AA17C !important;
+    box-shadow: none !important;
+}
 /* Circular Gradient similar to the provided design */
 .dark-mode .content-wrapper {
-    background: radial-gradient(circle, rgb(77,109,122) 20%, rgba(40,48,65,1) 100%);
+    background: radial-gradient(circle, rgb(77,109,122) 10%, rgb(52,58,64) 100%);
     color: #ffffff;
     min-height: 100vh;
-    padding: 20px;
     box-sizing: border-box;
 }
 
@@ -207,19 +246,24 @@ h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
 }
 
 :root {
-    --primary: #4A90E2;            /* Modern vibrant blue */
+    --primary: #75adee;            /* Modern vibrant blue */
     --primary-hover: #357ABD;      /* Slightly darker blue for hover */
-    --secondary: #7F8C8D;          /* Sophisticated muted gray */
+    --secondary: #747476;          /* Sophisticated muted gray */
     --secondary-hover: #5D6D6E;    /* Darker shade for hover */
-    --success: #2ECC71;            /* Fresh, energetic green */
-    --success-hover: #27AE60;      /* Darker green for hover */
-    --info: #16A085;               /* Calm teal */
-    --info-hover: #138D75;         /* Deeper teal for hover */
-    --warning: #F39C12;            /* Bright, engaging orange */
-    --warning-hover: #E67E22;      /* Warmer orange for hover */
-    --danger: #E74C3C;             /* Bold, striking red */
-    --danger-hover: #C0392B;       /* Darker red for hover */
-    --primary-text: #ffffff;       /* Modern dark blue for text */
+    --success: #A1C099;            /* Fresh, energetic green */
+    --success-hover: #89AD80;      /* Darker green for hover */
+    --info: #B899C0;               /* Calm teal */
+    --info-hover: #A788AF;         /* Deeper teal for hover */
+    --warning: #FDD095;            /* Bright, engaging orange */
+    --warning-hover: #E7B572;      /* Warmer orange for hover */
+    --danger: #C09999;             /* Bold, striking red */
+    --danger-hover: #AF8585;       /* Darker red for hover */
+    --primary-text: #205b9e;       /* Modern dark blue for text */
+    --success-text: #357623;       /* Modern dark blue for text */
+    --secondary-text: #E0E0E0;       /* Modern dark blue for text */
+    --warning-text: #C26E02;       /* Modern dark blue for text */
+    --info-text: #683C73;       /* Modern dark blue for text */
+    --danger-text: #7B3737;       /* Modern dark blue for text */
     --light-text: #ECF0F1;         /* Soft light gray for contrast */
 }
 
@@ -231,22 +275,22 @@ h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
 
 .dark-mode .bg-success {
     background-color: var(--success) !important;
-    color: var(--primary-text) !important;
+    color: var(--success-text) !important;
 }
 
 .dark-mode .bg-warning {
     background-color: var(--warning) !important;
-    color: var(--primary-text) !important;
+    color: var(--warning-text) !important;
 }
 
 .dark-mode .bg-danger {
     background-color: var(--danger) !important;
-    color: var(--primary-text) !important;
+    color: var(--danger-text) !important;
 }
 
 .dark-mode .bg-info {
     background-color: var(--info) !important;
-    color: var(--primary-text) !important;
+    color: var(--info-text) !important;
 }
 
 /* Hover Effects for Background Colors in Dark Mode */
@@ -286,35 +330,35 @@ h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
 .btn-secondary {
     background-color: var(--secondary) !important;
     border-color: var(--secondary) !important;
-    color: var(--primary-text) !important;
+    color: var(--secondary-text) !important;
     font-family: 'Poppins', sans-serif;
 }
 
 .btn-success {
     background-color: var(--success) !important;
     border-color: var(--success) !important;
-    color: var(--primary-text) !important;
+    color: var(--success-text) !important;
     font-family: 'Poppins', sans-serif;
 }
 
 .btn-info {
     background-color: var(--info) !important;
     border-color: var(--info) !important;
-    color: var(--primary-text) !important;
+    color: var(--info-text) !important;
     font-family: 'Poppins', sans-serif;
 }
 
 .btn-warning {
     background-color: var(--warning) !important;
     border-color: var(--warning) !important;
-    color: var(--primary-text) !important;
+    color: var(--warning-text) !important;
     font-family: 'Poppins', sans-serif;
 }
 
 .btn-danger {
     background-color: var(--danger) !important;
     border-color: var(--danger) !important;
-    color: var(--primary-text) !important;
+    color: var(--danger-text) !important;
     font-family: 'Poppins', sans-serif;
 }
 
@@ -393,27 +437,27 @@ h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
 }
 
 .text-primary {
-    color: var(--primary) !important; /* Default: #007bff */
+    color: var(--primary-text) !important; /* Default: #007bff */
 }
 
 .text-secondary {
-    color: var(--secondary) !important; /* Default: #6c757d */
+    color: var(--secondary-text) !important; /* Default: #6c757d */
 }
 
 .text-success {
-    color: var(--success) !important; /* Default: #28a745 */
+    color: var(--success-text) !important; /* Default: #28a745 */
 }
 
 .text-danger {
-    color: var(--danger) !important; /* Default: #dc3545 */
+    color: var(--danger-text) !important; /* Default: #dc3545 */
 }
 
 .text-warning {
-    color: var(--warning) !important; /* Default: #ffc107 */
+    color: var(--warning-text) !important; /* Default: #ffc107 */
 }
 
 .text-info {
-    color: var(--info) !important; /* Default: #17a2b8 */
+    color: var(--info-text) !important; /* Default: #17a2b8 */
 }
 
 .text-light {
@@ -446,26 +490,32 @@ h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
 
 .bg-primary {
     background-color: var(--primary) !important; /* Default: #007bff */
+    color: var(--light-text) !important; /* Default: #007bff */
 }
 
 .bg-secondary {
     background-color: var(--secondary) !important; /* Default: #6c757d */
+    color: var(--primary) !important; /* Default: #007bff */
 }
 
 .bg-success {
     background-color: var(--success) !important; /* Default: #28a745 */
+    color: var(--success-text) !important; /* Default: #007bff */
 }
 
 .bg-danger {
     background-color: var(--danger) !important; /* Default: #dc3545 */
+    color: var(--danger-text) !important; /* Default: #007bff */
 }
 
 .bg-warning {
     background-color: var(--warning) !important; /* Default: #ffc107 */
+    color: var(--warning-text) !important; /* Default: #007bff */
 }
 
 .bg-info {
-    color: var(--info) !important; /* Default: #17a2b8 */
+    background-color: var(--info) !important; /* Default: #17a2b8 */
+    color: var(--info-text) !important; /* Default: #007bff */
 }
 
 .bg-light {
@@ -474,4 +524,8 @@ h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
 
 .bg-dark {
     background-color: #343a40 !important; /* Default: #343a40 */
+}
+
+.badge-danger{
+    background-color: var(--danger) !important; /* Default: #17a2b8 */
 }
