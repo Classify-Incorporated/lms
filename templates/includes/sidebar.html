@@ -22,7 +22,7 @@
           class="img-circle elevation-2" />
       </div>
       <div class="info">
-        <a href="{% url 'viewProfile' request.user.id %}" class="d-block">{{ request.user.first_name|title }} {{ request.user.last_name|title }}</a>
+        <a href="{% url 'viewProfile' request.user.id %}" class="d-block text-dark">{{ request.user.first_name|title }} {{ request.user.last_name|title }}</a>
       </div>
     </div>
 
