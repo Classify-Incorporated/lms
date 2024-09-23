@@ -306,7 +306,6 @@ def check_lesson_exists(request, subject_id):
             subject=subject,
             term__semester=current_semester
         ).exists()
-        print(exists)
 
         # Return a JSON response
         return JsonResponse({'exists': exists})
@@ -317,7 +316,6 @@ def check_lesson_exists(request, subject_id):
 @login_required
 def update_module_order(request):
     if request.method == 'POST':
-        print(request.body)
         try:
             data = json.loads(request.body)  # Load the JSON data sent from the frontend
             order_data = data.get('order', [])  # Get the 'order' list from the request
