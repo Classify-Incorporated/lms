@@ -75,3 +75,27 @@
   content: "\2715"; /* Unicode character for 'x' */
 }
 
+/* Modal Right Positioning */
+.modal.right .modal-dialog {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+}
+
+.modal.right .modal-content {
+    min-height: 100vh;
+    border: 0;
+}
+
+.modal-header .close {
+    margin: -1rem -1rem -1rem auto;
+}
+
+.modal.right .modal-body {
+    overflow-y: auto;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
+}

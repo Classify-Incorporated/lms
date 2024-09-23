@@ -10,6 +10,16 @@
 
   <!-- Right navbar links -->
   <ul class="navbar-nav ml-auto">
+    <!-- Dark Mode Toggle -->
+    <li class="nav-item">
+      <div class="nav-link d-flex align-items-center">
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="darkModeToggle" />
+          <label class="custom-control-label" for="darkModeToggle"><i id="darkModeIcon" class="fas fa-sun"></i> <!-- Default to Sun Icon --></label>
+        </div>
+      </div>
+    </li>
+
     <!-- Notifications Dropdown Menu -->
     <li class="nav-item dropdown">
       <a class="nav-link" data-toggle="dropdown" href="#">
@@ -86,29 +96,6 @@
 </nav>
 <!-- /.navbar -->
 
-<!-- Settings Modal -->
-<div class="modal right fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="settingsModalLabel">System Settings</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      </div>
-      <div class="modal-body">
-        <div class="p-3">
-          <div class="form-group">
-            <div class="custom-control custom-checkbox">
-              <input class="custom-control-input" type="checkbox" id="darkMode" />
-              <label for="darkMode" class="custom-control-label">Dark Mode</label>
-            </div>
-          </div>
-          <!-- Additional settings fields -->
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- Logout Confirmation Modal -->
 <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -125,3 +112,39 @@
     </div>
   </div>
 </div>
+<script>
+  // Function to update the icon between sun and moon
+  function updateDarkModeIcon(isDarkMode) {
+    const darkModeIcon = document.getElementById('darkModeIcon')
+    if (isDarkMode) {
+      darkModeIcon.classList.remove('fa-sun')
+      darkModeIcon.classList.add('fa-moon')
+    } else {
+      darkModeIcon.classList.remove('fa-moon')
+      darkModeIcon.classList.add('fa-sun')
+    }
+  }
+  
+  // Handle dark mode toggle
+  document.getElementById('darkModeToggle').addEventListener('change', function () {
+    if (this.checked) {
+      document.body.classList.add('dark-mode')
+      localStorage.setItem('darkMode', 'enabled')
+      updateDarkModeIcon(true) // Switch to moon icon
+    } else {
+      document.body.classList.remove('dark-mode')
+      localStorage.setItem('darkMode', 'disabled')
+      updateDarkModeIcon(false) // Switch to sun icon
+    }
+  })
+  
+  // Persist dark mode based on user preference
+  if (localStorage.getItem('darkMode') === 'enabled') {
+    document.body.classList.add('dark-mode')
+    document.getElementById('darkModeToggle').checked = true
+    updateDarkModeIcon(true) // Ensure moon icon is shown if dark mode is enabled
+  } else {
+    document.body.classList.remove('dark-mode')
+    updateDarkModeIcon(false) // Ensure sun icon is shown if dark mode is disabled
+  }
+</script>
