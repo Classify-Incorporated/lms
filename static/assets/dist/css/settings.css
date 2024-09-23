@@ -10,7 +10,7 @@
 .dark-mode .navbar {
     background-color: #343a40;
     color: #ffffff;
-    border-bottom: 1px solid #343A40;
+    border-bottom: 1px solid #757575;
 }
 
 .dark-mode .container-fluid{
@@ -24,11 +24,7 @@
 .dark-mode .main-footer {
     background-color: #343a40;
     color: #ffffff;
-    border-top: 1px solid #343A40;
-}
-
-.dark-mode .navbar .nav-link {
-    color: #ffffff;
+    border-top: 1px solid #757575;
 }
 
 .dark-mode .navbar .dropdown-menu {
@@ -81,7 +77,15 @@
 .dark-mode .custom-sidebar .brand-link{
     background-color: #343a40;
     color: #ffffff;
-  }
+    border-color: #757575;
+}
+
+.dark-mode .custom-sidebar .user-panel{
+    background-color: #343a40;
+    color: #ffffff;
+    border-color: #757575;
+}
+
   /* Remove border from the input field */
 .form-control-sidebar {
     border: none !important;
