@@ -25,6 +25,7 @@ from django.contrib.auth.decorators import permission_required
 from datetime import datetime
 from django.utils import timezone
 from django.core.cache import cache
+from django.http import JsonResponse
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -238,7 +239,31 @@ def dashboard(request):
 
     return render(request, 'accounts/dashboard.html', context)
 
+@login_required
+def studentPerCourse(request):
+    user = request.user
 
+    # Check if the user is a teacher
+    if hasattr(user, 'profile') and user.profile.role.name.lower() == 'teacher':
+        # Get all subjects assigned to this teacher
+        teacher_subjects = Subject.objects.filter(assign_teacher=user)
+
+        # Get the students enrolled in the teacher's subjects
+        student_enrollments = SubjectEnrollment.objects.filter(subject__in=teacher_subjects)
+
+        # Filter profiles based on students in the teacher's subjects
+        student_counts = Profile.objects.filter(
+            id__in=student_enrollments.values('student')
+        ).values('course').annotate(student_count=Count('id')).order_by('course')
+
+    else:
+        # If the user is not a teacher, show data for all students
+        student_counts = Profile.objects.values('course').annotate(student_count=Count('id')).order_by('course')
+
+    data = list(student_counts)
+    return JsonResponse(data, safe=False)
+
+    return JsonResponse(data, safe=False)
 
 def get_failing_students_count(current_semester, user):
     FAILING_THRESHOLD = Decimal(65)
