@@ -13,6 +13,13 @@
     border-bottom: 1px solid #343A40;
 }
 
+.dark-mode .container-fluid{
+    background-color: #343a40;
+}
+.container-fluid{
+    background-color: #F4F6F9;
+}
+
 /* Navbar in Dark Mode */
 .dark-mode .main-footer {
     background-color: #343a40;
@@ -94,7 +101,7 @@
 }
 /* Circular Gradient similar to the provided design */
 .dark-mode .content-wrapper {
-    background: radial-gradient(circle, rgb(77,109,122) 10%, rgb(52,58,64) 100%);
+    background-color: #343a40;
     color: #ffffff;
     min-height: 100vh;
     box-sizing: border-box;
