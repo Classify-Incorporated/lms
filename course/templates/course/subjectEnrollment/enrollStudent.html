@@ -1,36 +1,62 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h2>Enroll Student</h2>
-  <form method="post" action="{% url 'enrollStudentView' %}">
-    {% csrf_token %}
-
-    <div class="form-group">
-      <label for="student_profile">Select Student:</label>
-      <select name="student_profile" id="student_profile" class="form-control selectpicker" data-live-search="true" data-actions-box="true" data-style="btn-outline-secondary" title="Select student" multiple required>
-        {% for profile in profiles %}
-          <option value="{{ profile.id }}">{{ profile.first_name }} {{ profile.last_name }}</option>
-        {% endfor %}
-      </select>
+  <!-- Content Header (Page header) -->
+  <div class="content-wrapper">
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Enrolled Students by Subject</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item">
+                <a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active">Enrolled Students by Subject</li>
+            </ol>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="subject_ids">Select Subjects:</label>
-      <select name="subject_ids" id="subject_ids" class="form-control selectpicker" data-actions-box="true" data-style="btn-outline-secondary" data-none-selected-text="Select a subject" multiple required>
-        {% for subject in subjects %}
-          <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
-        {% endfor %}
-      </select>
-    </div>
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <h2>Enroll Student</h2>
+        <form method="post" action="{% url 'enrollStudentView' %}">
+          {% csrf_token %}
 
-    <div class="form-group">
-      <label for="semester_id">Select Semester:</label>
-      <select name="semester_id" id="semester_id" class="form-control selectpicker" title="Select semester" data-style="btn-outline-secondary" required>
-        {% for semester in semesters %}
-          <option value="{{ semester.id }}">{{ semester.semester_name }} ({{ semester.school_year }})</option>
-        {% endfor %}
-      </select>
-    </div>
+          <div class="form-group">
+            <label for="student_profile" class="text-dark">Select Student:</label>
+            <select name="student_profile" id="student_profile" class="form-control selectpicker" data-live-search="true" data-actions-box="true" data-style="btn-outline-secondary" title="Select student" multiple required>
+              {% for profile in profiles %}
+                <option value="{{ profile.id }}">{{ profile.first_name }} {{ profile.last_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
 
-    <button type="submit" class="btn btn-primary">Enroll</button>
-  </form>
+          <div class="form-group">
+            <label for="subject_ids" class="text-dark">Select Subjects:</label>
+            <select name="subject_ids" id="subject_ids" class="form-control selectpicker" data-actions-box="true" data-style="btn-outline-secondary" data-none-selected-text="Select a subject" multiple required>
+              {% for subject in subjects %}
+                <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="semester_id" class="text-dark">Select Semester:</label>
+            <select name="semester_id" id="semester_id" class="form-control selectpicker" title="Select semester" data-style="btn-outline-secondary" required>
+              {% for semester in semesters %}
+                <option value="{{ semester.id }}">{{ semester.semester_name }} ({{ semester.school_year }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Enroll</button>
+        </form>
+      </div>
+    </section>
+  </div>
 {% endblock %}

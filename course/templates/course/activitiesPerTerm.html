@@ -1,27 +1,49 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-    <h1>{{ subject.subject_name }} - {{ term.term_name }} Activities</h1>
-    <h2>{{ activity_type|capfirst }} Activities</h2>
+  <!-- Page Heading with LMS Icon -->
+  <div class="content-wrapper">
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center mb-5">
+          <i class="fas fa-book-open text-success" style="font-size: 2.0rem; margin-right: 10px;"></i>
+          <h2 class="text-left mb-0 display-10">
+            {% if selected_semester %}
+              {{ selected_semester.semester_name }} - {{ selected_semester.school_year }} Subjects
+            {% else %}
+              Subjects
+            {% endif %}
+          </h2>
+        </div>
+      </div>
+    </div>
 
-    {% if activities %}
-        <ul>
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <h1>{{ subject.subject_name }} - {{ term.term_name }} Activities</h1>
+        <h2>{{ activity_type|capfirst }} Activities</h2>
+
+        {% if activities %}
+          <ul>
             {% for activity in activities %}
-                <li>
-                    {% if request.user.profile.role.name|lower == 'teacher' %}
-                        <!-- Link for teacher -->
-                        <a href="{% url 'teacherActivityView' activity.id %}">{{ activity.activity_name }}  ({{ activity.start_time }} - {{ activity.end_time }})</a>
-                    {% elif request.user.profile.role.name|lower == 'student' %}
-                        <!-- Link for student -->
-                        <a href="{% url 'studentActivityView' activity.id %}">{{ activity.activity_name }}  ({{ activity.start_time }} - {{ activity.end_time }})</a>
-                    {% endif %}
-                   
-                </li>
+              <li>
+                {% if request.user.profile.role.name|lower == 'teacher' %}
+                  <!-- Link for teacher -->
+                  <a href="{% url 'teacherActivityView' activity.id %}">{{ activity.activity_name }} ({{ activity.start_time }} - {{ activity.end_time }})</a>
+                {% elif request.user.profile.role.name|lower == 'student' %}
+                  <!-- Link for student -->
+                  <a href="{% url 'studentActivityView' activity.id %}">{{ activity.activity_name }} ({{ activity.start_time }} - {{ activity.end_time }})</a>
+                {% endif %}
+              </li>
             {% endfor %}
-        </ul>
-    {% else %}
-        <p>No activities found for this term and type.</p>
-    {% endif %}
+          </ul>
+        {% else %}
+          <p>No activities found for this term and type.</p>
+        {% endif %}
 
-    <a href="{% url 'subjectDetail' subject.id %}" class="btn btn-primary">Back</a>
+        <a href="{% url 'subjectDetail' subject.id %}" class="btn btn-primary">Back</a>
+      </div>
+    </section>
+  </div>
 {% endblock %}
