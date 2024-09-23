@@ -16,7 +16,9 @@ from django.http import JsonResponse
 def roleList(request):
     form = roleForm()
     roles = Role.objects.all()
-    permissions = Permission.objects.filter(content_type__app_label__in=['accounts','subject','course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade','roles'])
+    permissions = Permission.objects.filter(content_type__app_label__in=[
+        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles',
+    ])
 
     structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
     for perm in permissions:
@@ -33,8 +35,10 @@ def roleList(request):
 def viewRole(request, role_id):
     role_obj = get_object_or_404(Role, id=role_id)
     
-    permissions = Permission.objects.filter(content_type__app_label__in=['accounts','subject','course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade','roles'])
-    
+    permissions = Permission.objects.filter(content_type__app_label__in=[
+        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles',
+    ])
+
     structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
     for perm in permissions:
         action = perm.codename.split('_')[0]
@@ -73,8 +77,9 @@ def createRole(request):
     else:
         form = roleForm()
 
-    permissions = Permission.objects.filter(content_type__app_label__in=['accounts','subject','course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade','roles'])
-
+    permissions = Permission.objects.filter(content_type__app_label__in=[
+        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles',
+    ])
     structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
     for perm in permissions:
         action = perm.codename.split('_')[0]
@@ -109,7 +114,9 @@ def updateRole(request, pk):
     else:
         form = roleForm(instance=role_obj)
     
-    permissions = Permission.objects.filter(content_type__app_label__in=['accounts','subject','course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade','roles'])
+    permissions = Permission.objects.filter(content_type__app_label__in=[
+        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles',
+    ])
 
     structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
     for perm in permissions:
