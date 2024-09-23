@@ -78,34 +78,37 @@ def subjectEnrollmentList(request):
     def get_current_semester():
         today = date.today()
         return Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
-    
+
+    current_semester = get_current_semester()
+
     if selected_semester_id:
         selected_semester = get_object_or_404(Semester, id=selected_semester_id)
     else:
-        selected_semester = get_current_semester() if selected_semester_id is None else None 
+        # If no semester is selected and there's no active semester, show all terms
+        selected_semester = current_semester if current_semester else None
 
     if user.profile.role.name.lower() == 'teacher':
         enrollments = SubjectEnrollment.objects.select_related('subject', 'semester', 'student').filter(subject__assign_teacher=user)
     else:
         enrollments = SubjectEnrollment.objects.select_related('subject', 'semester', 'student')
-    
+
     if selected_semester:
         enrollments = enrollments.filter(semester=selected_semester)
-    
+
     if selected_subject_id:
         selected_subject = get_object_or_404(Subject, id=selected_subject_id)
         enrollments = enrollments.filter(subject=selected_subject)
     else:
         selected_subject = None
-    
+
     subjects = {}
     for enrollment in enrollments:
         if enrollment.subject not in subjects:
             subjects[enrollment.subject] = []
         subjects[enrollment.subject].append(enrollment)
-    
+
     semesters = Semester.objects.all()  # Get all semesters for the dropdown
-    available_subjects = Subject.objects.filter(subjectenrollment__semester=selected_semester).distinct()  # Get available subjects for the dropdown
+    available_subjects = Subject.objects.filter(subjectenrollment__semester=selected_semester).distinct() if selected_semester else Subject.objects.all()
 
     return render(request, 'course/subjectEnrollment/enrolledStudentList.html', {
         'subjects': subjects,
@@ -113,6 +116,7 @@ def subjectEnrollmentList(request):
         'selected_semester': selected_semester,
         'available_subjects': available_subjects,
         'selected_subject': selected_subject,
+        'current_semester': current_semester,
     })
 
 @login_required
@@ -602,11 +606,6 @@ def termList(request):
 
     else:
         terms = Term.objects.filter(semester=current_semester) 
-
-    # if request.user.is_superuser:
-    #     terms = Term.objects.all() 
-    # else:
-    #     terms = Term.objects.filter(created_by=request.user)
 
     form = termForm()
     return render(request, 'course/term/termList.html', {

@@ -95,7 +95,7 @@
                             <td>
                               <a href="{% url 'dropStudentFromSubject' enrollment.id %}" class="btn btn-primary btn-sm"
                                 onclick="return confirm('Are you sure you want to drop {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">
-                                Dropped
+                                Drop
                               </a>
                             </td>
                           {% endif %}
