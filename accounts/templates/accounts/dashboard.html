@@ -69,47 +69,51 @@
         <div class="row custom-card">
           <!-- Students Enrolled Card -->
           <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card shadow h-100 py-2 position-relative" style="background-color: #98B48D;">
-              <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                  <div class="col mr-2">
-                    <div class="text-sm text-uppercase mb-1 text-success">Students Enrolled</div>
-                    <div class="h5 mb-0 font-weight-bold text-success">{{ active_users_count }}</div>
-                  </div>
-                  <div class="col-auto">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #89AD80, #6A8E6B);">
-                      <i class="fas fa-user-check text-white"></i>
+            <a href="{% url 'subjectEnrollmentList' %}" style="text-decoration: none;">
+              <div class="card shadow h-100 py-2 position-relative" style="background-color: #98B48D;">
+                <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                      <div class="text-sm text-uppercase mb-1 text-success">Students Enrolled</div>
+                      <div class="h5 mb-0 font-weight-bold text-success">{{ active_users_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #89AD80, #6A8E6B);">
+                        <i class="fas fa-user-check text-white"></i>
+                      </div>
                     </div>
                   </div>
                 </div>
+                <!-- Wave effect at the bottom of the card -->
+                <svg class="wave" height="40px" width="100%" viewBox="0 0 100 20" preserveAspectRatio="none">
+                  <path d="M0 20 Q 50 0 100 20 Z" fill="#6A8E6B" />
+                </svg>
               </div>
-              <!-- Wave effect at the bottom of the card -->
-              <svg class="wave" height="40px" width="100%" viewBox="0 0 100 20" preserveAspectRatio="none">
-                <path d="M0 20 Q 50 0 100 20 Z" fill="#6A8E6B" />
-              </svg>
-            </div>
+            </a>
           </div>
 
           <!-- Subjects For This Semester Card -->
           <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card shadow h-100 py-2 position-relative" style="background-color: #F2C77F;">
-              <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                  <div class="col mr-2">
-                    <div class="text-sm text-uppercase text-warning mb-1">Subjects For This Semester</div>
-                    <div class="h5 mb-0 font-weight-bold text-warning">{{ subject_count }}</div>
-                  </div>
-                  <div class="col-auto">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #E7B572, #C89A58);">
-                      <i class="fas fa-book text-white"></i>
+            <a href="{% url 'SubjectList' %}" style="text-decoration: none;">
+              <div class="card shadow h-100 py-2 position-relative" style="background-color: #F2C77F;">
+                <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                      <div class="text-sm text-uppercase text-warning mb-1">Subjects For This Semester</div>
+                      <div class="h5 mb-0 font-weight-bold text-warning">{{ subject_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height: 50px; background: linear-gradient(135deg, #E7B572, #C89A58);">
+                        <i class="fas fa-book text-white"></i>
+                      </div>
                     </div>
                   </div>
                 </div>
+                <svg class="wave" height="40px" width="100%" viewBox="0 0 100 20" preserveAspectRatio="none">
+                  <path d="M0 20 Q 50 0 100 20 Z" fill="#C89A58" />
+                </svg>
               </div>
-              <svg class="wave" height="40px" width="100%" viewBox="0 0 100 20" preserveAspectRatio="none">
-                <path d="M0 20 Q 50 0 100 20 Z" fill="#C89A58" />
-              </svg>
-            </div>
+            </a>
           </div>
 
           <!-- Failing Students Card -->

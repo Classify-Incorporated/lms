@@ -24,13 +24,9 @@
     <li class="nav-item dropdown">
       <a class="nav-link" data-toggle="dropdown" href="#">
         <i class="far fa-bell text-dark"></i>
-        <span class="badge badge-danger navbar-badge">
-          {% if unread_notifications_count > 0 %}
-            {{ unread_notifications_count }}
-          {% else %}
-            0
-          {% endif %}
-        </span>
+        {% if unread_notifications_count > 0 %}
+          <span class="badge badge-danger navbar-badge">{{ unread_notifications_count }}</span>
+        {% endif %}
       </a>
       <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
         <span class="dropdown-item dropdown-header">
@@ -49,13 +45,9 @@
     <li class="nav-item dropdown">
       <a class="nav-link" data-toggle="dropdown" href="#">
         <i class="far fa-comment-alt text-dark"></i>
-        <span class="badge badge-danger navbar-badge">
-          {% if unread_messages_count > 0 %}
-            {{ unread_messages_count }}
-          {% else %}
-            0
-          {% endif %}
-        </span>
+        {% if unread_messages_count > 0 %}
+          <span class="badge badge-danger navbar-badge">{{ unread_messages_count }}</span>
+        {% endif %}
       </a>
       <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
         <h6 class="dropdown-header">Message Center</h6>

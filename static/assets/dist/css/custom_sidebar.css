@@ -1,5 +1,5 @@
 .custom-sidebar {
-    background-color: #343A40; /* Background color */
+    background-color: #ffffff; /* Background color */
   }
   
   .custom-sidebar .nav-link {
@@ -21,41 +21,12 @@
   }
 
   .custom-sidebar .brand-link{
-    background-color: #343A40;
-    color: #ffffff;
+    background-color: #ffffff;
+    color: #555555;
   }
   
   .custom-sidebar .sidebar-brand-text {
-    color: #FFFFFF; /* Brand text color */
-  }
-  
-  @keyframes shine {
-    0% {
-      background-position: -300px 0;
-    }
-    100% {
-      background-position: 300px 0;
-    }
-  }
-  
-  .custom-sidebar .nav-item.active .nav-link {
-    color: #FFFFFF; /* Active link text color */
-    background-color: #314455; /* Active link background color */
-    border: 2px solid #1E90FF; /* Active link border */
-    border-left: 5px solid #8d8d8d;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .custom-sidebar .nav-item.active .nav-link::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -300px;
-    width: 600px; /* Increased width to cover the entire link */
-    height: 100%;
-    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    animation: shine 3s infinite linear;
+    color: #314455; /* Brand text color */
   }
   
   .custom-sidebar .nav-item.active .nav-link span {
