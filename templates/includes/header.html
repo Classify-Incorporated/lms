@@ -79,7 +79,7 @@
           src="{% if request.user.profile.student_photo %}
             {{ request.user.profile.student_photo.url }}
           {% else %}
-            {% static 'img/undraw_profile.svg' %}
+            {% static 'assets/dist/img/profile_default.png' %}
           {% endif %}"
           alt="User Image"
           style="width: 30px; height: 30px; margin-left: 10px; vertical-align: middle;" />
