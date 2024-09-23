@@ -58,7 +58,6 @@
                     <tr id="term-headers">
                         <th>Subject</th>
                         <th>Student Name</th>
-                        <!-- Term headers will be dynamically populated here -->
                         <th>Total Term Weighted Score</th>
                         {% if is_teacher %}
                             <th>
@@ -86,7 +85,7 @@
     function fetchScores() {
         const subjectId = $('#subject').val();
         const apiUrl = '/studentTotalScoreApi/';
-
+    
         $.ajax({
             url: apiUrl,
             data: {
@@ -97,59 +96,50 @@
                 const scoresTableBody = $('#scores-table tbody');
                 const termHeaders = $('#term-headers');
                 scoresTableBody.empty();
-
-                // Keep Subject, Student Name, and other static headers intact
-                termHeaders.find('th').slice(2, -2).remove(); // Clear dynamic headers between the static ones
-
+    
+                // Clear existing dynamic headers before adding new ones
+                termHeaders.find('th').not(':first, :nth-child(2), :last').remove();
+    
                 if (data && data.student_data) {
                     // Extract and create term headers dynamically based on the first student's subjects
                     const firstStudentSubjects = Object.values(data.student_data)[0];
                     const terms = firstStudentSubjects ? Object.values(firstStudentSubjects)[0].map(term => term.term_name) : [];
-
+    
                     terms.forEach(term => {
-                        termHeaders.find('th:nth-last-child(2)').before(`<th>${term}</th>`);
+                        termHeaders.find('th:last').before(`<th>${term}</th>`);
                     });
-
+    
                     // Populate the student and subject rows
                     Object.keys(data.student_data).forEach(function(studentId) {
                         const studentSubjects = data.student_data[studentId];
                         Object.keys(studentSubjects).forEach(function(subjectName) {
                             const subjectData = studentSubjects[subjectName];
-
-                            const subjectId = subjectData[0].subject_id;  // Ensure this is where subject_id is being accessed
-                            console.log('Subject ID:', subjectId);
+    
+                            const subjectId = subjectData[0].subject_id;
                             const studentName = subjectData[0].student_name;
-
+    
                             const studentRow = $('<tr>');
                             studentRow.append(`<td><a href="/studentTotalScore/${studentId}/${subjectId}/?semester=${semesterId}">${subjectName}</a></td>`);
-                            studentRow.append(`<td>${studentName}</td>`);  // Assuming the student name is within data or needs to be looked up separately.
-
-                            // Iterate through the terms for this subject and add scores
+                            studentRow.append(`<td>${studentName}</td>`);
+    
+                            // Add scores for each term dynamically
                             const termScores = {};
                             terms.forEach(term => {
                                 termScores[term] = 'N/A';
                             });
-
+    
                             subjectData.forEach(function(term) {
                                 termScores[term.term_name] = `${parseFloat(term.percentage).toFixed(2)}`;
                             });
-
+    
                             terms.forEach(term => {
                                 studentRow.append(`<td>${termScores[term]}</td>`);
                             });
-
+    
                             // Add the total weighted grade
                             const totalWeightedGrade = parseFloat(data.student_total_weighted_grade[studentId][subjectName]);
                             studentRow.append(`<td>${totalWeightedGrade.toFixed(2)} (${calculateGrade(totalWeightedGrade)})</td>`);
-
-                            if (isTeacher) {
-                                const checkboxForm = `
-                                    <td>
-                                        <input type="checkbox" class="grade-visibility-checkbox" data-student-id="${studentId}" data-subject-id="${subjectName}" name="can_view_grade" ${subjectData.can_view_grade ? 'checked' : ''} onchange="toggleGradeVisibility(${studentId}, ${subjectName}, this.checked)">
-                                    </td>`;
-                                studentRow.append(checkboxForm);
-                            }
-
+    
                             scoresTableBody.append(studentRow);
                         });
                     });
@@ -164,6 +154,7 @@
             }
         });
     }
+    
 
     function toggleGradeVisibility(studentId, subjectId, canViewGrade) {
         $.ajax({

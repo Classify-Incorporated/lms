@@ -46,6 +46,8 @@
           </a>
         </li>
 
+        {% if not user.is_superuser and not user.is_staff %}
+        {% if not user.profile.role.name|lower == 'registrar' %}
         <!-- Calendar -->
         <li class="nav-item">
           <a href="{% url 'calendars' %}" class="nav-link d-flex align-items-center">
@@ -53,7 +55,10 @@
             <p>Calendar</p>
           </a>
         </li>
+        {% endif %}
+        {% endif %}
 
+        {% if not user.is_superuser and not user.is_staff %}
         <!-- Messages (Permission check) -->
         {% if user|has_perm:'message.view_message' %}
           <li class="nav-item">
@@ -66,7 +71,9 @@
             </a>
           </li>
         {% endif %}
+        {% endif %}
 
+        {% if not user.is_superuser and not user.is_staff %}
         <!-- Teaching Section -->
         <li class="nav-item">
           <a href="#" class="nav-link d-flex align-items-center">
@@ -75,7 +82,9 @@
               Teaching <i class="bx bx-chevron-down right"></i>
             </p>
           </a>
+
           <ul class="nav nav-treeview">
+            {% if not user.profile.role.name|lower == 'registrar' %}
             {% if user|has_perm:'course.view_course' %}
               <li class="nav-item">
                 <a href="{% url 'SubjectList' %}" class="nav-link d-flex align-items-center">
@@ -84,6 +93,8 @@
                 </a>
               </li>
             {% endif %}
+            {% endif %}
+
             {% if user|has_perm:'gradebookcomponent.view_gradebookcomponents' %}
               <li class="nav-item">
                 <a href="{% url 'studentTotalScoreForActivity' %}" class="nav-link d-flex align-items-center">
@@ -92,6 +103,7 @@
                 </a>
               </li>
             {% endif %}
+            
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
                 <a href="{% url 'subject' %}" class="nav-link d-flex align-items-center">
@@ -100,7 +112,10 @@
                 </a>
               </li>
             {% endif %}
-            {% if user|has_perm:'subject.view_subject' %}
+
+            {% if not user.profile.role.name|lower == 'registrar' %}
+            {% if not user.profile.role.name|lower == 'student' %}
+            {% if user|has_perm:'course.view_course' %}
               <li class="nav-item">
                 <a href="{% url 'progressList' %}" class="nav-link d-flex align-items-center">
                   <i class="bx bx-circle nav-icon mr-2"></i>
@@ -108,9 +123,13 @@
                 </a>
               </li>
             {% endif %}
+            {% endif %}
+            {% endif %}
           </ul>
         </li>
+        {% endif %}
 
+        {% if not user.is_superuser and not user.is_staff %}
         <!-- Enroll Students -->
         {% if user|has_perm:'course.view_subjectenrollment' %}
           <li class="nav-item">
@@ -120,8 +139,10 @@
             </a>
           </li>
         {% endif %}
+        {% endif %}
 
         <!-- Settings Section -->
+        {% if not user.profile.role.name|lower == 'student' %}
         <li class="nav-item">
           <a href="#" class="nav-link d-flex align-items-center">
             <i class="bx bx-cog nav-icon mr-2"></i>
@@ -138,6 +159,8 @@
                 </a>
               </li>
             {% endif %}
+
+            {% if not user.is_superuser and not user.is_staff %}
             {% if user|has_perm:'course.view_semester' %}
               <li class="nav-item">
                 <a href="{% url 'activityTypeList' %}" class="nav-link d-flex align-items-center">
@@ -146,6 +169,9 @@
                 </a>
               </li>
             {% endif %}
+            {% endif %}
+
+            {% if not user.is_superuser and not user.is_staff %}
             {% if user|has_perm:'course.view_semester' %}
               <li class="nav-item">
                 <a href="{% url 'semesterList' %}" class="nav-link d-flex align-items-center">
@@ -154,7 +180,11 @@
                 </a>
               </li>
             {% endif %}
+            {% endif %}
+
+            {% if not user.is_superuser and not user.is_staff %}
             {% if user|has_perm:'subject.view_subject' %}
+            {% if user.profile.role.name|lower == 'teacher' %}
               <li class="nav-item">
                 <a href="{% url 'viewGradeBookComponents' %}" class="nav-link d-flex align-items-center">
                   <i class="bx bx-circle nav-icon mr-2"></i>
@@ -162,7 +192,14 @@
                 </a>
               </li>
             {% endif %}
+            {% endif %}
+            {% endif %}
+
+
+            
+            {% if user.profile.role.name|lower == 'teacher' %}
             {% if user|has_perm:'subject.view_subject' %}
+            {% if not user.is_superuser and not user.is_staff %}
               <li class="nav-item">
                 <a href="{% url 'subGradebook' %}" class="nav-link d-flex align-items-center">
                   <i class="bx bx-circle nav-icon mr-2"></i>
@@ -170,6 +207,10 @@
                 </a>
               </li>
             {% endif %}
+            {% endif %}
+            {% endif %}
+
+            {% if not user.is_superuser and not user.is_staff %}
             {% if user|has_perm:'course.view_term' %}
               <li class="nav-item">
                 <a href="{% url 'termList' %}" class="nav-link d-flex align-items-center">
@@ -178,6 +219,10 @@
                 </a>
               </li>
             {% endif %}
+            {% endif %}
+            
+            {% if not user.is_superuser and not user.is_staff %}
+            {% if not user.profile.role.name|lower == 'registrar' %}
             {% if user|has_perm:'subject.view_subject' %}
               <li class="nav-item">
                 <a href="{% url 'termBookList' %}" class="nav-link d-flex align-items-center">
@@ -186,7 +231,12 @@
                 </a>
               </li>
             {% endif %}
+            {% endif %}
+            {% endif %}
+
+
             {% if user|has_perm:'course.view_semester' %}
+            {% if user.profile.role.name|lower == 'admin' or user.is_superuser or user.is_staff %}
               <li class="nav-item">
                 <a href="{% url 'student' %}" class="nav-link d-flex align-items-center">
                   <i class="bx bx-circle nav-icon mr-2"></i>
@@ -194,14 +244,22 @@
                 </a>
               </li>
             {% endif %}
+            {% endif %}
+
+
             {% if user|has_perm:'course.view_semester' %}
+            {% if user.profile.role.name|lower == 'admin' or user.is_superuser or user.is_staff %}
               <li class="nav-item">
                 <a href="{% url 'staff_list' %}" class="nav-link d-flex align-items-center">
                   <i class="bx bx-circle nav-icon mr-2"></i>
-                  <p>Staff List</p>
+                  <p>User List</p>
                 </a>
               </li>
             {% endif %}
+            {% endif %}
+
+            {% endif %}
+
           </ul>
         </li>
       </ul>
