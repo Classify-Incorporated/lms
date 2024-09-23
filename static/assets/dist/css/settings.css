@@ -1,29 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Open+Sans:wght@300;400;600&display=swap');
-
-/* Modal Right Positioning */
-.modal.right .modal-dialog {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 0;
-}
-
-.modal.right .modal-content {
-    min-height: 100vh;
-    border: 0;
-}
-
-.modal-header .close {
-    margin: -1rem -1rem -1rem auto;
-}
-
-.modal.right .modal-body {
-    overflow-y: auto;
-}
-
-.modal-backdrop.show {
-    opacity: 0.5;
-}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Open+Sans:wght@300;400;600&display=swap');;
 
 /* General Styling for Dark Mode */
 .dark-mode {
@@ -239,10 +214,11 @@
     font-size: 0.875rem !important;
 }
 
-/* Typography */
-h1, h2, h3, h4, h5, h6, .btn, .navbar-brand, .card-header {
-    font-family: 'Raleway', sans-serif;
-    font-weight: 500;
+/* Apply Poppins to headings and important elements */
+h1, h2, h3, h4, h5, h6, .navbar-brand, .card-header, .btn {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500; /* Moderate boldness */
+    color: #555555;
 }
 
 :root {
