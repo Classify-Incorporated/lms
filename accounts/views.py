@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from course.models import Semester, SubjectEnrollment
 from subject.models import Subject
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 from datetime import timedelta
 import requests
 from bs4 import BeautifulSoup
@@ -23,7 +23,7 @@ from activity.models import Activity, ActivityType, StudentQuestion
 from django.db.models import Sum
 from django.contrib.auth.decorators import permission_required
 from datetime import datetime
-from django.utils import timezone
+from django.core.cache import cache
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -94,6 +94,11 @@ def deactivateProfile(request, pk):
 
 
 def fetch_facebook_posts():
+    # Try to cache the Facebook posts for some time (e.g., 10 minutes) to reduce repeated API calls
+    cache_key = 'facebook_posts'
+    cached_posts = cache.get(cache_key)
+    if cached_posts:
+        return cached_posts
 
     page_id = '370354416168614'
     access_token = os.getenv('FACEBOOK_ACCESS_TOKEN')
@@ -140,81 +145,83 @@ def fetch_facebook_posts():
                 'permalink_url': post.get('permalink_url', ''),
                 'image_url': image_url,
             })
-        
+
+        # Cache the result for 10 minutes
+        cache.set(cache_key, processed_posts, timeout=600)
         return processed_posts
     else:
         return []
 
 @login_required
+@login_required
 def dashboard(request):
-    sessions = Session.objects.filter(expire_date__gte=timezone.now())
-    user_ids = []
+    # Get the current time and greeting based on the hour
+    current_hour = datetime.now().hour
+    greeting = "Good Morning" if current_hour < 12 else ("Good Afternoon" if current_hour < 18 else "Good Evening")
 
-    for session in sessions:
-        session_data = session.get_decoded()
-        user_id = session_data.get('_auth_user_id')
-        if user_id:
-            user_ids.append(user_id)
+    # Cache active students and other counts (optional, based on frequency of changes)
+    cache_key_students = f'active_students_{request.user.id}'
+    active_students_count = cache.get(cache_key_students)
+    if not active_students_count:
+        sessions = Session.objects.filter(expire_date__gte=timezone.now())
+        user_ids = [session.get_decoded().get('_auth_user_id') for session in sessions]
+        active_students_count = get_user_model().objects.filter(
+            id__in=user_ids,
+            profile__role__name__iexact='student'
+        ).distinct().count()
+        cache.set(cache_key_students, active_students_count, timeout=300)  # Cache for 5 minutes
 
-    active_students = get_user_model().objects.filter(
-        id__in=user_ids, 
-        profile__role__name__iexact='student'
-    ).distinct()
-
-    active_students_count = active_students.count()
-
+    # Cache subjects and related counts
     today = timezone.now().date()
     current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
 
-    # Get the user's role
-    user = request.user
-    is_teacher = False
-    is_student = False
-
-    # Check if the user has a profile and role
-    if hasattr(user, 'profile') and user.profile.role:
-        role_name = user.profile.role.name.lower()
+    if current_semester:
+        user = request.user
+        role_name = getattr(user.profile.role, 'name', '').lower() if hasattr(user, 'profile') else None
         is_teacher = role_name == 'teacher'
         is_student = role_name == 'student'
 
-    if current_semester:
+        # Optimize subject and student queries
         if is_teacher:
-            # For teachers, show only subjects they are assigned to
-            subjects = Subject.objects.filter(assign_teacher=user, subjectenrollment__semester=current_semester).distinct()
+            subjects = Subject.objects.filter(
+                assign_teacher=user,
+                subjectenrollment__semester=current_semester
+            ).distinct().prefetch_related(Prefetch('subjectenrollment_set'))
         elif is_student:
-            # For students, show only the subjects they are enrolled in
-            subjects = Subject.objects.filter(subjectenrollment__student=user, subjectenrollment__semester=current_semester).distinct()
+            subjects = Subject.objects.filter(
+                subjectenrollment__student=user,
+                subjectenrollment__semester=current_semester
+            ).distinct().prefetch_related(Prefetch('subjectenrollment_set'))
         else:
-            # For admin or other users, show all subjects
-            subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
+            subjects = Subject.objects.filter(
+                subjectenrollment__semester=current_semester
+            ).distinct().prefetch_related(Prefetch('subjectenrollment_set'))
 
         subject_count = subjects.count()
-        
-        # Count the number of students per subject
-        student_counts = SubjectEnrollment.objects.filter(subject__in=subjects, semester=current_semester) \
-                                                  .values('subject__subject_name') \
-                                                  .annotate(student_count=Count('student')) \
-                                                  .order_by('-student_count')
 
-        # Call the helper functions to get the counts
-        failing_students_count = get_failing_students_count(current_semester, request.user)
-        excelling_students_count = get_excelling_students_count(current_semester, request.user)
+        # Efficiently calculate student count per subject using annotate
+        student_counts = subjects.annotate(student_count=Count('subjectenrollment')).order_by('-student_count')
+
+        # Cache expensive computations like failing and excelling students
+        cache_key_failing = f'failing_students_{current_semester.id}_{request.user.id}'
+        failing_students_count = cache.get(cache_key_failing)
+        if not failing_students_count:
+            failing_students_count = get_failing_students_count(current_semester, request.user)
+            cache.set(cache_key_failing, failing_students_count, timeout=300)  # Cache for 5 minutes
+
+        cache_key_excelling = f'excelling_students_{current_semester.id}_{request.user.id}'
+        excelling_students_count = cache.get(cache_key_excelling)
+        if not excelling_students_count:
+            excelling_students_count = get_excelling_students_count(current_semester, request.user)
+            cache.set(cache_key_excelling, excelling_students_count, timeout=300)  # Cache for 5 minutes
     else:
         subject_count = 0
         student_counts = []
         failing_students_count = 0
         excelling_students_count = 0
 
+    # Fetch and cache Facebook posts
     articles = fetch_facebook_posts()
-
-    # Determine the current time and set the greeting
-    current_hour = datetime.now().hour
-    if current_hour < 12:
-        greeting = "Good Morning"
-    elif 12 <= current_hour < 18:
-        greeting = "Good Afternoon"
-    else:
-        greeting = "Good Evening"
 
     context = {
         'active_users_count': active_students_count,
