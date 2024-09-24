@@ -3,56 +3,81 @@
   {{ activity.activity_name }}
 {% endblock %}
 {% block content %}
-  <h3 class="text-center">{{ activity.activity_name }}</h3>
-
-  <div class="container">
-    {% for entry in detailed_scores %}
-      <div class="student-score-card mb-4">
-        <div class="student-info">
-          <h4>{{ entry.student.first_name }} {{ entry.student.last_name }}</h4>
-          <p>
-            <strong>Submission Date:</strong> {{ entry.submission_time }}
-          </p>
-          {% for question in entry.questions %}
-            <p>
-              <strong>Question {{ question.number }}:</strong> {{ question.question_text }}
-            </p>
-
-            {% if question.correct_answer != 'Answer hidden' %}
-              <p>
-                <strong>Correct Answer:</strong> {{ question.correct_answer }}
-              </p>
-            {% endif %}
-
-            {% if question.student_answer != 'Student answer hidden' %}
-              <p>
-                <strong>Student Answer:</strong> {{ question.student_answer|safe }}
-              </p>
-            {% else %}
-              <p>
-                <strong>Student Answer:</strong> Hidden by teacher
-              </p>
-            {% endif %}
-          {% endfor %}
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Student Activity</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item">
+                <a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active">Student Activity</li>
+            </ol>
+          </div>
         </div>
-        {% if question.correct_answer != 'Answer hidden' %}
-        <div class="progress-circle" data-score="{{ entry.total_score }}" data-max="{{ entry.max_score }}">
-          <span class="progress-text">{{ entry.total_score|floatformat:'0' }} / {{ entry.max_score|floatformat:'0' }}</span>
-          <div class="progress-inner-circle"></div>
-        </div>
-        {% else %}
-        <div class="progress-circle" data-score="0" data-max="100">
-          <span class="progress-text">Score Hidden</span>
-          <div class="progress-inner-circle"></div>
-        </div>
-        {% endif %}
       </div>
-    {% endfor %}
-    <div class="text-right">
-      <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
     </div>
-  </div>
 
+    <!-- Main Content -->
+    <section class="content">
+      <div class="container-fluid">
+        <h3 class="text-center">{{ activity.activity_name }}</h3>
+
+        <div class="container">
+          {% for entry in detailed_scores %}
+            <div class="student-score-card mb-4">
+              <div class="student-info">
+                <h4>{{ entry.student.first_name }} {{ entry.student.last_name }}</h4>
+                <p>
+                  <strong>Submission Date:</strong> {{ entry.submission_time }}
+                </p>
+                {% for question in entry.questions %}
+                  <p>
+                    <strong>Question {{ question.number }}:</strong> {{ question.question_text }}
+                  </p>
+
+                  {% if question.correct_answer != 'Answer hidden' %}
+                    <p>
+                      <strong>Correct Answer:</strong> {{ question.correct_answer }}
+                    </p>
+                  {% endif %}
+
+                  {% if question.student_answer != 'Student answer hidden' %}
+                    <p>
+                      <strong>Student Answer:</strong> {{ question.student_answer|safe }}
+                    </p>
+                  {% else %}
+                    <p>
+                      <strong>Student Answer:</strong> Hidden by teacher
+                    </p>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              {% if question.correct_answer != 'Answer hidden' %}
+                <div class="progress-circle" data-score="{{ entry.total_score }}" data-max="{{ entry.max_score }}">
+                  <span class="progress-text">{{ entry.total_score|floatformat:'0' }} / {{ entry.max_score|floatformat:'0' }}</span>
+                  <div class="progress-inner-circle"></div>
+                </div>
+              {% else %}
+                <div class="progress-circle" data-score="0" data-max="100">
+                  <span class="progress-text">Score Hidden</span>
+                  <div class="progress-inner-circle"></div>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <div class="text-right">
+            <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
   <style>
     .student-score-card {
       display: flex;

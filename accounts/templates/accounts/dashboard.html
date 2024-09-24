@@ -320,7 +320,7 @@
         maintainAspectRatio: false,
         tooltips: {
           backgroundColor: "rgb(255,255,255)",
-          bodyFontColor: "#858796",
+          bodyFontColor: "#ffffff",  // White text in tooltips
           borderColor: '#dddfeb',
           borderWidth: 1,
           xPadding: 15,
@@ -332,13 +332,26 @@
           display: true,
           position: 'bottom',  // Move the legend below the chart
           labels: {
-            fontColor: '#5a5c69',  // Custom font color for the legend
+            fontColor: '#ffffff',  // White text for the legend
             fontSize: 14,  // Increase the font size for better readability
             usePointStyle: true,  // Use circle markers in the legend
           },
         },
+        scales: {
+          xAxes: [{
+            ticks: {
+              fontColor: "#ffffff",  // White text for x-axis labels
+            }
+          }],
+          yAxes: [{
+            ticks: {
+              fontColor: "#ffffff",  // White text for y-axis labels
+            }
+          }]
+        },
       },
     });
+    
   </script>
 
   <script>
