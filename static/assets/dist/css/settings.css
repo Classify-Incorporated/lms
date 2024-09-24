@@ -8,9 +8,9 @@
 
 /* Navbar in Dark Mode */
 .dark-mode .navbar {
-    background-color: #343a40;
+    background-color: #484a4d;
     color: #ffffff;
-    border-bottom: 1px solid #757575;
+    border-bottom: 1px solid #343a40;
 }
 
 .dark-mode .container-fluid{
