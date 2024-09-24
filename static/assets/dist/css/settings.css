@@ -8,9 +8,9 @@
 
 /* Navbar in Dark Mode */
 .dark-mode .navbar {
-    background-color: #343a40;
+    background-color: #484a4d;
     color: #ffffff;
-    border-bottom: 1px solid #757575;
+    border-bottom: 1px solid #343a40;
 }
 
 .dark-mode .container-fluid{
@@ -115,6 +115,30 @@
 .dark-mode .card {
     background-color: #454d55;
     color: #ffffff;
+}
+
+
+/* Cards in Dark Mode */
+.dark-mode .card-pie {
+    background-color: #F4F6F9;
+    color: #ffffff;
+    border-bottom-left-radius:5px;
+    border-bottom-right-radius: 5px;
+}
+/* Cards in Dark Mode */
+.dark-mode .card-bar1 {
+    background-color: #F4F6F9;
+    color: #ffffff;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+/* Cards in Dark Mode */
+.dark-mode .card-bar2 {
+    background-color: #F4F6F9;
+    color: #ffffff;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
 
 .dark-mode .card-footer {

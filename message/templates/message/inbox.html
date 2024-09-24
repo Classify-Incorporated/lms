@@ -76,20 +76,32 @@
                           </td>
                           <td class="text-left">{{ item.message.sender }}</td>
                           <td class="text-left">
-                            <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}">{{ item.message.subject }} - {{ item.message.body|striptags|truncatewords:5 }}</a>
+                            <a href="#" class="text-decoration-none text-dark viewMessageLink" data-id="{{ item.message.id }}" data-body="{{ item.message.body|striptags }}">{{ item.message.subject }} - <span class="message-body"></span></a>
                           </td>
                           <td>
                             {% if item.message.sender != request.user %}
                               <span class="badge {% if item.read %}
                                   
                                   
+                                  
+                                  
+                                  
                                    badge-success
+
+
+
 
 
                                 {% else %}
                                   
                                   
+                                  
+                                  
+                                  
                                    badge-warning
+
+
+
 
 
                                 {% endif %}">
@@ -329,6 +341,36 @@
     }
     
     document.getElementById('searchMail').addEventListener('input', filterMessages)
+  </script>
+
+  <script>
+    function truncateText(text, wordCount) {
+      let words = text.split(' ')
+      if (words.length > wordCount) {
+        return words.slice(0, wordCount).join(' ') + '...'
+      }
+      return text
+    }
+    
+    function applyResponsiveTruncate() {
+      const isMobile = window.innerWidth <= 768 // Adjust screen width for mobile breakpoint
+      const messageElements = document.querySelectorAll('.message-body')
+    
+      messageElements.forEach(function (element) {
+        const fullMessage = element.closest('a').getAttribute('data-body')
+        if (isMobile) {
+          element.textContent = truncateText(fullMessage, 0) // No truncation on mobile
+        } else {
+          element.textContent = truncateText(fullMessage, 5) // Truncate to 5 words on desktop
+        }
+      })
+    }
+    
+    // Apply truncation on page load
+    document.addEventListener('DOMContentLoaded', applyResponsiveTruncate)
+    
+    // Reapply truncation on window resize
+    window.addEventListener('resize', applyResponsiveTruncate)
   </script>
 
   <style>
