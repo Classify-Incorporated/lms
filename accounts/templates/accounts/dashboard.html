@@ -262,7 +262,7 @@
               <div class="card-header py-3 bg-success">
                 <h6 class="m-0 text-gray-800">Active Students in the Last 7 Days</h6>
               </div>
-              <div class="card-body" style="height:262px; display: flex;">
+              <div class="card-body" style="height:245px; display: flex;">
                 <div class="chart-bar">
                   <canvas id="activeStudentsChart" style="width: 200%; height: 100%;"></canvas>
                 </div>
@@ -320,7 +320,7 @@
         maintainAspectRatio: false,
         tooltips: {
           backgroundColor: "rgb(255,255,255)",
-          bodyFontColor: "#ffffff",  // White text in tooltips
+          bodyFontColor: "#858796",
           borderColor: '#dddfeb',
           borderWidth: 1,
           xPadding: 15,
@@ -332,26 +332,13 @@
           display: true,
           position: 'bottom',  // Move the legend below the chart
           labels: {
-            fontColor: '#ffffff',  // White text for the legend
+            fontColor: '#5a5c69',  // Custom font color for the legend
             fontSize: 14,  // Increase the font size for better readability
             usePointStyle: true,  // Use circle markers in the legend
           },
         },
-        scales: {
-          xAxes: [{
-            ticks: {
-              fontColor: "#ffffff",  // White text for x-axis labels
-            }
-          }],
-          yAxes: [{
-            ticks: {
-              fontColor: "#ffffff",  // White text for y-axis labels
-            }
-          }]
-        },
       },
     });
-    
   </script>
 
   <script>
@@ -392,7 +379,7 @@
       fetch("{% url 'studentPerCourse' %}")
         .then(response => response.json())
         .then(data => {
-          const courses = data.map(item => item.course || 'Unknown Course'); // Extract course names
+          const courses = data.map(item => item.course || 'Unknown Course'); // Extract course names (fallback to 'Unknown Course')
           const studentCounts = data.map(item => item.student_count); // Extract student counts
   
           // Insert course labels into the small text section below the chart
@@ -404,7 +391,7 @@
             courseLabels.appendChild(span);
           });
   
-          // Create a bar chart using Chart.js
+          // Create a pie chart using Chart.js
           const ctx = document.getElementById('studentPerCourseChart').getContext('2d');
           const studentPerCourseChart = new Chart(ctx, {
             type: 'bar',
@@ -448,7 +435,5 @@
         })
         .catch(error => console.error('Error fetching student per course data:', error));
     });
-</script>
-
-
+  </script>
 {% endblock %}
