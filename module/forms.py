@@ -54,6 +54,15 @@ class moduleForm(forms.ModelForm):
         # Remove the default empty option for the term field
         self.fields['term'].empty_label = None
 
+        # Filter the users to display only students enrolled in the selected subject
+        if subject:
+            enrolled_students = get_user_model().objects.filter(
+                profile__role__name__iexact='Student',
+                subjectenrollment__subject=subject,
+                subjectenrollment__semester=current_semester
+            ).distinct()
+            self.fields['display_lesson_for_selected_users'].queryset = enrolled_students
+
         self.subject = subject
 
     def clean(self):

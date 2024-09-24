@@ -92,6 +92,7 @@ class AddActivityView(View):
             'terms': terms,
             'students': students,
             'modules': modules,
+            'retake_methods': Activity.RETAKE_METHOD_CHOICES
         })
 
     def post(self, request, subject_id):
@@ -102,6 +103,8 @@ class AddActivityView(View):
         module_id = request.POST.get('module')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
+        max_retake = int(request.POST.get('max_retake', 0))  # Number of retakes allowed
+        retake_method = request.POST.get('retake_method', 'highest')
         remedial = request.POST.get('remedial') == 'on'  # Get remedial checkbox value
         remedial_students_ids = request.POST.getlist('remedial_students', None)  # Get selected students for remedial
 
@@ -131,6 +134,8 @@ class AddActivityView(View):
             module=module,
             start_time=start_time,
             end_time=end_time,
+            max_retake=max_retake,
+            retake_method=retake_method,
             remedial=remedial
         )
 
@@ -555,6 +560,13 @@ class SubmitAnswersView(View):
         def normalize_text(text):
             """Normalize the text by removing non-alphanumeric characters and converting to lowercase."""
             return re.sub(r'\W+', '', text).lower()
+        
+        student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
+
+        # Check if the student has exceeded the maximum number of retakes
+        if student_activity.retake_count >= activity.max_retake:
+            messages.error(request, 'You have reached the maximum number of retakes for this activity.')
+            return redirect('activity_detail', activity_id=activity_id)
 
         for question in ActivityQuestion.objects.filter(activity=activity):
             student_question, created = StudentQuestion.objects.get_or_create(student=student, activity_question=question)

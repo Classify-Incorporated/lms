@@ -41,13 +41,21 @@ def createGradeBookComponents(request):
     if request.method == 'POST':
         form = GradeBookComponentsForm(request.POST, user=request.user)
         if form.is_valid():
+            subject = form.cleaned_data.get('subject')
+            activity_type = form.cleaned_data.get('activity_type')
+
+            if GradeBookComponents.objects.filter(subject=subject, teacher=request.user, activity_type=activity_type).exists():
+                messages.error(request, f'Gradebook for the subject "{subject}" with activity type "{activity_type}" already exists. Please try again.')
+                return redirect('viewGradeBookComponents')
+
             gradebook_component = form.save(commit=False)
             gradebook_component.teacher = request.user
             gradebook_component.save()
+
             messages.success(request, 'Gradebook created successfully!')
             return redirect('viewGradeBookComponents')
         else:
-            messages.success(request, 'An error occured while creating gradebook!')
+            messages.error(request, 'An error occurred while creating the gradebook. Please check the form and try again.')
     else:
         form = GradeBookComponentsForm(user=request.user)
     
@@ -213,6 +221,7 @@ def createTermGradeBookComponent(request):
     if request.method == 'POST':
         form = TermGradeBookComponentsForm(request.POST, user=request.user)
         if form.is_valid():
+            
             instance = form.save(commit=False)
             instance.teacher = request.user  
             instance.save() 
