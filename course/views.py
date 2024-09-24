@@ -657,10 +657,6 @@ def createTerm(request):
 def updateTerm(request, pk):
     term = get_object_or_404(Term, pk=pk)
 
-    if term.created_by != request.user:
-        messages.error(request, 'You do not have permission to edit this term.')
-        return redirect('termList')
-
     if request.method == 'POST':
         form = termForm(request.POST, instance=term)
         if form.is_valid():
@@ -672,10 +668,11 @@ def updateTerm(request, pk):
     else:
         form = termForm(instance=term)
         
-    return render(request, 'course/term/updateterm.html', {
+    return render(request, 'course/term/updateTerm.html', {
         'form': form, 
         'term': term
     })
+
 
 # Participation Scores
 @login_required
