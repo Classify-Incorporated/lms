@@ -18,19 +18,33 @@ from course.models import Semester, SubjectEnrollment
 @permission_required('subject.view_subject', raise_exception=True)
 def subjectList(request):
     today = date.today()
-
     current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
 
-    if current_semester:
-        if request.user.profile.role.name.lower() == 'teacher':
-            subjects = Subject.objects.filter(assign_teacher=request.user, id__in=SubjectEnrollment.objects.filter(semester=current_semester).values_list('subject_id', flat=True))
-        else:
-            subjects = Subject.objects.filter(id__in=SubjectEnrollment.objects.filter(semester=current_semester).values_list('subject_id', flat=True))
+    user_role = request.user.profile.role.name.lower()
+
+    # If user is registrar, display all subjects regardless of the semester
+    if user_role == 'registrar':
+        subjects = Subject.objects.all()
     else:
-        if request.user.profile.role.name.lower() == 'teacher':
-            subjects = Subject.objects.filter(assign_teacher=request.user)
+        if current_semester:
+            if user_role == 'teacher':
+                # For teachers, filter by assigned subjects and current semester
+                subjects = Subject.objects.filter(
+                    assign_teacher=request.user,
+                    id__in=SubjectEnrollment.objects.filter(semester=current_semester).values_list('subject_id', flat=True)
+                )
+            else:
+                # For students or other users, filter subjects by current semester
+                subjects = Subject.objects.filter(
+                    id__in=SubjectEnrollment.objects.filter(semester=current_semester).values_list('subject_id', flat=True)
+                )
         else:
-            subjects = Subject.objects.all()
+            if user_role == 'teacher':
+                # If no current semester, filter subjects by teacher
+                subjects = Subject.objects.filter(assign_teacher=request.user)
+            else:
+                # Show all subjects for other users if no current semester
+                subjects = Subject.objects.all()
 
     form = subjectForm()
     return render(request, 'subject/subject.html', {'subjects': subjects, 'form': form})
