@@ -9,9 +9,7 @@ from django.contrib.auth import get_user_model
 from course.models import Semester, SubjectEnrollment
 from subject.models import Subject
 from django.db.models import Count
-from datetime import timedelta
 import requests
-from bs4 import BeautifulSoup
 import requests
 import os
 from .models import CustomUser
@@ -26,7 +24,7 @@ from datetime import datetime
 from django.utils import timezone
 from django.core.cache import cache
 from django.http import JsonResponse
-from django.http import HttpResponseForbidden
+from django.urls import reverse
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -70,17 +68,14 @@ def viewProfile(request, pk):
     try:
         current_user_profile = Profile.objects.get(id=current_user.id)
     except Profile.DoesNotExist:
-        # Handle case where the current user's profile is not found
         current_user_profile = None
 
     if current_user_profile:
         user_id = current_user_profile.id
 
         if user_id != profile.id:
-            # Redirect to the current user's own profile view
             return redirect('viewProfile', pk=user_id)
         
-        # Proceed with the logic to display the edited user's profile
         context = {
             'edited_user': user,
             'current_user_profile': current_user_profile,
@@ -543,5 +538,13 @@ def error(request):
     return render(request, '404.html')
 
 def sign_out(request):
+
     auth_logout(request)
-    return redirect('admin_login_view')
+    
+    microsoft_logout_url = 'https://login.microsoftonline.com/common/oauth2/v2.0/logout'
+    
+    post_logout_redirect_uri = request.build_absolute_uri(reverse('admin_login_view')) 
+    
+    full_logout_url = f"{microsoft_logout_url}?post_logout_redirect_uri={post_logout_redirect_uri}"
+    
+    return redirect(full_logout_url)
