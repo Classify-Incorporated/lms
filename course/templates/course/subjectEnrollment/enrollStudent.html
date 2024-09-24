@@ -27,15 +27,44 @@
         <form method="post" action="{% url 'enrollStudentView' %}">
           {% csrf_token %}
 
-          <div class="form-group">
-            <label for="student_profile" class="text-dark">Select Student:</label>
-            <select name="student_profile" id="student_profile" class="form-control selectpicker" data-live-search="true" data-actions-box="true" data-style="btn-outline-secondary" title="Select student" multiple required>
-              {% for profile in profiles %}
-                <option value="{{ profile.id }}">{{ profile.first_name }} {{ profile.last_name }}</option>
+           <!-- Course Selection Dropdown (to auto-select students) -->
+           <div class="form-group">
+            <label for="course_select" class="text-dark">Select Course to Auto-select Students:</label>
+            <select id="course_select" class="form-control selectpicker" title="Select Course" data-style="btn-outline-secondary">
+              <option value="">Select a course</option>
+              {% for course, students in students_by_course.items %}
+                <option value="{{ course }}">{{ course }}</option>
               {% endfor %}
             </select>
           </div>
 
+          <!-- Add the Year Level Dropdown -->
+          <div class="form-group">
+            <label for="year_level_select" class="text-dark">Select Year Level to Auto-select Students:</label>
+            <select id="year_level_select" class="form-control selectpicker" title="Select Year Level" data-style="btn-outline-secondary">
+              <option value="">Select a Year Level</option>
+              {% for year_level in year_levels %}
+                <option value="{{ year_level }}">{{ year_level }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Combined Dropdown: Select Students Individually or by Course -->
+          <div class="form-group">
+            <label for="student_profile" class="text-dark">Select Students by Course or Individually:</label>
+            <select name="student_profile" id="student_profile" class="form-control selectpicker" data-live-search="true" data-actions-box="true" data-style="btn-outline-secondary" title="Select student" multiple required>
+              <!-- Group students by course -->
+              {% for course, students in students_by_course.items %}
+                <optgroup label="{{ course }}">
+                  {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.first_name }} {{ student.last_name }}</option>
+                  {% endfor %}
+                </optgroup>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Subjects Dropdown -->
           <div class="form-group">
             <label for="subject_ids" class="text-dark">Select Subjects:</label>
             <select name="subject_ids" id="subject_ids" class="form-control selectpicker" data-actions-box="true" data-style="btn-outline-secondary" data-none-selected-text="Select a subject" multiple required>
@@ -45,6 +74,7 @@
             </select>
           </div>
 
+          <!-- Semester Dropdown -->
           <div class="form-group">
             <label for="semester_id" class="text-dark">Select Semester:</label>
             <select name="semester_id" id="semester_id" class="form-control selectpicker" title="Select semester" data-style="btn-outline-secondary" required>
@@ -59,4 +89,40 @@
       </div>
     </section>
   </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const studentSelect = document.getElementById('student_profile');
+    const courseSelect = document.getElementById('course_select');
+    const yearLevelSelect = document.getElementById('year_level_select');
+
+    // The grouped student data from Django template
+    const studentsByCourse = {{ students_by_course|safe }};
+
+    // When either course or year level is selected, filter the students
+    function filterStudents() {
+      const selectedCourse = courseSelect.value;
+      const selectedYearLevel = yearLevelSelect.value;
+      
+      // Clear current selections
+      $(studentSelect).val([]).selectpicker('refresh');
+      
+      if (studentsByCourse[selectedCourse]) {
+        const filteredStudents = studentsByCourse[selectedCourse].filter(student => {
+          // If no year level is selected, or the student has the selected year level, include them
+          return selectedYearLevel === '' || student.grade_year_level === selectedYearLevel || student.grade_year_level === null;
+        });
+        
+        const studentIds = filteredStudents.map(student => student.id);
+        
+        // Select all filtered students for the selected course and year level
+        $(studentSelect).val(studentIds).selectpicker('refresh');
+      }
+    }
+
+    // Listen for changes on both the course and year level dropdowns
+    courseSelect.addEventListener('change', filterStudents);
+    yearLevelSelect.addEventListener('change', filterStudents);
+  });
+</script>
+
 {% endblock %}

@@ -28,24 +28,27 @@ from django.http import JsonResponse
 @method_decorator(login_required, name='dispatch')
 class enrollStudentView(View):
     def post(self, request, *args, **kwargs):
-        student_profile_id = request.POST.get('student_profile')
+        student_profile_ids  = request.POST.getlist('student_profile')
         subject_ids = request.POST.getlist('subject_ids')
         semester_id = request.POST.get('semester_id')
 
-        student_profile = get_object_or_404(Profile, id=student_profile_id)
-        student = student_profile.user
-        subjects = Subject.objects.filter(id__in=subject_ids)
         semester = get_object_or_404(Semester, id=semester_id)
 
-        for subject in subjects:
-            subject_enrollment, created = SubjectEnrollment.objects.get_or_create(
-                student=student,
-                subject=subject,
-                semester=semester
-            )
+        # Loop through selected students and enroll them in the subjects
+        for student_profile_id in student_profile_ids:
+            student_profile = get_object_or_404(Profile, id=student_profile_id)
+            student = student_profile.user
+            subjects = Subject.objects.filter(id__in=subject_ids)
 
-            if not created:
-                Retake.objects.create(subject_enrollment=subject_enrollment, reason="Retake due to failure or other reason")
+            for subject in subjects:
+                subject_enrollment, created = SubjectEnrollment.objects.get_or_create(
+                    student=student,
+                    subject=subject,
+                    semester=semester
+                )
+
+                if not created:
+                    Retake.objects.create(subject_enrollment=subject_enrollment, reason="Retake due to failure or other reason")
 
         return redirect('subjectEnrollmentList')
 
@@ -58,14 +61,28 @@ def enrollStudent(request):
     subjects = Subject.objects.all()
     semesters = Semester.objects.all()
 
-    profiles_json = json.dumps(list(profiles.values('id', 'first_name', 'last_name', 'student_status')), cls=DjangoJSONEncoder)
-    
+    # Group students by course
+    students_by_course = {}
+    for profile in profiles:
+        course = profile.course or "No Course"
+        if course not in students_by_course:
+            students_by_course[course] = []
+        students_by_course[course].append({
+            'id': profile.id,
+            'first_name': profile.first_name,
+            'last_name': profile.last_name,
+            'grade_year_level': profile.grade_year_level
+        })
+
+    year_levels = profiles.values_list('grade_year_level', flat=True).distinct().exclude(grade_year_level__isnull=True)
     return render(request, 'course/subjectEnrollment/enrollStudent.html', {
         'profiles': profiles,
-        'profiles_json': profiles_json,
         'subjects': subjects,
-        'semesters': semesters
+        'semesters': semesters,
+        'students_by_course': students_by_course,  # Pass the grouped data
+        'year_levels': year_levels,
     })
+
 
 #enrolled Student List
 @login_required
