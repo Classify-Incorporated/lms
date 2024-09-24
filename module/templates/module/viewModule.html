@@ -6,53 +6,76 @@
 
 {% block content %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-
-  <div class="container" style="padding-top: 20px;">
-    <h1>{{ module.file_name }}</h1>
-
-    {% if is_pdf %}
-      <div id="pdf-container" style="min-height: 500px; position: relative;">
-        <canvas id="pdf-canvas" style="width: 100%;"></canvas>
-
-        <!-- Fullscreen Button -->
-        <button id="fullscreen-btn" class="btn btn-secondary" style="position: absolute; top: 10px; right: 10px;"><i class="fas fa-expand"></i></button>
-
-        <!-- Previous Button -->
-        <button id="prev-page" class="btn btn-secondary" style="position: absolute; bottom: 20px; left: 20px;"><i class="fas fa-caret-left"></i></button>
-
-        <!-- Next Button -->
-        <button id="next-page" class="btn btn-secondary" style="position: absolute; bottom: 20px; right: 20px;"><i class="fas fa-caret-right"></i></button>
-
-        <!-- Page Info -->
-        <div class="page-info" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: white;">
-          Page: <span id="page-num"></span> / <span id="page-count"></span>
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">View Lesson</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item">
+                <a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active">View Lesson</li>
+            </ol>
+          </div>
         </div>
       </div>
-    {% endif %}
-
-    {% if is_image %}
-      <div>
-        <img src="{{ module.file.url }}" class="img-fluid" alt="Image" style="width: 100%;" />
-      </div>
-    {% endif %}
-
-    {% if is_video %}
-      <div>
-        <video controls style="width: 100%;">
-          <source src="{{ module.file.url }}" type="video/mp4" />Your browser does not support the video tag.
-        </video>
-      </div>
-    {% endif %}
-
-    {% if is_unknown %}
-      <p>Unsupported file format. Unable to display the content.</p>
-    {% endif %}
-
-    <div class="text-right mt-3">
-      <a href="{% url 'subjectDetail' module.subject.id %}" class="btn btn-secondary">Back</a>
     </div>
-  </div>
 
+    <!-- Main Content -->
+    <section class="content">
+      <div class="container-fluid">
+        <h1>{{ module.file_name }}</h1>
+
+        {% if is_pdf %}
+          <div id="pdf-container" style="min-height: 500px; position: relative;">
+            <canvas id="pdf-canvas" style="width: 100%;"></canvas>
+
+            <!-- Fullscreen Button -->
+            <button id="fullscreen-btn" class="btn btn-secondary" style="position: absolute; top: 10px; right: 10px;"><i class="fas fa-expand"></i></button>
+
+            <!-- Previous Button -->
+            <button id="prev-page" class="btn btn-secondary" style="position: absolute; bottom: 20px; left: 20px;"><i class="fas fa-caret-left"></i></button>
+
+            <!-- Next Button -->
+            <button id="next-page" class="btn btn-secondary" style="position: absolute; bottom: 20px; right: 20px;"><i class="fas fa-caret-right"></i></button>
+
+            <!-- Page Info -->
+            <div class="page-info" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: white;">
+              Page: <span id="page-num"></span> / <span id="page-count"></span>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if is_image %}
+          <div>
+            <img src="{{ module.file.url }}" class="img-fluid" alt="Image" style="width: 100%;" />
+          </div>
+        {% endif %}
+
+        {% if is_video %}
+          <div>
+            <video controls style="width: 100%;">
+              <source src="{{ module.file.url }}" type="video/mp4" />Your browser does not support the video tag.
+            </video>
+          </div>
+        {% endif %}
+
+        {% if is_unknown %}
+          <p>Unsupported file format. Unable to display the content.</p>
+        {% endif %}
+
+        <div class="text-right mt-3">
+          <a href="{% url 'subjectDetail' module.subject.id %}" class="btn btn-secondary">Back</a>
+        </div>
+      </div>
+    </section>
+  </div>
+  <br />
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       var url = '{{ module.file.url }}';

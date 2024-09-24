@@ -485,69 +485,76 @@
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
 
   <script>
-    let sortingEnabled = false;
-    let sortable = null;
+   // Toggle lesson editing and Add Lesson button visibility
+let lessonEditMode = false;
+let sortable = null;
 
-    // Event listener for the edit button
-    document.getElementById('editButton').addEventListener('click', function () {
-        if (!sortingEnabled) {
-            sortingEnabled = true;
-            this.textContent = 'Save'; // Change button text to "Save"
+document.getElementById('editButton').addEventListener('click', function () {
+  if (!lessonEditMode) {
+    // Enable lesson editing mode
+    lessonEditMode = true;
+    this.textContent = 'Save'; // Change button text to "Save"
 
-            // Initialize SortableJS for the lesson list
-            sortable = new Sortable(document.getElementById('lesson-list'), {
-                animation: 150,
-                onEnd: function (evt) {
-                    var order = [];
-                    document.querySelectorAll('#lesson-list li').forEach(function (item) {
-                        order.push(item.getAttribute('data-id'));
-                    });
-                    console.log('New Order:', order); // Log the new order in the console
-                }
-            });
+    // Show the Add Lesson button
+    document.getElementById('addLessonButton').style.display = 'block';
 
-        } else {
-            sortingEnabled = false;
-            this.textContent = 'Edit'; // Change button text back to "Edit"
-            
-            // Disable sorting by destroying the SortableJS instance
-            if (sortable) {
-                sortable.destroy();
-            }
-
-            // Collect the new order and send it to the server via AJAX
-            var order = [];
-            document.querySelectorAll('#lesson-list li').forEach(function (item) {
-                var moduleId = item.getAttribute('data-id');
-                if (moduleId) {  // Ensure only valid module IDs are added
-                    order.push(moduleId);
-                }
-            });
-
-            console.log('Final Order Saved:', order);
-
-            // Send the updated order to the backend
-            fetch("{% url 'update_module_order' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({ order: order })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    console.log('Order saved successfully.');
-                } else {
-                    console.error('Error saving order:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('An error occurred while saving the order:', error);
-            });
-        }
+    // Initialize SortableJS for the lesson list
+    sortable = new Sortable(document.getElementById('lesson-list'), {
+      animation: 150,
+      onEnd: function (evt) {
+        var order = [];
+        document.querySelectorAll('#lesson-list li').forEach(function (item) {
+          order.push(item.getAttribute('data-id'));
+        });
+        console.log('New Order:', order); // Log the new order in the console
+      }
     });
+  } else {
+    // Disable lesson editing mode
+    lessonEditMode = false;
+    this.textContent = 'Edit'; // Change button text back to "Edit"
+
+    // Hide the Add Lesson button
+    document.getElementById('addLessonButton').style.display = 'none';
+
+    // Disable sorting by destroying the SortableJS instance
+    if (sortable) {
+      sortable.destroy();
+    }
+
+    // Collect the new order and send it to the server via AJAX
+    var order = [];
+    document.querySelectorAll('#lesson-list li').forEach(function (item) {
+      var moduleId = item.getAttribute('data-id');
+      if (moduleId) {  // Ensure only valid module IDs are added
+        order.push(moduleId);
+      }
+    });
+
+    console.log('Final Order Saved:', order);
+
+    // Send the updated order to the backend
+    fetch("{% url 'update_module_order' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({ order: order })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        console.log('Order saved successfully.');
+      } else {
+        console.error('Error saving order:', data.message);
+      }
+    })
+    .catch(error => {
+      console.error('An error occurred while saving the order:', error);
+    });
+  }
+});
 </script>
 
   <!-- Custom styles for lesson items -->
@@ -629,62 +636,6 @@
 .card {
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Modal backdrop styling */
-.custom-modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: none;
-}
-
-/* Show modal backdrop */
-.custom-modal-backdrop.show {
-  display: block;
-}
-
-/* Modal styles */
-.custom-modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  z-index: 1000;
-  width: 500px;
-  display: none;
-}
-
-/* Show modal */
-.custom-modal.show {
-  display: block;
-}
-
-/* Modal header styles */
-.custom-modal-header {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 20px;
-}
-
-/* Modal close button */
-.close-btn {
-  background-color: transparent;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #000;
-}
-
-.close-btn:hover {
-  color: #ff0000;
 }
 
 </style>
