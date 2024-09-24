@@ -104,7 +104,9 @@
             <div class="card shadow-sm">
               <div class="card-header bg-success d-flex justify-content-between">
                 <span>Lessons &nbsp; <sup>(Sort To Change Orders)</sup></span>
-                <button id="editButton" class="btn btn-success ml-auto"><i class="fas fa-edit"></i> Edit Lesson</button>
+                {% if is_teacher %}
+                <button id="editButton" class="btn btn-success ml-auto"><i class="fas fa-edit"></i> Edit</button>
+                {% endif %}
               </div>
               <ul class="list-group list-group-flush" id="lesson-list">
                 {% for module in modules %}

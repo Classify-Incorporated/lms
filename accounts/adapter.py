@@ -1,7 +1,6 @@
-# accounts/adapter.py
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from allauth.exceptions import ImmediateHttpResponse
+from allauth.core.exceptions import ImmediateHttpResponse  # Updated import
 from django.contrib.auth import login
 from django.shortcuts import redirect
 from django.conf import settings
@@ -24,12 +23,10 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         user = sociallogin.user
         extra_data = sociallogin.account.extra_data
 
-
         user.email = extra_data.get('mail', extra_data.get('userPrincipalName', ''))
         user.first_name = extra_data.get('givenName', '')
         user.last_name = extra_data.get('surname', '')
         user.username = user.email  # Ensure username is set to the email
-
 
         return user
 

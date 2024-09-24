@@ -243,30 +243,45 @@ def dashboard(request):
 def studentPerCourse(request):
     user = request.user
 
+    selected_semester_id = request.GET.get('semester')
+    selected_semester = None
+    
+    if selected_semester_id and selected_semester_id != 'None':
+        # If a specific semester is selected, get that semester
+        selected_semester = get_object_or_404(Semester, id=selected_semester_id)
+    else:
+        # Automatically get the current semester based on the current date
+        now = timezone.localtime(timezone.now())
+        selected_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+
+
     # Check if the user is a teacher
     if hasattr(user, 'profile') and user.profile.role.name.lower() == 'teacher':
         # Get all subjects assigned to this teacher
         teacher_subjects = Subject.objects.filter(assign_teacher=user)
 
-        # Get the students enrolled in the teacher's subjects
-        student_enrollments = SubjectEnrollment.objects.filter(subject__in=teacher_subjects)
+        # Get the students enrolled in the teacher's subjects for the selected semester
+        student_enrollments = SubjectEnrollment.objects.filter(subject__in=teacher_subjects, semester=selected_semester)
 
-        # Filter profiles based on students in the teacher's subjects
+        # Filter profiles based on students in the teacher's subjects and ensure the course is not None
         student_counts = Profile.objects.filter(
-            id__in=student_enrollments.values('student')
+            id__in=student_enrollments.values('student'),
+            course__isnull=False  # Exclude students without a course
         ).values('course').annotate(student_count=Count('id')).order_by('course')
 
     else:
-        # If the user is not a teacher, show data for all students
-        student_counts = Profile.objects.values('course').annotate(student_count=Count('id')).order_by('course')
+        # If the user is not a teacher, show data for all students for the selected semester, excluding those without a course
+        student_enrollments = SubjectEnrollment.objects.filter(semester=selected_semester)
+        student_counts = Profile.objects.filter(
+            id__in=student_enrollments.values('student'),
+            course__isnull=False
+        ).values('course').annotate(student_count=Count('id')).order_by('course')
 
     data = list(student_counts)
     return JsonResponse(data, safe=False)
 
-    return JsonResponse(data, safe=False)
-
 def get_failing_students_count(current_semester, user):
-    FAILING_THRESHOLD = Decimal(65)
+    FAILING_THRESHOLD = Decimal(74)
 
     # Determine the user's role
     is_teacher = user.profile.role.name.lower() == 'teacher'
@@ -372,7 +387,7 @@ def get_failing_students_count(current_semester, user):
     return len(failing_students_set)
 
 def get_excelling_students_count(current_semester, user):
-    EXCELLING_THRESHOLD = Decimal(80)
+    EXCELLING_THRESHOLD = Decimal(85)
 
     # Determine the user's role
     is_teacher = user.profile.role.name.lower() == 'teacher'

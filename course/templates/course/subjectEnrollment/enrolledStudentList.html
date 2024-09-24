@@ -79,7 +79,7 @@
                         <th scope="col">Student Name</th>
                         <th scope="col">Semester</th>
                         <th scope="col">Enrollment Date</th>
-                        {% if user.profile.role.name.lower != 'teacher' and user.profile.role.name.lower != 'student' %}
+                        {% if user.profile.role.name.lower != 'student' %}
                           <th scope="col">Actions</th>
                         {% endif %}
                       </tr>
@@ -91,7 +91,7 @@
                           <td>{{ enrollment.student.get_full_name }}</td>
                           <td>{{ enrollment.semester.semester_name }} - {{ enrollment.semester.school_year }}</td>
                           <td>{{ enrollment.enrollment_date }}</td>
-                          {% if user.profile.role.name.lower != 'teacher' and user.profile.role.name.lower != 'student' %}
+                          {% if user.profile.role.name.lower != 'student' %}
                             <td>
                               <a href="{% url 'dropStudentFromSubject' enrollment.id %}" class="btn btn-primary btn-sm"
                                 onclick="return confirm('Are you sure you want to drop {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">

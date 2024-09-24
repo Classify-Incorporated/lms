@@ -379,7 +379,7 @@
       fetch("{% url 'studentPerCourse' %}")
         .then(response => response.json())
         .then(data => {
-          const courses = data.map(item => item.course || 'Unknown Course'); // Extract course names (fallback to 'Unknown Course')
+          const courses = data.map(item => item.course || 'Unknown Course'); // Extract course names
           const studentCounts = data.map(item => item.student_count); // Extract student counts
   
           // Insert course labels into the small text section below the chart
@@ -391,7 +391,7 @@
             courseLabels.appendChild(span);
           });
   
-          // Create a pie chart using Chart.js
+          // Create a bar chart using Chart.js
           const ctx = document.getElementById('studentPerCourseChart').getContext('2d');
           const studentPerCourseChart = new Chart(ctx, {
             type: 'bar',
@@ -435,5 +435,7 @@
         })
         .catch(error => console.error('Error fetching student per course data:', error));
     });
-  </script>
+</script>
+
+
 {% endblock %}

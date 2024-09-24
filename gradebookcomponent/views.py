@@ -823,7 +823,7 @@ def allowGradeVisibility(request, student_id):
 
 
 
-FAILING_THRESHOLD = Decimal(75)
+FAILING_THRESHOLD = Decimal(74)
 EXCELLING_THRESHOLD = Decimal(85)
 
 @login_required
