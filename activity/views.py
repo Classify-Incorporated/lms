@@ -81,7 +81,6 @@ class AddActivityView(View):
             start_date__lte=now,
             end_date__gte=now
         )
-        print("Terms found:", terms)
         
 
         students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
@@ -134,8 +133,6 @@ class AddActivityView(View):
             end_time=end_time,
             remedial=remedial
         )
-
-        print("Activity created with ID:", activity.id)
 
         if remedial and remedial_students_ids:
             # Add the remedial students to the activity (as multiple students can be added)
@@ -448,7 +445,6 @@ class UpdateQuestionView(View):
 class SaveAllQuestionsView(View):
     def post(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
-        print(f"Activity ID: {activity_id}, Found Activity: {activity.activity_name}")
         questions = request.session.get('questions', {}).get(str(activity_id), [])
 
         
@@ -468,7 +464,6 @@ class SaveAllQuestionsView(View):
                         uploaded_file=None,
                         is_participation=True
                     )
-                print(f"Saved participation data for Activity: {activity.activity_name}")
             else:
                 question = ActivityQuestion.objects.create(
                     activity=activity,
@@ -481,20 +476,17 @@ class SaveAllQuestionsView(View):
                 if quiz_type.name == 'Multiple Choice':
                     for choice_text in question_data['choices']:
                         choice = QuestionChoice.objects.create(question=question, choice_text=choice_text)
-                        print(f"Saved choice for Question {i}: {choice_text}")
 
                 # Fetch students enrolled in the subject associated with the activity
                 if activity.remedial:
                     # Fetch only the students assigned to the remedial activity
                     students = StudentActivity.objects.filter(activity=activity).values_list('student', flat=True)
-                    print(f"Creating questions for remedial students only: {students}")
                 else:
                     # If not remedial, fetch all students enrolled in the subject
                     students = CustomUser.objects.filter(
                         profile__role__name__iexact='Student',
                         subjectenrollment__subject=activity.subject
                     ).distinct().values_list('id', flat=True)
-                    print(f"Creating questions for all students: {students}")
 
                 # Now assign the questions only to the filtered students
                 for student_id in students:
@@ -503,7 +495,6 @@ class SaveAllQuestionsView(View):
                         student=student,
                         activity_question=question
                     )
-                    print(f"Created StudentQuestion for {student.get_full_name()}")
 
         # Clear the questions from the session
         request.session.pop('questions', None)

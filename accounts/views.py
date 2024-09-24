@@ -72,7 +72,7 @@ def updateProfile(request, pk):
         form = profileForm(request.POST,request.FILES, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('staff_list')
+            return redirect('student')
     else:
         form = profileForm(instance=profile)
     return render(request, 'accounts/updateStudentProfile.html', {'form': form,'profile': profile})
