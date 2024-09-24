@@ -198,8 +198,12 @@ def dashboard(request):
             subjects = Subject.objects.filter(subjectenrollment__semester=current_semester).distinct()
 
         subject_count = subjects.count()
-        
-        # Count the number of students per subject
+
+        enrolled_students_count = SubjectEnrollment.objects.filter(subject__in=subjects, semester=current_semester) \
+                                                          .values('student') \
+                                                          .distinct() \
+                                                          .count()
+
         student_counts = SubjectEnrollment.objects.filter(subject__in=subjects, semester=current_semester) \
                                                   .values('subject__subject_name') \
                                                   .annotate(student_count=Count('student')) \
@@ -210,6 +214,7 @@ def dashboard(request):
         excelling_students_count = get_excelling_students_count(current_semester, request.user)
     else:
         subject_count = 0
+        enrolled_students_count = 0
         student_counts = []
         failing_students_count = 0
         excelling_students_count = 0
@@ -226,6 +231,7 @@ def dashboard(request):
         greeting = "Good Evening"
 
     context = {
+        'enrolled_students_count': enrolled_students_count,
         'active_users_count': active_students_count,
         'student_counts': student_counts,
         'subject_count': subject_count,
