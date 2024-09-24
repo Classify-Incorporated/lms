@@ -5,7 +5,34 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container mt-4">
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0">Student Grade</h1>
+        </div>
+        <!-- /.col -->
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item">
+              <a href="#">Home</a>
+            </li>
+            <li class="breadcrumb-item active">Student Grade</li>
+          </ol>
+        </div>
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+    </div>
+    <!-- /.container-fluid -->
+  </div>
+  <!-- /.content-header -->
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
     <h3 class="mb-2">Scores Breakdown for {{ student.get_full_name }}</h3>
     <p class="text-muted mb-4">{{ current_semester.semester_name }} - {{ current_semester.school_year }}</p>
 
@@ -65,4 +92,7 @@
       <p class="text-center">No data available for the current semester.</p>
     {% endif %}
   </div>
+  </section>
+</div>
+
 {% endblock %}
