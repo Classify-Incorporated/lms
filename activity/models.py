@@ -45,6 +45,13 @@ class Activity(models.Model):
     show_score = models.BooleanField(default=False)
     remedial = models.BooleanField(default=False) 
     remedial_students = models.ManyToManyField(CustomUser, blank=True, limit_choices_to={'profile__role__name__iexact': 'Student'})
+    max_retake = models.PositiveIntegerField(default=0)  # Number of retakes allowed
+    RETAKE_METHOD_CHOICES = [
+        ('highest', 'Highest Score'),
+        ('last', 'Last Score'),
+        ('first', 'First Score'),
+    ]
+    retake_method = models.CharField(max_length=10, choices=RETAKE_METHOD_CHOICES, default='highest')
 
     def __str__(self):
         return self.activity_name
@@ -83,6 +90,7 @@ class StudentActivity(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     term = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
+    retake_count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.student.email} - {self.activity.activity_name}"

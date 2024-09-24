@@ -60,13 +60,14 @@ def createSubject(request):
             subject_name = form.cleaned_data.get('subject_name')
             if Subject.objects.filter(subject_name=subject_name).exists():
                 messages.error(request, 'Subject name already exists. Please choose another name.')
-                return redirect('createSubject')
+                return redirect('subject')
 
             form.save()
             messages.success(request, 'Subject created successfully!')
             return redirect('subject')
         else:
             messages.error(request, 'There was an error creating the subject. Please try again.')
+            print('rambutan')
     else:
         form = subjectForm()
 
