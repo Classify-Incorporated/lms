@@ -32,7 +32,6 @@ def createModule(request, subject_id):
     current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
     
     if request.method == 'POST':
-        [print(request.POST)]
         form = moduleForm(request.POST, request.FILES, current_semester=current_semester)
         if form.is_valid():
             module = form.save(commit=False)
@@ -44,12 +43,9 @@ def createModule(request, subject_id):
             messages.success(request, 'Module created successfully!')
             return redirect('subjectDetail', pk=subject_id)
         else:
-            print("Form is not valid")
-            print(form.errors)
             messages.error(request, 'There was an error creating the module. Please try again.')
     else:
-        print("GET request received")
-        form = moduleForm(current_semester=current_semester)
+        form = moduleForm(current_semester=current_semester, subject=subject)
 
     return render(request, 'module/createModule.html', {'form': form, 'subject': subject})
 

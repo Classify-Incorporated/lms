@@ -26,6 +26,7 @@ from datetime import datetime
 from django.utils import timezone
 from django.core.cache import cache
 from django.http import JsonResponse
+from django.http import HttpResponseForbidden
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -61,8 +62,35 @@ def staff_list(request):
 @login_required
 @permission_required('accounts.view_profile', raise_exception=True)
 def viewProfile(request, pk):
-    profile = get_object_or_404(Profile, pk=pk)
-    return render(request, 'accounts/viewStudentProfile.html',{'profile': profile})
+
+    current_user = request.user
+    user = get_object_or_404(CustomUser, pk=pk)
+    profile = get_object_or_404(Profile, user=user)
+
+    try:
+        current_user_profile = Profile.objects.get(id=current_user.id)
+    except Profile.DoesNotExist:
+        # Handle case where the current user's profile is not found
+        current_user_profile = None
+
+    if current_user_profile:
+        user_id = current_user_profile.id
+
+        if user_id != profile.id:
+            # Redirect to the current user's own profile view
+            return redirect('viewProfile', pk=user_id)
+        
+        # Proceed with the logic to display the edited user's profile
+        context = {
+            'edited_user': user,
+            'current_user_profile': current_user_profile,
+        }
+        return render(request, 'accounts/viewStudentProfile.html', context)
+    else:
+        print('orayt')
+
+
+    return render(request, 'accounts/viewStudentProfile.html', {'profile': profile})
 
 @login_required
 @permission_required('accounts.change_profile', raise_exception=True)
