@@ -46,6 +46,12 @@
           {% endfor %}
           <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
         {% elif is_student %}
+
+        {% if not can_retake %}
+            <!-- Show the message if the student has no more retakes -->
+            <p class="text-danger">You have reached the maximum number of retakes for this activity.</p>
+          {% else %}
+
         {% if not has_answered %}
           <!-- Display interactive form for students to answer the questions -->
           <form method="post" action="{% url 'submit_answers' activity.id %}" enctype="multipart/form-data">
@@ -101,20 +107,17 @@
           {% else %}
 
           <p>You have already answered this activity.</p>
-        {% if can_retake %}
-              <form method="post" action="{% url 'retake_activity' activity.id %}">
+          
+          {% if can_retake %}
+            <form method="post" action="{% url 'retake_activity' activity.id %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-warning">Retake Activity</button>
-              </form>
-            {% endif %}
-
-        <!-- Message if the student has no more retakes -->
-        {% if not can_retake %}
-          <p class="text-danger">You have reached the maximum number of retakes for this activity.</p>
-        {% endif %}
-        {% endif %}
+            </form>
+          {% endif %}
+          {% endif %}
         {% endif %}
       </div>
     </section>
   </div>
+  {% endif %}
 {% endblock %}
