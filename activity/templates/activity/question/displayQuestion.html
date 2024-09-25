@@ -46,6 +46,7 @@
           {% endfor %}
           <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
         {% elif is_student %}
+        {% if not has_answered %}
           <!-- Display interactive form for students to answer the questions -->
           <form method="post" action="{% url 'submit_answers' activity.id %}" enctype="multipart/form-data">
             {% csrf_token %}
@@ -55,17 +56,17 @@
                 {% if question.quiz_type.name == 'Multiple Choice' %}
                   {% for choice in question.choices.all %}
                     <div class="form-check">
-                      <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="choice_{{ choice.id }}" value="{{ choice.choice_text }}" />
+                      <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="choice_{{ choice.id }}" value="{{ choice.choice_text }}" {% if not can_retake %}disabled{% endif %} />
                       <label class="form-check-label" for="choice_{{ choice.id }}">{{ choice.choice_text }}</label>
                     </div>
                   {% endfor %}
                 {% elif question.quiz_type.name == 'True/False' %}
                   <div class="form-check">
-                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="true_{{ question.id }}" value="True" />
+                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="true_{{ question.id }}" value="True" {% if not can_retake %}disabled{% endif %} />
                     <label class="form-check-label" for="true_{{ question.id }}">True</label>
                   </div>
                   <div class="form-check">
-                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="false_{{ question.id }}" value="False" />
+                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="false_{{ question.id }}" value="False" {% if not can_retake %}disabled{% endif %} />
                     <label class="form-check-label" for="false_{{ question.id }}">False</label>
                   </div>
                 {% elif question.quiz_type.name == 'Essay' %}
@@ -76,25 +77,42 @@
                     {% for pair in question.pairs %}
                       <div class="input-group mb-3">
                         <input type="text" class="form-control" value="{{ pair.left }}" readonly />
-                        <input type="text" name="matching_right_{{ question.id }}" class="form-control" placeholder="Match for {{ pair.left }}" />
+                        <input type="text" name="matching_right_{{ question.id }}" class="form-control" placeholder="Match for {{ pair.left }}" {% if not can_retake %}disabled{% endif %} />
                         <input type="hidden" name="matching_left_{{ question.id }}" value="{{ pair.left }}" />
                       </div>
                     {% endfor %}
                   </div>
                 {% elif question.quiz_type.name == 'Calculated Numeric' %}
-                  <input type="number" name="question_{{ question.id }}" class="form-control" />
+                  <input type="number" name="question_{{ question.id }}" class="form-control"  {% if not can_retake %}disabled{% endif %}  />
                 {% elif question.quiz_type.name == 'Document' %}
                   <div class="form-group">
                     <label for="document_file_{{ question.id }}">Upload Document:</label>
-                    <input type="file" id="document_file_{{ question.id }}" name="question_{{ question.id }}" class="form-control" />
+                    <input type="file" id="document_file_{{ question.id }}" name="question_{{ question.id }}" class="form-control" {% if not can_retake %}disabled{% endif %}  />
                   </div>
                 {% else %}
-                  <input type="text" name="question_{{ question.id }}" class="form-control" />
+                  <input type="text" name="question_{{ question.id }}" class="form-control"  {% if not can_retake %}disabled{% endif %} />
                 {% endif %}
               </div>
             {% endfor %}
-            <button type="submit" class="btn btn-primary">Submit</button>
+            {% if can_retake %}
+              <button type="submit" class="btn btn-primary">Submit</button>
+            {% endif %}
           </form>
+          {% else %}
+
+          <p>You have already answered this activity.</p>
+        {% if can_retake %}
+              <form method="post" action="{% url 'retake_activity' activity.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">Retake Activity</button>
+              </form>
+            {% endif %}
+
+        <!-- Message if the student has no more retakes -->
+        {% if not can_retake %}
+          <p class="text-danger">You have reached the maximum number of retakes for this activity.</p>
+        {% endif %}
+        {% endif %}
         {% endif %}
       </div>
     </section>

@@ -14,9 +14,7 @@
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item">
-                <a href="#">Home</a>
-              </li>
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
               <li class="breadcrumb-item active">SubGradeBook</li>
             </ol>
           </div>
@@ -30,7 +28,7 @@
         <!-- DataTales Example -->
         <div class="card shadow mb-4">
           <div class="card-header py-3">
-            <button class="btn btn-success" id="openAddModalBtn">Add SubGradebook</button>
+            <button class="btn btn-success" id="openAddModalBtn">Add SubGradeBook</button>
           </div>
           <div class="card-body">
             <div class="table-responsive">
@@ -48,13 +46,15 @@
                     <tr>
                       <td>{{ subgradebook.gradebook }}</td>
                       <td>{{ subgradebook.category_name }}</td>
-                      <td>{{ subgradebook.percentage }}</td>
+                      <td>{{ subgradebook.percentage }}%</td>
                       <td>
                         <div class="dropdown">
-                          <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ subgradebook.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>
+                          <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ subgradebook.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                          </button>
                           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ subgradebook.id }}">
                             <a class="dropdown-item" href="javascript:void(0);" onclick="openEditModal({{ subgradebook.id }})"><i class="fas fa-edit"></i> Update</a>
-                            <form method="post" action="{% url 'deleteSubGradebook' subgradebook.id %}" onsubmit="return confirm('Are you sure you want to delete this Gradebook?');">
+                            <form method="post" action="{% url 'deleteSubGradebook' subgradebook.id %}" onsubmit="return confirm('Are you sure you want to delete this subgradebook?');">
                               {% csrf_token %}
                               <button type="submit" class="dropdown-item"><i class="fas fa-trash"></i> Delete</button>
                             </form>
@@ -92,27 +92,21 @@
           </div>
         </div>
         <div id="editModalBackdrop" class="custom-modal-backdrop"></div>
+            <!-- The content will be dynamically loaded here -->
 
-        <!-- View SubGradeBook Modal -->
-        <div id="viewModal" class="custom-modal">
-          <div class="custom-modal-header">
-            <button class="close-btn" id="closeViewModalBtn"></button>
-            <h5>View SubGradeBook</h5>
-          </div>
-          <div class="custom-modal-body" id="viewModalBody">
-            <!-- The content will be loaded dynamically here -->
+
           </div>
         </div>
-        <div id="viewModalBackdrop" class="custom-modal-backdrop"></div>
+        <div id="editModalBackdrop" class="custom-modal-backdrop"></div>
       </div>
     </section>
   </div>
 
-  <!-- JavaScript and Selectpicker Initialization -->
+  <!-- JavaScript for Modal Handling -->
   {% block extra_scripts %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js"></script>
     <script>
-      // Open Add SubGradeBook Modal and Load Form
+      // Script to open the Add TermBook modal and load the form
       document.getElementById('openAddModalBtn').addEventListener('click', function () {
         fetch("{% url 'createSubGradeBook' %}")
           .then((response) => response.text())
@@ -122,31 +116,48 @@
             document.getElementById('addModalBackdrop').classList.add('show')
             $('.selectpicker').selectpicker() // Initialize selectpicker after loading the modal content
           })
-      })
+      });
       
-      // Close Add SubGradeBook Modal
+      // Script to close the Add TermBook modal
       document.getElementById('closeAddModalBtn').addEventListener('click', function () {
         document.getElementById('addModal').classList.remove('show')
         document.getElementById('addModalBackdrop').classList.remove('show')
-      })
-      
-      // Open Edit SubGradeBook Modal and Load Form Dynamically
-      function openEditModal(subgradebookId) {
-        fetch(`/updateSubGradebook/${subgradebookId}/`)
+      });
+
+      // Function to open the Edit TermBook modal and load the form dynamically
+      function openEditModal(termbookId) {
+        fetch(`/updateSubGradebook/${termbookId}/`)
           .then((response) => response.text())
           .then((html) => {
             document.getElementById('editModalBody').innerHTML = html
             document.getElementById('editModal').classList.add('show')
             document.getElementById('editModalBackdrop').classList.add('show')
             $('.selectpicker').selectpicker() // Initialize selectpicker after loading the modal content
-          })
+          });
       }
-      
-      // Close Edit SubGradeBook Modal
+
+      // Script to close the Edit TermBook modal
       document.getElementById('closeEditModalBtn').addEventListener('click', function () {
         document.getElementById('editModal').classList.remove('show')
         document.getElementById('editModalBackdrop').classList.remove('show')
-      })
+      });
+
+      // Function to open the View TermBook modal and load the content dynamically
+      function openViewModal(termbookId) {
+        fetch(`/viewTermBookComponent/${termbookId}/`)
+          .then((response) => response.text())
+          .then((html) => {
+            document.getElementById('viewModalBody').innerHTML = html
+            document.getElementById('viewModal').classList.add('show')
+            document.getElementById('viewModalBackdrop').classList.add('show')
+          });
+      }
+
+      // Script to close the View TermBook modal
+      document.getElementById('closeViewModalBtn').addEventListener('click', function () {
+        document.getElementById('viewModal').classList.remove('show')
+        document.getElementById('viewModalBackdrop').classList.remove('show')
+      });
     </script>
   {% endblock %}
 {% endblock %}

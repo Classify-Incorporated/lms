@@ -28,11 +28,12 @@ from django.http import JsonResponse
 @method_decorator(login_required, name='dispatch')
 class enrollStudentView(View):
     def post(self, request, *args, **kwargs):
-        student_profile_ids  = request.POST.getlist('student_profile')
+        student_profile_ids = request.POST.getlist('student_profile')
         subject_ids = request.POST.getlist('subject_ids')
         semester_id = request.POST.get('semester_id')
 
         semester = get_object_or_404(Semester, id=semester_id)
+        duplicate_enrollments = []
 
         # Loop through selected students and enroll them in the subjects
         for student_profile_id in student_profile_ids:
@@ -48,7 +49,18 @@ class enrollStudentView(View):
                 )
 
                 if not created:
+                    # If the enrollment already exists, add a validation message
+                    duplicate_enrollments.append(f"{student.get_full_name()} is already enrolled in {subject.subject_name} for {semester.semester_name}.")
+                else:
+                    # If it's a retake, create a retake record
                     Retake.objects.create(subject_enrollment=subject_enrollment, reason="Retake due to failure or other reason")
+
+        # Add success message
+        if not duplicate_enrollments:
+            messages.success(request, 'Students enrolled successfully!')
+        else:
+            # If there were duplicate enrollments, show an appropriate message
+            messages.warning(request, 'Some students were already enrolled in the selected subjects.')
 
         return redirect('subjectEnrollmentList')
 
@@ -216,7 +228,6 @@ def subjectDetail(request, pk):
 
         # Adjusted module visibility logic
         modules = Module.objects.filter(subject=subject, term__semester=selected_semester).order_by('order')
-        print(f"Modules found: {modules.count()}")
         visible_modules = []
 
         for module in modules:

@@ -220,6 +220,7 @@ def UpdateActivity(request, activity_id):
 @method_decorator(permission_required('quiztype.add_quiztype', raise_exception=True), name='dispatch')
 class AddQuizTypeView(View):
     def get(self, request, activity_id):
+        print(f"Received activity_id: {activity_id}")
         activity = get_object_or_404(Activity, id=activity_id)
         quiz_types = QuizType.objects.all()  # Make sure "Document" is included here
         questions = request.session.get('questions', {}).get(str(activity_id), [])
@@ -537,11 +538,17 @@ class DisplayQuestionsView(View):
                     # Student will see an option to upload a document
                     question.allow_upload = True
 
+        student_activity, created = StudentActivity.objects.get_or_create(student=user, activity=activity)
+        can_retake = student_activity.retake_count < activity.max_retake
+        has_answered = student_activity.retake_count > 0 
+
         context = {
             'activity': activity,
             'questions': questions,
             'is_teacher': is_teacher,
             'is_student': is_student,
+            'can_retake': can_retake,
+            'has_answered': has_answered,
         }
 
         return render(request, 'activity/question/displayQuestion.html', context)
@@ -564,8 +571,8 @@ class SubmitAnswersView(View):
         student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
 
         # Check if the student has exceeded the maximum number of retakes
-        if student_activity.retake_count >= activity.max_retake:
-            messages.error(request, 'You have reached the maximum number of retakes for this activity.')
+        if student_activity.retake_count  >= activity.max_retake: 
+            messages.error(request, 'You have reached the maximum number of attempts for this activity.')
             return redirect('activity_detail', activity_id=activity_id)
 
         for question in ActivityQuestion.objects.filter(activity=activity):
@@ -579,10 +586,12 @@ class SubmitAnswersView(View):
                     student_question.status = True
                 else:
                     all_questions_answered = False
+
             elif question.quiz_type.name == 'Matching':
                 matching_left = request.POST.getlist(f'matching_left_{question.id}')
                 matching_right = request.POST.getlist(f'matching_right_{question.id}')
-                if matching_left and matching_right:
+
+                if matching_left and matching_right and len(matching_left) == len(matching_right):
                     student_answer = list(zip(matching_left, matching_right))
                     student_question.student_answer = str(student_answer)
                     student_question.status = True
@@ -592,8 +601,10 @@ class SubmitAnswersView(View):
 
                     # Manually compare the correct answer to the student's answer
                     correct_answer = question.correct_answer.split('->')
-                    correct_answer_pairs = [(normalize_text(correct_answer[i]), normalize_text(correct_answer[i + 1]))
-                                            for i in range(0, len(correct_answer), 2)]
+                    correct_answer_pairs = []
+                    for i in range(0, len(correct_answer), 2):
+                        if i + 1 < len(correct_answer):
+                            correct_answer_pairs.append((normalize_text(correct_answer[i]), normalize_text(correct_answer[i + 1])))
 
 
                     if normalized_student_answer == correct_answer_pairs:
@@ -620,13 +631,54 @@ class SubmitAnswersView(View):
             student_question.submission_time = timezone.now()
             student_question.save()
 
+        student_activity.retake_count += 1
+        
+        if activity.retake_method == 'highest':
+            # Store the highest score for the whole activity
+            student_activity.total_score = max(getattr(student_activity, 'total_score', 0), total_score)
+        elif activity.retake_method == 'lowest':
+            # Store the lowest score for the whole activity
+            student_activity.total_score = min(getattr(student_activity, 'total_score', total_score), total_score)
+        else:
+            student_activity.total_score = total_score
+
+        student_activity.save()
+
         if all_questions_answered:
-            student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
             student_activity.save()
 
         return redirect('activity_completed', score=int(total_score), activity_id=activity_id, show_score=has_non_essay_questions)
 
+@method_decorator(login_required, name='dispatch')
+class RetakeActivityView(View):
+    def post(self, request, activity_id):
+        activity = get_object_or_404(Activity, id=activity_id)
+        student = request.user
 
+        # Get or create the student's activity record
+        student_activity = StudentActivity.objects.get(student=student, activity=activity)
+
+        # Check if the student can retake the activity
+        if student_activity.retake_count < activity.max_retake:
+            # Reset student questions and activity data for the retake
+            StudentQuestion.objects.filter(student=student, activity=activity).update(
+                student_answer='',
+                score=0,
+                status=False,
+                uploaded_file=None
+            )
+
+            # Increment the retake count
+            student_activity.retake_count += 1
+            student_activity.save()
+
+            # Redirect back to the activity questions page for retaking
+            return redirect('display_questions', activity_id=activity_id)
+        else:
+            # If the student has reached the max retakes, show an error message
+            messages.error(request, 'You have reached the maximum number of retakes for this activity.')
+            return redirect('activity_detail', activity_id=activity_id)
+    
 # Display activity after activity is completed
 @login_required
 def activityCompletedView(request, score, activity_id, show_score):

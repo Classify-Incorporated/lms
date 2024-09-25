@@ -17,5 +17,11 @@ class roleForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control col-md-2'}),
         }
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if Role.objects.filter(name=name).exists():
+            raise forms.ValidationError(f'The role "{name}" already exists. Please choose a different name.')
+        return name
     
     

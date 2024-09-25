@@ -6,6 +6,7 @@ from django.db.models import Sum
 from course.models import Semester, SubjectEnrollment
 from django.utils import timezone
 from datetime import date
+from django.core.exceptions import ValidationError
 
 class GradeBookComponentsForm(forms.ModelForm):
     class Meta:
@@ -57,25 +58,6 @@ class GradeBookComponentsForm(forms.ModelForm):
         if self.instance and self.instance.is_participation:
             self.fields['activity_type'].widget = forms.HiddenInput()
 
-    def clean(self):
-        cleaned_data = super().clean()
-        subject = cleaned_data.get('subject')
-        percentage = cleaned_data.get('percentage')
-
-        if subject and percentage:
-            # Calculate the total percentage for the subject
-            existing_percentage = GradeBookComponents.objects.filter(subject=subject).aggregate(
-                total_percentage=Sum('percentage')
-            )['total_percentage'] or 0
-
-            total_percentage = existing_percentage + percentage
-
-            if total_percentage > 100:
-                raise forms.ValidationError(
-                    f"The total percentage for {subject} exceeds 100%. You currently have {existing_percentage}%, and adding this will result in {total_percentage}%."
-                )
-
-        return cleaned_data
     
 
 class SubGradeBookForm(forms.ModelForm):
@@ -109,7 +91,6 @@ class SubGradeBookForm(forms.ModelForm):
             )
 
             self.fields['gradebook'].queryset = gradebook_queryset
-        
 
 
 class CopyGradeBookForm(forms.Form):
@@ -247,24 +228,3 @@ class TermGradeBookComponentsForm(forms.ModelForm):
                         subjectenrollment__semester=current_semester,
                         assign_teacher=user
                     ).distinct()
-
-    def clean(self):
-        cleaned_data = super().clean()
-        term = cleaned_data.get('term')
-        percentage = cleaned_data.get('percentage')
-
-        if term and percentage:
-            # Get the total percentage already assigned to this term
-            existing_percentage = TermGradeBookComponents.objects.filter(term=term).aggregate(
-                total_percentage=Sum('percentage')
-            )['total_percentage'] or 0
-
-            total_percentage = existing_percentage + percentage
-
-            if total_percentage > 100:
-                raise forms.ValidationError(
-                    f"The total percentage for the term '{term.term_name}' exceeds 100%. "
-                    f"You currently have {existing_percentage}%, and adding this will result in {total_percentage}%."
-                )
-
-        return cleaned_data
