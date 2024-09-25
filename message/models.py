@@ -2,17 +2,17 @@
 from django.db import models
 from django.conf import settings
 
-
 class Message(models.Model):
     subject = models.CharField(max_length=255, null=True, blank=True)
-    body = models.TextField()  # No need to modify here; just use Summernote in forms or admin
+    body = models.TextField()
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sent_messages', on_delete=models.CASCADE)
     recipients = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='received_messages')
     timestamp = models.DateTimeField(auto_now_add=True)
     is_trashed = models.BooleanField(default=False)
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)  # Linking replies
 
     def __str__(self):
-        return self.subject
+        return f"{self.subject} - {self.sender}"
 
 class MessageReadStatus(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
