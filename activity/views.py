@@ -103,7 +103,12 @@ class AddActivityView(View):
         module_id = request.POST.get('module')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
-        max_retake = int(request.POST.get('max_retake', 0))  # Number of retakes allowed
+        try:
+            max_retake = int(request.POST.get('max_retake', 2))  # Default to 2 if missing
+            if max_retake < 0:  # Ensure it's not negative
+                max_retake = 0
+        except ValueError:
+            max_retake = 2  # Number of retakes allowed
         retake_method = request.POST.get('retake_method', 'highest')
         remedial = request.POST.get('remedial') == 'on'  # Get remedial checkbox value
         remedial_students_ids = request.POST.getlist('remedial_students', None)  # Get selected students for remedial
@@ -540,7 +545,10 @@ class DisplayQuestionsView(View):
 
         student_activity, created = StudentActivity.objects.get_or_create(student=user, activity=activity)
         can_retake = student_activity.retake_count < activity.max_retake
-        has_answered = student_activity.retake_count > 0 
+        student_questions = StudentQuestion.objects.filter(student=user, activity_question__activity=activity)
+        has_answered = student_questions.filter(status=True).exists()
+        print(has_answered)
+        print(can_retake)
 
         context = {
             'activity': activity,
@@ -571,7 +579,7 @@ class SubmitAnswersView(View):
         student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
 
         # Check if the student has exceeded the maximum number of retakes
-        if student_activity.retake_count  >= activity.max_retake: 
+        if student_activity.retake_count  >= activity.max_retake + 1: 
             messages.error(request, 'You have reached the maximum number of attempts for this activity.')
             return redirect('activity_detail', activity_id=activity_id)
 
@@ -631,7 +639,6 @@ class SubmitAnswersView(View):
             student_question.submission_time = timezone.now()
             student_question.save()
 
-        student_activity.retake_count += 1
         
         if activity.retake_method == 'highest':
             # Store the highest score for the whole activity
@@ -661,19 +668,18 @@ class RetakeActivityView(View):
         # Check if the student can retake the activity
         if student_activity.retake_count < activity.max_retake:
             # Reset student questions and activity data for the retake
-            StudentQuestion.objects.filter(student=student, activity=activity).update(
+            StudentQuestion.objects.filter(student=student, activity_question__activity=activity).update(
                 student_answer='',
                 score=0,
                 status=False,
                 uploaded_file=None
             )
 
-            # Increment the retake count
             student_activity.retake_count += 1
             student_activity.save()
 
             # Redirect back to the activity questions page for retaking
-            return redirect('display_questions', activity_id=activity_id)
+            return redirect('display_question', activity_id=activity_id)
         else:
             # If the student has reached the max retakes, show an error message
             messages.error(request, 'You have reached the maximum number of retakes for this activity.')
