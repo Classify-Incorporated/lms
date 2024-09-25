@@ -40,14 +40,48 @@ def viewGradeBookComponents(request):
 def createGradeBookComponents(request):
     if request.method == 'POST':
         form = GradeBookComponentsForm(request.POST, user=request.user)
+
+        subject = request.POST.get('subject')
+        activity_type = request.POST.get('activity_type')
+        percentage = request.POST.get('percentage')
+        try:
+            subject = Subject.objects.get(id=subject)
+            activity_type = ActivityType.objects.get(id=activity_type)
+
+            if not percentage:
+                raise ValueError('Percentage cannot be blank.')
+
+            percentage_value = Decimal(percentage)
+            if percentage_value < 0:
+                raise ValueError('Percentage cannot be negative.')
+            
+            existing_percentage = GradeBookComponents.objects.filter(subject=subject).aggregate(
+                total_percentage=Sum('percentage')
+            )['total_percentage'] or Decimal(0)
+
+            total_percentage = existing_percentage + percentage_value
+
+            if total_percentage > 100:
+                raise ValueError(
+                    f"The total percentage for {subject.subject_name} exceeds 100%. You currently have {existing_percentage}%, and adding this will result in {total_percentage}%."
+                )
+                
+        except Subject.DoesNotExist:
+            messages.error(request, 'Invalid subject selected.')
+            return redirect('viewGradeBookComponents')
+        except ActivityType.DoesNotExist:
+            messages.error(request, 'Invalid activity type selected.')
+            return redirect('viewGradeBookComponents')
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect('viewGradeBookComponents')
+
+        # Check for duplicate GradeBookComponents for the same subject, teacher, and activity type
+        if GradeBookComponents.objects.filter(subject=subject, teacher=request.user, activity_type=activity_type).exists():
+            messages.error(request, f'Gradebook for the subject "{subject.subject_name}" with activity type "{activity_type.name}" already exists. Please try again.')
+            return redirect('viewGradeBookComponents')
+        
         if form.is_valid():
-            subject = form.cleaned_data.get('subject')
-            activity_type = form.cleaned_data.get('activity_type')
-
-            if GradeBookComponents.objects.filter(subject=subject, teacher=request.user, activity_type=activity_type).exists():
-                messages.error(request, f'Gradebook for the subject "{subject}" with activity type "{activity_type}" already exists. Please try again.')
-                return redirect('viewGradeBookComponents')
-
             gradebook_component = form.save(commit=False)
             gradebook_component.teacher = request.user
             gradebook_component.save()
@@ -101,6 +135,50 @@ def updateGradeBookComponents(request, pk):
     gradebookcomponent = get_object_or_404(GradeBookComponents, pk=pk)
     if request.method == 'POST':
         form = GradeBookComponentsForm(request.POST, instance=gradebookcomponent)
+
+        subject = request.POST.get('subject')
+        activity_type = request.POST.get('activity_type')
+        percentage = request.POST.get('percentage')
+        try:
+            # Fetch subject and activity type by their IDs
+            subject = Subject.objects.get(id=subject)
+            activity_type = ActivityType.objects.get(id=activity_type)
+
+            if not percentage:
+                raise ValueError('Percentage cannot be blank.')
+
+            percentage_value = Decimal(percentage)
+            if percentage_value < 0:
+                raise ValueError('Percentage cannot be negative.')
+
+            # Exclude the current gradebookcomponent record to avoid false duplicate checks
+            existing_percentage = GradeBookComponents.objects.filter(subject=subject).exclude(id=gradebookcomponent.id).aggregate(
+                total_percentage=Sum('percentage')
+            )['total_percentage'] or Decimal(0)
+
+            total_percentage = existing_percentage + percentage_value
+
+            if total_percentage > 100:
+                raise ValueError(
+                    f"The total percentage for {subject.subject_name} exceeds 100%. You currently have {existing_percentage}%, and adding this will result in {total_percentage}%."
+                )
+
+        except Subject.DoesNotExist:
+            messages.error(request, 'Invalid subject selected.')
+            return redirect('viewGradeBookComponents')
+        except ActivityType.DoesNotExist:
+            messages.error(request, 'Invalid activity type selected.')
+            return redirect('viewGradeBookComponents')
+        except ValueError as e:
+            # Handle the ValueError and render the form with the error message
+            messages.error(request, str(e))
+            return redirect('viewGradeBookComponents')
+
+        # Check for duplicate GradeBookComponents, excluding the current one
+        if GradeBookComponents.objects.filter(subject=subject, teacher=request.user, activity_type=activity_type).exclude(id=gradebookcomponent.id).exists():
+            messages.error(request, f'Gradebook for the subject "{subject.subject_name}" with activity type "{activity_type.name}" already exists. Please try again.')
+            return redirect('viewGradeBookComponents')
+
         if form.is_valid():
             form.save()
             messages.success(request, 'Gradebook updated successfully!')
@@ -150,22 +228,70 @@ def subGradebook(request):
 def createSubGradeBook(request):
     if request.method == 'POST':
         sub_gradebook = SubGradeBookForm(request.POST, user=request.user)
+
+        gradebook = request.POST.get('gradebook')
+        percentage = request.POST.get('percentage')
+        try:
+            if not percentage:
+                raise ValueError('Percentage cannot be blank.')
+
+            percentage_value = Decimal(percentage)
+            if percentage_value < 0:
+                raise ValueError('Percentage cannot be negative.')
+            if percentage_value > 100:
+                raise ValueError('Percentage should not exceed 100%.')
+
+            # Check for duplicates in the gradebook
+            if SubGradeBook.objects.filter(gradebook=gradebook).exists():
+                raise ValueError('A sub-gradebook with this percentage already exists for the selected gradebook.')
+        
+        except ValueError as e:
+            # If any validation fails, return the form with an error message
+            messages.error(request, str(e))
+            return redirect('subGradebook')
+        
         if sub_gradebook.is_valid():
             sub_gradebook.save()
             messages.success(request, 'Sub Gradebook created successfully!')
-            return redirect('subGradebook')
+            return redirect('subGradebook')  # Redirect to the subGradebook page after successful form submission
         else:
-            messages.error(request, 'An error occurred while creating the sub gradebook!')
-    else:
-        # Pass the user to the form for GET requests as well
-        sub_gradebook = SubGradeBookForm(user=request.user)
-
+            # If form is invalid, render it back with error messages
+            messages.error(request, 'There was an error with your submission. Please try again.')
+            return render(request, 'gradebookcomponent/subgradebook/createSubGradeBook.html', {'sub_gradebook': sub_gradebook})
+    
+    # For GET request, just return the empty form
+    sub_gradebook = SubGradeBookForm(user=request.user)
     return render(request, 'gradebookcomponent/subgradebook/createSubGradeBook.html', {'sub_gradebook': sub_gradebook})
 
+
+
+@login_required
 def updateSubGradebook(request, id):
     sub_gradebook = get_object_or_404(SubGradeBook, id=id)
     if request.method == 'POST':
         form = SubGradeBookForm(request.POST, instance=sub_gradebook)
+
+        gradebook = request.POST.get('gradebook')
+        percentage = request.POST.get('percentage')
+        try:
+            if not percentage:
+                raise ValueError('Percentage cannot be blank.')
+
+            percentage_value = Decimal(percentage)
+            if percentage_value < 0:
+                raise ValueError('Percentage cannot be negative.')
+            if percentage_value > 100:
+                raise ValueError('Percentage should not exceed 100%.')
+
+            # Check for duplicates in the gradebook
+            if SubGradeBook.objects.filter(gradebook=gradebook).exclude(id=id).exists():
+                messages.error(request, f'A sub-gradebook for this gradebook already exists. Please choose a different one.')
+
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect('subGradebook')
+
+        
         if form.is_valid():
             form.save()
             messages.success(request, 'Sub Gradebook updated successfully!')
@@ -176,6 +302,9 @@ def updateSubGradebook(request, id):
         form = SubGradeBookForm(instance=sub_gradebook)
     return render(request, 'gradebookcomponent/subgradebook/updateSubGradeBook.html', {'form': form, 'sub_gradebook': sub_gradebook})
 
+
+
+@login_required
 def deleteSubGradebook(request, id):
     sub_gradebook = get_object_or_404(SubGradeBook, id=id)
     sub_gradebook.delete()
@@ -221,6 +350,42 @@ def createTermGradeBookComponent(request):
     if request.method == 'POST':
         form = TermGradeBookComponentsForm(request.POST, user=request.user)
         if form.is_valid():
+            term = form.cleaned_data.get('term')
+            subjects  = form.cleaned_data.get('subjects')
+            percentage = request.POST.get('percentage')
+
+            try:
+                # Validate the percentage field
+                if not percentage:
+                    raise ValueError('Percentage cannot be blank.')
+
+                percentage_value = Decimal(percentage)
+                if percentage_value < 0:
+                    raise ValueError('Percentage cannot be negative.')
+
+                # Check the total percentage already assigned to this term
+                existing_percentage = TermGradeBookComponents.objects.filter(term=term).aggregate(
+                    total_percentage=Sum('percentage')
+                )['total_percentage'] or Decimal(0)
+
+                total_percentage = existing_percentage + percentage_value
+
+                if total_percentage > 100:
+                    raise ValueError(
+                        f"The total percentage for the term '{term.term_name}' exceeds 100%. "
+                    )
+
+            except ValueError as e:
+                # Handle percentage validation errors
+                messages.error(request, str(e))
+                return redirect('termBookList')
+
+            # Prevent duplicate subject names within the same term
+            for subject in subjects:
+                if TermGradeBookComponents.objects.filter(term=term, subjects=subject).exists():
+                    messages.error(request, f'The subject "{subject}" already exists for the term "{term}". Please choose another subject.')
+                    return redirect('termBookList')
+            
             
             instance = form.save(commit=False)
             instance.teacher = request.user  
@@ -240,14 +405,63 @@ def createTermGradeBookComponent(request):
 @login_required
 def updateTermBookComponent(request, id):
     termbook = get_object_or_404(TermGradeBookComponents, id=id)
+    
     if request.method == 'POST':
         form = TermGradeBookComponentsForm(request.POST, instance=termbook, user=request.user)
         if form.is_valid():
-            instance = form.save(commit=False)
-            instance.teacher = request.user  
-            instance.save()  
-            form.save_m2m() 
+            term = form.cleaned_data.get('term')
+            subjects  = form.cleaned_data.get('subjects')
+            percentage = request.POST.get('percentage')
 
+            try:
+                # Validate the percentage field
+                if not percentage:
+                    raise ValueError('Percentage cannot be blank.')
+
+                percentage_value = Decimal(percentage)
+                if percentage_value < 0:
+                    raise ValueError('Percentage cannot be negative.')
+                
+                today = timezone.now().date()
+                current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
+
+                if not current_semester:
+                    raise ValueError("No active semester found.")
+
+                existing_percentage_queryset = TermGradeBookComponents.objects.filter(
+                    term__semester=current_semester
+                ).exclude(id=termbook.id)
+
+                # Aggregate the sum of the percentage for other components in the same term
+                existing_percentage = existing_percentage_queryset.aggregate(
+                    total_percentage=Sum('percentage')
+                )['total_percentage'] or Decimal(0)
+
+                # Calculate total percentage if the current percentage is added
+                total_percentage = existing_percentage + percentage_value
+
+                if total_percentage > 100:
+                    raise ValueError(
+                        f"The total percentage for the term '{term.term_name}' exceeds 100%. "
+                    )
+
+            except ValueError as e:
+                # Handle percentage validation errors
+                messages.error(request, str(e))
+                return redirect('termBookList')
+
+            # Check for each subject if it already exists in the same term (but not the current instance)
+            for subject in subjects:
+                if TermGradeBookComponents.objects.filter(term=term, subjects=subject).exclude(id=termbook.id).exists():
+                    messages.error(request, f'The subject "{subject}" already exists for the term "{term}". Please choose another subject or modify the existing one.')
+                    return redirect('updateTermBookComponent', id=termbook.id)
+
+            # Save the updated term gradebook component
+            instance = form.save(commit=False)
+            instance.teacher = request.user
+            instance.save()
+            form.save_m2m()  # Save many-to-many relationships
+            
             messages.success(request, 'Termbook updated successfully!')
             return redirect('termBookList')
         else:
@@ -268,12 +482,19 @@ def viewTermBookComponent(request, id=None):
     else:
         terms = TermGradeBookComponents.objects.all()
 
+    # Get specific termbook if an id is provided
+    termbook = None
+    if id:
+        termbook = get_object_or_404(TermGradeBookComponents, id=id)
+
     context = {
         'semesters': semesters,
         'selected_semester': selected_semester,
         'terms': terms,
+        'termbook': termbook,  # Pass the specific termbook if present
     }
     return render(request, 'gradebookcomponent/termbook/viewTermBook.html', context)
+
 
 #delete TermBook
 @login_required

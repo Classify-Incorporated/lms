@@ -57,12 +57,18 @@ def viewRole(request, role_id):
 def createRole(request):
     if request.method == 'POST':
         form = roleForm(request.POST)
+        role_name = request.POST.get('name')  
+        
+        if Role.objects.filter(name__iexact=role_name).exists():
+            print(f"Role '{role_name}' already exists")
+            messages.error(request, f'The role "{role_name}" already exists. Please choose a different name.')
+            return redirect('roleList')
+        
         if form.is_valid():
+            print("Form is valid") 
             role = form.save()
-
             selected_permissions = request.POST.getlist('permissions')
             permissions = Permission.objects.filter(id__in=selected_permissions)
-
             role.permissions.set(permissions)
 
             source_role_id = request.POST.get('source_role_id')
@@ -100,6 +106,13 @@ def updateRole(request, pk):
     
     if request.method == 'POST':
         form = roleForm(request.POST, instance=role_obj)
+        
+        role_name = request.POST.get('name')
+        if Role.objects.filter(name__iexact=role_name).exclude(pk=pk).exists():  # Exclude the current role from the check
+            print(f"Role '{role_name}' already exists")
+            messages.error(request, f'The role "{role_name}" already exists. Please choose a different name.')
+            return redirect('roleList')
+        
         if form.is_valid():
             role = form.save()
             

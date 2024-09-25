@@ -48,8 +48,7 @@ class Activity(models.Model):
     max_retake = models.PositiveIntegerField(default=0)  # Number of retakes allowed
     RETAKE_METHOD_CHOICES = [
         ('highest', 'Highest Score'),
-        ('last', 'Last Score'),
-        ('first', 'First Score'),
+        ('lowest', 'lowest Score'),
     ]
     retake_method = models.CharField(max_length=10, choices=RETAKE_METHOD_CHOICES, default='highest')
 

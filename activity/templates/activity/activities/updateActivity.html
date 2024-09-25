@@ -67,6 +67,21 @@
                 </select>
               </div>
 
+              <div class="form-group">
+                <label for="max_retake">Max Retakes:</label>
+                <input type="number" id="max_retake" name="max_retake" class="form-control" value="0" min="0" required />
+              </div>
+    
+              <!-- New Field: Retake Method -->
+              <div class="form-group">
+                <label for="retake_method">Retake Method:</label>
+                <select id="retake_method" name="retake_method" class="form-control" required>
+                  <option value="highest">Highest Score</option>
+                  <option value="lowest">Lowest Score</option>
+                  
+                </select>
+              </div>
+
               <!-- Start Time -->
               <div class="form-group">
                 <label for="start_time">Start Time:</label>
