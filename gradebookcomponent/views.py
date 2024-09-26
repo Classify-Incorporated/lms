@@ -11,10 +11,11 @@ from decimal import Decimal
 from django.http import JsonResponse
 from collections import defaultdict
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 
 #View GradeBookComponents
 @login_required
+@permission_required('gradebookcomponent.view_gradebookcomponents', raise_exception=True)
 def viewGradeBookComponents(request):
     today = timezone.now().date()
     current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
@@ -36,6 +37,7 @@ def viewGradeBookComponents(request):
 
 
 #Create GradeBookComponents
+@permission_required('gradebookcomponent.add_gradebookcomponents', raise_exception=True)
 @login_required
 def createGradeBookComponents(request):
     if request.method == 'POST':
@@ -97,6 +99,7 @@ def createGradeBookComponents(request):
 
 #Copy GradeBookComponents
 @login_required
+@permission_required('gradebookcomponent.add_gradebookcomponents', raise_exception=True)
 def copyGradeBookComponents(request):
     if request.method == 'POST':
         form = CopyGradeBookForm(request.POST, user=request.user)
@@ -131,6 +134,7 @@ def copyGradeBookComponents(request):
 
 #Modify GradeBookComponents
 @login_required
+@permission_required('gradebookcomponent.change_gradebookcomponents', raise_exception=True)
 def updateGradeBookComponents(request, pk):
     gradebookcomponent = get_object_or_404(GradeBookComponents, pk=pk)
     if request.method == 'POST':
@@ -192,6 +196,7 @@ def updateGradeBookComponents(request, pk):
 
 #Delete GradeBookComponents
 @login_required
+@permission_required('gradebookcomponent.delete_gradebookcomponents', raise_exception=True)
 def deleteGradeBookComponents(request, pk):
     gradebookcomponent = get_object_or_404(GradeBookComponents, pk=pk)
     gradebookcomponent.delete()

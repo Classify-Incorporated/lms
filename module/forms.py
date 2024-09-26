@@ -69,6 +69,14 @@ class moduleForm(forms.ModelForm):
         cleaned_data = super().clean()
         term = cleaned_data.get('term')
         file_name = cleaned_data.get('file_name')
+        file = cleaned_data.get('file')
+
+        if not term:
+            raise ValidationError("The term field is required.")
+        if not file_name:
+            raise ValidationError("The file name is required.")
+        if not file:
+            raise ValidationError("The file is required.")
 
         # Ensure both term and file_name exist
         if term and file_name:

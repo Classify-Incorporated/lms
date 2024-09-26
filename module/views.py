@@ -145,6 +145,7 @@ def module_progress(request):
 
     return JsonResponse({'status': 'error'}, status=400)
 
+@login_required
 def start_module_session(request):
     """
     This view will be triggered when a student opens a module.
@@ -153,7 +154,9 @@ def start_module_session(request):
     if request.method == 'POST':
         request.session['is_active'] = True  # Mark session as active
         return JsonResponse({'status': 'session started'})
-
+    
+    
+@login_required
 def stop_module_session(request):
     """
     This view will be triggered when a student stops the module.
