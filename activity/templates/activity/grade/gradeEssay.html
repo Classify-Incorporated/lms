@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="content-wrapper">
   <h1>Grade Essays and Documents for {{ activity.activity_name }}</h1>
 
   {% if error %}
@@ -33,8 +34,9 @@
         {% endfor %}
       </tbody>
     </table>
-    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+    <a href="{% url 'subjectDetail' activity.id %}" class="btn btn-secondary">Back</a>
   </form>
+  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {

@@ -567,7 +567,7 @@ class SubmitAnswersView(View):
     def post(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
         student = request.user
-        total_score = 0
+        total_score_current_attempt = 0  # Track the total score for this attempt
         has_non_essay_questions = False
 
         all_questions_answered = True  # Assume all questions are answered initially
@@ -575,14 +575,18 @@ class SubmitAnswersView(View):
         def normalize_text(text):
             """Normalize the text by removing non-alphanumeric characters and converting to lowercase."""
             return re.sub(r'\W+', '', text).lower()
-        
+
         student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
 
         # Check if the student has exceeded the maximum number of retakes
-        if student_activity.retake_count  >= activity.max_retake + 1: 
+        if student_activity.retake_count >= activity.max_retake + 1:
             messages.error(request, 'You have reached the maximum number of attempts for this activity.')
             return redirect('activity_detail', activity_id=activity_id)
 
+        # Track the current attempt's scores for comparison
+        current_attempt_scores = []
+
+        # Loop through all questions in the activity
         for question in ActivityQuestion.objects.filter(activity=activity):
             student_question, created = StudentQuestion.objects.get_or_create(student=student, activity_question=question)
             answer = request.POST.get(f'question_{question.id}')
@@ -614,47 +618,76 @@ class SubmitAnswersView(View):
                         if i + 1 < len(correct_answer):
                             correct_answer_pairs.append((normalize_text(correct_answer[i]), normalize_text(correct_answer[i + 1])))
 
-
                     if normalized_student_answer == correct_answer_pairs:
-                        total_score += question.score
-                        student_question.score = question.score
+                        current_score = question.score
+                    else:
+                        current_score = 0
                 else:
                     all_questions_answered = False
+                    current_score = 0
             else:
                 if not answer and not student_question.student_answer:
                     all_questions_answered = False
+                    current_score = 0
                 else:
                     student_question.student_answer = answer
 
                     if question.quiz_type.name == 'Essay':
                         student_question.status = True
+                        current_score = 0  # Essay answers are typically not auto-scored
                     else:
                         is_correct = (normalize_text(answer) == normalize_text(question.correct_answer))
                         if is_correct:
-                            total_score += question.score
-                            student_question.score = question.score
+                            current_score = question.score
+                        else:
+                            current_score = 0
                         student_question.status = True
                         has_non_essay_questions = True
-            
+
+            current_attempt_scores.append({
+                'student_question': student_question,
+                'current_score': current_score,
+                'previous_score': student_question.score or 0
+            })
+
+            total_score_current_attempt += current_score  # Accumulate total score for this attempt
             student_question.submission_time = timezone.now()
-            student_question.save()
 
-        
-        if activity.retake_method == 'highest':
-            # Store the highest score for the whole activity
-            student_activity.total_score = max(getattr(student_activity, 'total_score', 0), total_score)
-        elif activity.retake_method == 'lowest':
-            # Store the lowest score for the whole activity
-            student_activity.total_score = min(getattr(student_activity, 'total_score', total_score), total_score)
-        else:
-            student_activity.total_score = total_score
+        # Calculate total score of all previous attempts
+        previous_total_score = StudentQuestion.objects.filter(student=student, activity_question__activity=activity).aggregate(Sum('score'))['score__sum'] or 0
 
+        # Compare total score of current attempt with previous attempts based on retake_method
+        if activity.retake_method == 'highest' and total_score_current_attempt > previous_total_score:
+            # If current attempt's score is higher, save it for all questions
+            for score_data in current_attempt_scores:
+                score_data['student_question'].score = score_data['current_score']
+                score_data['student_question'].save()
+
+        elif activity.retake_method == 'lowest' and total_score_current_attempt < previous_total_score:
+            # If current attempt's score is lower, save it for all questions
+            for score_data in current_attempt_scores:
+                score_data['student_question'].score = score_data['current_score']
+                score_data['student_question'].save()
+
+        elif activity.retake_method is None:
+            # Default: save the current attempt's score regardless of previous attempts
+            for score_data in current_attempt_scores:
+                score_data['student_question'].score = score_data['current_score']
+                score_data['student_question'].save()
+
+        # Update student_activity with the current total score
+        student_activity.total_score = StudentQuestion.objects.filter(student=student, activity_question__activity=activity).aggregate(Sum('score'))['score__sum'] or 0
         student_activity.save()
 
+        # Redirect based on whether all questions were answered
         if all_questions_answered:
-            student_activity.save()
+            messages.success(request, 'Answers submitted successfully!')
+            return redirect('activity_completed', score=int(total_score_current_attempt), activity_id=activity_id, show_score=has_non_essay_questions)
+        else:
+            messages.error(request, 'You did not answer all questions. Please complete the activity.')
+            return redirect('display_question', activity_id=activity_id)
 
-        return redirect('activity_completed', score=int(total_score), activity_id=activity_id, show_score=has_non_essay_questions)
+        
 
 @method_decorator(login_required, name='dispatch')
 class RetakeActivityView(View):
@@ -670,7 +703,6 @@ class RetakeActivityView(View):
             # Reset student questions and activity data for the retake
             StudentQuestion.objects.filter(student=student, activity_question__activity=activity).update(
                 student_answer='',
-                score=0,
                 status=False,
                 uploaded_file=None
             )

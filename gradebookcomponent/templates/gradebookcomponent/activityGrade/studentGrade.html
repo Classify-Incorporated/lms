@@ -64,7 +64,6 @@
                 <thead>
                   <tr>
                     <th>Activity Name</th>
-                    <th>Question Text</th>
                     <th>Total Score</th>
                     <th>Max Score</th>
                     <th>Percentage</th>
@@ -73,13 +72,12 @@
                 </thead>
                 <tbody>
                   {% for data in term_data.student_scores_data %}
-                      <tr {% if data.missed %}class="text-danger"{% endif %}>
+                      <tr>
                         <td>{{ data.activity_name }}</td>
-                        <td>{{ data.question_text }}</td>
-                        <td>{{ data.score }}</td>
+                        <td>{{ data.total_score }}</td>
                         <td>{{ data.max_score }}</td>
                         <td>{{ data.percentage|floatformat:2 }}</td>
-                        <td>{% if data.missed %}Missed{% else %}Completed{% endif %}</td>
+                        <td>{{ data.status }}</td>
                       </tr>
                   {% endfor %}
                 </tbody>
@@ -87,6 +85,7 @@
             </div>
           </div>
         </div>
+        <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
       {% endfor %}
     {% else %}
       <p class="text-center">No data available for the current semester.</p>
