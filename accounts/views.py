@@ -66,7 +66,7 @@ def viewProfile(request, pk):
     profile = get_object_or_404(Profile, user=user)
 
     try:
-        current_user_profile = Profile.objects.get(id=current_user.id)
+        current_user_profile = Profile.objects.get(user=current_user)
     except Profile.DoesNotExist:
         current_user_profile = None
 
@@ -79,13 +79,11 @@ def viewProfile(request, pk):
         context = {
             'edited_user': user,
             'current_user_profile': current_user_profile,
+            'profile': profile
         }
         return render(request, 'accounts/viewStudentProfile.html', context)
     else:
-        print('orayt')
-
-
-    return render(request, 'accounts/viewStudentProfile.html', {'profile': profile})
+        return render(request, 'accounts/viewStudentProfile.html', {'profile': profile})
 
 @login_required
 @permission_required('accounts.change_profile', raise_exception=True)

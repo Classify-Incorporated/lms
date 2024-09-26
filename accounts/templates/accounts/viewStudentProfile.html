@@ -138,6 +138,7 @@
                     </p>
                   </div>
                 </div>
+                {% if profile.role.name != "Teacher" %}
                 <div class="card mb-4">
                   <div class="card-header bg-success text-white">Academic Information</div>
                   <div class="card-body">
@@ -149,6 +150,7 @@
                     </p>
                   </div>
                 </div>
+                {% endif %}
               </div>
               <div class="col-md-4">
                 <div class="card mb-4">
