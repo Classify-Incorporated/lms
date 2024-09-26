@@ -9,7 +9,7 @@ class Message(models.Model):
     recipients = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='received_messages')
     timestamp = models.DateTimeField(auto_now_add=True)
     is_trashed = models.BooleanField(default=False)
-    parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)  # Linking replies
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.subject} - {self.sender}"
@@ -21,9 +21,10 @@ class MessageReadStatus(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.message.subject} - {'Read' if self.read_at else 'Unread'}"
-    
+
 class MessageUnreadStatus(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.ForeignKey(Message, on_delete=models.CASCADE)
     created_at = models.DateTimeField(null=True, blank=True)
+
 
