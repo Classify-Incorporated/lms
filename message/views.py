@@ -37,6 +37,7 @@ def send_message(request, parent_id=None):
             student = get_object_or_404(CustomUser, id=student_id)
             recipients = [student]
 
+        # Create the message
         message = Message.objects.create(
             subject=subject_text,
             body=body,
@@ -46,7 +47,7 @@ def send_message(request, parent_id=None):
         message.recipients.set(recipients)
         message.save()
 
-        # Create unread status for the recipient, not for the sender
+        # Create unread status only for recipients, not for the sender
         for recipient in recipients:
             MessageUnreadStatus.objects.create(
                 user=recipient,
@@ -63,26 +64,45 @@ def send_message(request, parent_id=None):
     instructors = CustomUser.objects.filter(groups__name='Instructor')
     students = CustomUser.objects.filter(groups__name='Student')
 
+    unread_messages_count = MessageUnreadStatus.objects.filter(user=request.user).count()
+
     return render(request, 'message/inbox.html', {
         'subjects': subjects,
         'instructors': instructors,
         'students': students,
+        'unread_messages_count': unread_messages_count,
     })
 
 @login_required
 def inbox(request):
-    messages = Message.objects.filter(
-        (Q(recipients=request.user) | Q(sender=request.user)) & Q(is_trashed=False) & Q(parent__isnull=True)
+    # Fetch only parent messages where the user is a recipient
+    messages_as_recipient = Message.objects.filter(
+        Q(recipients=request.user) & ~Q(sender=request.user),
+        Q(is_trashed=False),
+        Q(parent__isnull=True)  # Only fetch parent messages, not replies
     ).distinct().order_by('-timestamp')
 
-    unread_messages_count = MessageUnreadStatus.objects.filter(
-        user=request.user, created_at__isnull=False  # Count only unread messages
-    ).count()
+    # Fetch parent messages where the user is the sender, and there are replies from recipients
+    messages_with_replies = Message.objects.filter(
+        Q(sender=request.user),
+        Q(is_trashed=False),
+        Q(parent__isnull=True),  # Only fetch parent messages
+        Q(replies__sender__in=CustomUser.objects.filter(received_messages__sender=request.user))  # Only include if the message has replies
+    ).distinct().order_by('-timestamp')
 
+    # Combine both message sets (messages as recipient and messages with replies to the sender)
+    messages = messages_as_recipient | messages_with_replies
+
+    # Calculate unread message count for the current user
+    unread_messages_count = MessageUnreadStatus.objects.filter(user=request.user).count()
+
+    # Store the unread count in the session for quick access in other views
     request.session['unread_messages_count'] = unread_messages_count
 
+    # Build the message status list
     message_status_list = []
     for message in messages:
+        # Check the read status of each message
         read_status = MessageReadStatus.objects.filter(message=message, user=request.user).first()
         reply_count = message.replies.count()
 
@@ -91,7 +111,7 @@ def inbox(request):
             'read': read_status.read_at is not None if read_status else False,
             'reply_count': reply_count
         })
-        
+
     # Get the current semester
     today = timezone.now().date()
     current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
@@ -115,7 +135,7 @@ def inbox(request):
     try:
         student_role = Role.objects.get(name='Student')
     except Role.DoesNotExist:
-        pass 
+        pass
 
     # Filter subjects based on user role and current semester
     if current_semester:
@@ -145,6 +165,7 @@ def inbox(request):
         'unread_messages_count': unread_messages_count,
     })
 
+
 @login_required
 @permission_required('message.view_message', raise_exception=True)
 def view_message(request, message_id):
@@ -155,23 +176,24 @@ def view_message(request, message_id):
         messages.error(request, "You are not authorized to view this message.")
         return redirect('inbox')
 
-    # Mark the message as read for the recipient or sender viewing the message
-    if request.user in message.recipients.all() or request.user == message.sender:
-        read_status, created = MessageReadStatus.objects.get_or_create(user=request.user, message=message)
-        if not read_status.read_at:
-            read_status.read_at = timezone.now()
-            read_status.save()
-
-        # Update (but do not delete) the unread status for the recipient or sender
-        MessageUnreadStatus.objects.filter(user=request.user, message=message).update(created_at=None)
-
-    # Retrieve all replies
+    # Retrieve all replies to the parent message
     replies = message.replies.all().order_by('timestamp')
+
+    # Mark the parent message and its replies as read for the current user
+    read_status, created = MessageReadStatus.objects.get_or_create(user=request.user, message=message)
+    if not read_status.read_at:
+        read_status.read_at = timezone.now()
+        read_status.save()
+
+    # Remove the unread status for the current user
+    MessageUnreadStatus.objects.filter(user=request.user, message=message).delete()
 
     return render(request, 'message/viewMessage.html', {
         'message': message,
-        'replies': replies,
+        'replies': replies,  # Pass the replies to the template
     })
+
+
     
 def get_all_replies(message):
     """
@@ -201,14 +223,18 @@ def view_sent_message(request, message_id):
 @login_required
 @permission_required('message.add_message', raise_exception=True)
 def reply_message(request, message_id):
+    # Retrieve the original parent message
     original_message = get_object_or_404(Message, id=message_id)
 
     if request.method == 'POST':
         body = request.POST.get('body')
         sender = request.user
 
-        # Determine the recipient
-        recipient = original_message.sender if sender != original_message.sender else original_message.recipients.first()
+        # Determine the recipient: if the sender is replying, the recipient is the original message sender
+        if sender == original_message.sender:
+            recipient = original_message.recipients.first()  # The original recipient becomes the recipient of the reply
+        else:
+            recipient = original_message.sender  # The original sender becomes the recipient of the reply
 
         # Create the reply and link it to the parent message
         reply_message = Message.objects.create(
@@ -220,10 +246,15 @@ def reply_message(request, message_id):
         reply_message.recipients.set([recipient])
         reply_message.save()
 
-        # Update unread status for the original sender
+        # Mark the parent message as unread for the recipient
         MessageUnreadStatus.objects.update_or_create(
-            user=recipient, message=original_message, defaults={'created_at': timezone.now()}
+            user=recipient,
+            message=original_message,
+            defaults={'created_at': timezone.now()}  # Set new unread status
         )
+
+        # If the sender (recipient of reply) had already read the message, ensure it's marked unread again
+        MessageReadStatus.objects.filter(user=recipient, message=original_message).update(read_at=None)
 
         messages.success(request, 'Your reply has been sent successfully!')
         return redirect('inbox')
@@ -268,7 +299,10 @@ def sent(request):
         })
 
     # Get unread messages count
-    unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
+    unread_messages_count = MessageUnreadStatus.objects.filter(user=request.user).count()
+
+    # Store the unread count in the session for quick access in other views
+    request.session['unread_messages_count'] = unread_messages_count
 
     subjects = Subject.objects.all()
     instructor_role = Role.objects.get(name='Teacher')
@@ -283,6 +317,7 @@ def sent(request):
         'students': students, 
         'unread_messages_count': unread_messages_count  # Pass unread messages count to the template
     })
+
 
 @login_required
 def trash(request):
@@ -301,7 +336,10 @@ def trash(request):
         })
 
     # Get unread messages count
-    unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
+    unread_messages_count = MessageUnreadStatus.objects.filter(user=request.user).count()
+
+    # Store the unread count in the session for quick access in other views
+    request.session['unread_messages_count'] = unread_messages_count
 
     subjects = Subject.objects.all()
     instructor_role = Role.objects.get(name='Teacher')
