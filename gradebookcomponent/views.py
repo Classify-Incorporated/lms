@@ -639,7 +639,6 @@ def studentTotalScore(request, student_id, subject_id):
         
         student_scores_data = []
         term_has_data = False
-        
 
         # Loop through all non-participation activities
         for activity_type in activity_types:
@@ -656,85 +655,27 @@ def studentTotalScore(request, student_id, subject_id):
                 activity_percentage = Decimal(0)
 
             for activity in activities:
-                student_total_score = Decimal(0)
-                max_score_sum = Decimal(0)
-
-                student_questions = StudentQuestion.objects.filter(
+                # Aggregate score and max score per activity
+                total_score = StudentQuestion.objects.filter(
                     student=student,
                     activity_question__activity=activity,
-                    status=True 
-                )
+                    status=True
+                ).aggregate(total=Sum('score'))['total'] or 0
+                
+                max_score = activity.activityquestion_set.aggregate(total_max_score=Sum('score'))['total_max_score'] or Decimal(0)
 
-                if not student_questions.exists():
-                    max_score = activity.activityquestion_set.aggregate(total_max_score=Sum('score'))['total_max_score'] or Decimal(0)
-                    student_scores_data.append({
-                        'student': student.get_full_name(),
-                        'activity_name': activity.activity_name,
-                        'question_text': 'No submission',
-                        'score': 0,
-                        'max_score': max_score,
-                        'percentage': 0,
-                        'weighted_score': 0,
-                        'missed': True,
-                        'submission_time': None,
-                    })
-                    continue
-
-                for student_question in student_questions:
-                    question = student_question.activity_question.question_text
-                    score = student_question.score
-                    max_score = student_question.activity_question.score
-
-                    student_total_score += Decimal(score)
-                    max_score_sum += Decimal(max_score)
-
-                    student_scores_data.append({
-                        'student': student.get_full_name(),
-                        'activity_name': activity.activity_name,
-                        'question_text': question,
-                        'score': score,
-                        'max_score': max_score,
-                        'percentage': (Decimal(score) / Decimal(max_score)) * 100 if max_score > 0 else 0,
-                        'weighted_score': (Decimal(score) / Decimal(max_score)) * activity_percentage if max_score > 0 else 0,
-                        'missed': False,
-                        'submission_time': student_question.submission_time,
-                    })
+                # Add data for each activity
+                student_scores_data.append({
+                    'activity_name': activity.activity_name,
+                    'total_score': total_score,
+                    'max_score': max_score,
+                    'percentage': (Decimal(total_score) / Decimal(max_score)) * 100 if max_score > 0 else 0,
+                    'status': 'Completed' if total_score > 0 else 'Missed'
+                })
 
                 term_has_data = True
 
-        # Now we handle participation scores separately from other activities
-        participation_student_questions = StudentQuestion.objects.filter(
-            student=student,
-            activity__term=term,
-            activity__subject=subject,
-            is_participation=True  # Flag for participation
-        )
-
-        participation_total_score = Decimal(0)
-        participation_max_score_sum = Decimal(0)
-
-        if participation_student_questions.exists():
-            for student_question in participation_student_questions:
-                score = Decimal(student_question.score)
-                participation_total_score += score
-                participation_max_score_sum += 100  # Assuming the max score for participation is 100
-
-            participation_percentage = (participation_total_score / participation_max_score_sum) * 100 if participation_max_score_sum > 0 else 0
-            weighted_score = participation_total_score / participation_max_score_sum  # Assuming full weight
-
-            student_scores_data.append({
-                'student': student.get_full_name(),
-                'activity_name': 'Participation',  # Label for participation
-                'question_text': 'Participation Activity',
-                'score': participation_total_score,
-                'max_score': participation_max_score_sum,
-                'percentage': participation_percentage,
-                'weighted_score': weighted_score,
-                'missed': participation_total_score == 0,
-                'submission_time': None
-            })
-
-        if term_has_data or participation_student_questions.exists():
+        if term_has_data:
             term_scores_data.append({
                 'term': term,
                 'subject': subject,
@@ -750,6 +691,8 @@ def studentTotalScore(request, student_id, subject_id):
         'selected_semester_id': selected_semester_id,
         'student': student,
     })
+
+
 
 #display total grade
 @login_required

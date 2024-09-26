@@ -5,6 +5,17 @@
 {% endblock %}
 
 {% block content %}
+<div class="content-wrapper">
+  <!-- Content Header -->
+  <div class="content-header">
+    <div class="container-fluid">
+      <h1 class="h3 mb-4 text-gray-800">{{ activity.activity_name }}</h1>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
   <h1>Grade Essay/Document for {{ activity.activity_name }}</h1>
 
   {% if error %}
@@ -47,4 +58,7 @@
     <button type="submit" class="btn btn-primary">Submit Grade</button>
     <a href="{% url 'subjectDetail' activity.id %}" class="btn btn-secondary">Back</a>
   </form>
+  </div>
+</section>
+</div>
 {% endblock %}
