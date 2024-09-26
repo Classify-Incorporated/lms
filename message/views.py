@@ -13,7 +13,6 @@ from django.contrib.auth.decorators import permission_required
 from course.models import Semester
 from django.db.models import Q
 
-
 @login_required
 @permission_required('message.add_message', raise_exception=True)
 def send_message(request, parent_id=None):
@@ -47,7 +46,7 @@ def send_message(request, parent_id=None):
         message.recipients.set(recipients)
         message.save()
 
-        # Add entries to MessageUnreadStatus for each recipient
+        # Create unread status for the recipient, not for the sender
         for recipient in recipients:
             MessageUnreadStatus.objects.create(
                 user=recipient,
@@ -58,37 +57,30 @@ def send_message(request, parent_id=None):
         messages.success(request, 'Message sent successfully!')
         return redirect('inbox')
     else:
-        messages.error(request, 'There was an error when sending the Message. Please try again.')
+        messages.error(request, 'There was an error when sending the message. Please try again.')
 
     subjects = Subject.objects.all()
     instructors = CustomUser.objects.filter(groups__name='Instructor')
-    students = CustomUser.objects.filter(groups__name='Student')  # Fetch all students
-
-    unread_messages_count = MessageReadStatus.objects.filter(user=request.user, read_at__isnull=True).count()
+    students = CustomUser.objects.filter(groups__name='Student')
 
     return render(request, 'message/inbox.html', {
         'subjects': subjects,
         'instructors': instructors,
-        'students': students,  # Pass students to the template
-        'unread_messages_count': unread_messages_count,
+        'students': students,
     })
 
 @login_required
 def inbox(request):
-    # Fetch parent messages where the user is a recipient or sender
     messages = Message.objects.filter(
         (Q(recipients=request.user) | Q(sender=request.user)) & Q(is_trashed=False) & Q(parent__isnull=True)
     ).distinct().order_by('-timestamp')
 
-    # Calculate unread message count for the current user (either as a recipient or a sender)
-    unread_messages_count = MessageReadStatus.objects.filter(
-        user=request.user, read_at__isnull=True
+    unread_messages_count = MessageUnreadStatus.objects.filter(
+        user=request.user, created_at__isnull=False  # Count only unread messages
     ).count()
 
-    # Store the unread count in the session for quick access in the template
     request.session['unread_messages_count'] = unread_messages_count
 
-    # Build the message status list including replies
     message_status_list = []
     for message in messages:
         read_status = MessageReadStatus.objects.filter(message=message, user=request.user).first()
@@ -163,19 +155,22 @@ def view_message(request, message_id):
         messages.error(request, "You are not authorized to view this message.")
         return redirect('inbox')
 
-    # Retrieve all replies to the parent message
-    replies = message.replies.all().order_by('timestamp')
-
-    # Mark the message as read for the recipient (or sender) viewing the message
+    # Mark the message as read for the recipient or sender viewing the message
     if request.user in message.recipients.all() or request.user == message.sender:
         read_status, created = MessageReadStatus.objects.get_or_create(user=request.user, message=message)
         if not read_status.read_at:
             read_status.read_at = timezone.now()
             read_status.save()
 
+        # Update (but do not delete) the unread status for the recipient or sender
+        MessageUnreadStatus.objects.filter(user=request.user, message=message).update(created_at=None)
+
+    # Retrieve all replies
+    replies = message.replies.all().order_by('timestamp')
+
     return render(request, 'message/viewMessage.html', {
         'message': message,
-        'replies': replies,  # Pass the replies to the template
+        'replies': replies,
     })
     
 def get_all_replies(message):
@@ -206,14 +201,13 @@ def view_sent_message(request, message_id):
 @login_required
 @permission_required('message.add_message', raise_exception=True)
 def reply_message(request, message_id):
-    # Retrieve the original parent message
     original_message = get_object_or_404(Message, id=message_id)
 
     if request.method == 'POST':
         body = request.POST.get('body')
         sender = request.user
 
-        # Determine the recipient (sender of the original message)
+        # Determine the recipient
         recipient = original_message.sender if sender != original_message.sender else original_message.recipients.first()
 
         # Create the reply and link it to the parent message
@@ -226,14 +220,10 @@ def reply_message(request, message_id):
         reply_message.recipients.set([recipient])
         reply_message.save()
 
-        # Mark the parent message as unread for the recipient (the original sender)
-        MessageReadStatus.objects.update_or_create(
-            user=recipient, message=original_message, defaults={'read_at': None}
+        # Update unread status for the original sender
+        MessageUnreadStatus.objects.update_or_create(
+            user=recipient, message=original_message, defaults={'created_at': timezone.now()}
         )
-
-        # Also update the unread count badge for the sender
-        unread_count = MessageReadStatus.objects.filter(user=recipient, read_at__isnull=True).count()
-        request.session['unread_messages_count'] = unread_count  # Store in session for quick retrieval
 
         messages.success(request, 'Your reply has been sent successfully!')
         return redirect('inbox')
@@ -241,6 +231,7 @@ def reply_message(request, message_id):
     return render(request, 'message/reply.html', {
         'original_message': original_message,
     })
+
     
 @login_required
 def unread_count(request):
