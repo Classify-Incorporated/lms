@@ -83,7 +83,7 @@ def inbox(request):
         Q(parent__isnull=True)  # Only fetch parent messages, not replies
     ).exclude(
         messagetrashstatus__user=request.user,
-        messagetrashstatus__is_trashed=True
+        messagetrashstatus__is_trashed=True  # Exclude trashed messages
     ).distinct().order_by('-timestamp')
 
     # Fetch parent messages where the user is the sender, and there are replies from recipients
@@ -93,14 +93,17 @@ def inbox(request):
         Q(replies__sender__in=CustomUser.objects.filter(received_messages__sender=request.user))  # Only include if the message has replies
     ).exclude(
         messagetrashstatus__user=request.user,
-        messagetrashstatus__is_trashed=True
+        messagetrashstatus__is_trashed=True  # Exclude trashed messages
     ).distinct().order_by('-timestamp')
 
     # Combine both message sets (messages as recipient and messages with replies to the sender)
     messages = messages_as_recipient | messages_with_replies
 
     # Calculate unread message count by filtering unique unread messages for the current user
-    unread_messages = MessageUnreadStatus.objects.filter(user=request.user).values('message').distinct()
+    unread_messages = MessageUnreadStatus.objects.filter(user=request.user).exclude(
+        message__messagetrashstatus__user=request.user,
+        message__messagetrashstatus__is_trashed=True  # Exclude unread statuses for trashed messages
+    ).values('message').distinct()
 
     # Count the unique unread messages
     unread_messages_count = unread_messages.count()
@@ -111,7 +114,7 @@ def inbox(request):
     # Build the message status list
     message_status_list = []
     for message in messages:
-        # Check the read status of each message
+        # Check the read status of each message, but don't mark them as read here
         read_status = MessageReadStatus.objects.filter(message=message, user=request.user).first()
         reply_count = message.replies.count()
 
@@ -120,6 +123,7 @@ def inbox(request):
             'read': read_status.read_at is not None if read_status else False,
             'reply_count': reply_count
         })
+
     # Get the current semester
     today = timezone.now().date()
     current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
@@ -224,7 +228,20 @@ def view_sent_message(request, message_id):
 
     return render(request, 'message/viewSentMessage.html', {
         'message': message,
-        'recipients': recipients
+        'recipients': recipients,
+        'is_sent_view': True  # Adding this flag
+    })
+    
+@login_required
+@permission_required('message.view_message', raise_exception=True)
+def view_trash_message(request, message_id):
+    message = get_object_or_404(Message, id=message_id)
+    recipients = message.recipients.all()  # Get all recipients
+
+    return render(request, 'message/viewTrashMessage.html', {
+        'message': message,
+        'recipients': recipients,
+        'is_sent_view': True  # Adding this flag
     })
 
 @login_required
@@ -253,13 +270,15 @@ def reply_message(request, message_id):
         # Mark the parent message as unread for all users except the one who replied
         for recipient in all_recipients:
             if recipient != sender:
-                MessageUnreadStatus.objects.update_or_create(
-                    user=recipient,
-                    message=original_message,
-                    defaults={'created_at': timezone.now()}  # Set new unread status
-                )
-                # Also update read status to unread (None) if the user has read the message before
-                MessageReadStatus.objects.filter(user=recipient, message=original_message).update(read_at=None)
+                # Check if the recipient has trashed the message
+                if not original_message.is_trashed_by_user(recipient):
+                    MessageUnreadStatus.objects.update_or_create(
+                        user=recipient,
+                        message=original_message,
+                        defaults={'created_at': timezone.now()}  # Set new unread status
+                    )
+                    # Also update read status to unread (None) if the user has read the message before
+                    MessageReadStatus.objects.filter(user=recipient, message=original_message).update(read_at=None)
 
         messages.success(request, 'Your reply has been sent successfully!')
         return redirect('inbox')
@@ -267,7 +286,6 @@ def reply_message(request, message_id):
     return render(request, 'message/reply.html', {
         'original_message': original_message,
     })
-
     
 @login_required
 def unread_count(request):

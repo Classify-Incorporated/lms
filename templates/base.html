@@ -198,6 +198,28 @@
           .parents('li.nav-item')
           .addClass('menu-open')
       })
+      
+      $(document).ready(function () {
+        // Function to check if the sidebar is open
+        function isSidebarOpen() {
+          return $('body').hasClass('sidebar-open')
+        }
+      
+        // Function to close the sidebar
+        function closeSidebar() {
+          if (isSidebarOpen()) {
+            $('[data-widget="pushmenu"]').click() // This triggers the sidebar close
+          }
+        }
+      
+        // Event listener for clicking outside the sidebar
+        $(document).on('click touchstart', function (e) {
+          // Check if the sidebar is open and if the click is outside the sidebar
+          if (isSidebarOpen() && !$(e.target).closest('.main-sidebar').length && !$(e.target).closest('.navbar-nav').length) {
+            closeSidebar()
+          }
+        })
+      })
     </script>
 
     <script>

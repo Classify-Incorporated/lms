@@ -113,7 +113,7 @@
   <div id="viewMessageModal" class="custom-modal">
     <div class="custom-modal-header">
       <button class="close-btn" id="closeViewMessageModalBtn"></button>
-      <h5>View Message</h5>
+      <h5>View Trash Message</h5>
     </div>
     <div class="custom-modal-body">
       <div id="viewMessageContent">
@@ -227,7 +227,7 @@
     })
     
     function fetchMessageContent(messageId) {
-      fetch(`/message/${messageId}/`)
+      fetch(`/message/trash/${messageId}/`)
         .then((response) => response.text())
         .then((data) => {
           document.getElementById('viewMessageContent').innerHTML = data
