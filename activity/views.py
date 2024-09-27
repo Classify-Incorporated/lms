@@ -18,6 +18,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import permission_required
 import csv
 from io import TextIOWrapper
+from random import shuffle
 # Add type of activity
 
 @login_required
@@ -73,6 +74,7 @@ class AddActivityView(View):
         subject = get_object_or_404(Subject, id=subject_id)
 
         now = timezone.localtime(timezone.now())
+        print(now)
         current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
 
         terms = Term.objects.filter(
@@ -229,10 +231,13 @@ class AddQuizTypeView(View):
         activity = get_object_or_404(Activity, id=activity_id)
         quiz_types = QuizType.objects.all()  # Make sure "Document" is included here
         questions = request.session.get('questions', {}).get(str(activity_id), [])
+        total_points = sum(question.get('score', 0) for question in questions)
+
         return render(request, 'activity/question/createQuizType.html', {
             'activity': activity,
             'quiz_types': quiz_types,
-            'questions': questions
+            'questions': questions,
+            'total_points': total_points
         })
 
     def post(self, request, activity_id):
@@ -435,21 +440,33 @@ class UpdateQuestionView(View):
         question = questions[index]
         question['question_text'] = request.POST.get('question_text', '')
         question['score'] = float(request.POST.get('score', 0))
-        question['correct_answer'] = request.POST.get('correct_answer', '')
 
+        # Handle Multiple Choice (correct answer should be the index of the selected choice)
         if 'choices' in request.POST:
             question['choices'] = request.POST.getlist('choices')
+            
+            # Fetch the correct answer index from the form
+            correct_answer_index = request.POST.get('correct_answer', None)
+            if correct_answer_index is not None:
+                correct_answer_index = int(correct_answer_index) + 1 
+                if 0 <= correct_answer_index <= len(question['choices']):
+                    question['correct_answer'] = correct_answer_index
+
+        # For other types, handle correct answer normally
+        elif question['quiz_type'] not in ['Essay', 'Document']:
+            question['correct_answer'] = request.POST.get('correct_answer', '')
 
         # Update the specific question in the list
-        questions[index] = question  
-        
+        questions[index] = question
+
         # Update the session
         request.session['questions'][str(activity_id)] = questions
-        
-        # Force save the session to ensure it's persisted
+
+        # Ensure the session is saved
         request.session.modified = True
 
         return redirect('add_quiz_type', activity_id=activity_id)
+
     
 # Save all created questions
 @method_decorator(login_required, name='dispatch')
@@ -529,10 +546,15 @@ class DisplayQuestionsView(View):
             if question.quiz_type.name == 'Matching':
                 pairs = question.correct_answer.split(", ")
                 question.pairs = []
+                right_terms = []
                 for pair in pairs:
                     if '->' in pair:
                         left, right = pair.split(" -> ")
                         question.pairs.append({"left": left, "right": right})
+                        right_terms.append(right)
+
+                shuffle(right_terms)
+                question.shuffled_right_terms = right_terms
 
             # Handle Document type questions (teachers can see the document, students can upload)
             if question.quiz_type.name == 'Document':
@@ -600,33 +622,63 @@ class SubmitAnswersView(View):
                     all_questions_answered = False
 
             elif question.quiz_type.name == 'Matching':
-                matching_left = request.POST.getlist(f'matching_left_{question.id}')
-                matching_right = request.POST.getlist(f'matching_right_{question.id}')
+                matching_left = []
+                matching_right = []
+
+                correct_answer_pairs = []
+                correct_answer = question.correct_answer.split(", ")
+
+                for pair in correct_answer:
+                    if '->' in pair:
+                        left, right = pair.split(" -> ")
+                        correct_answer_pairs.append((normalize_text(left), normalize_text(right)))
+
+                for idx in range(len(correct_answer_pairs)):
+                    left = request.POST.get(f'matching_left_{question.id}_{idx}')
+                    right = request.POST.get(f'matching_right_{question.id}_{idx}')
+
+                    print(f"Matching Left for question {question.id}, pair {idx}: {left}")
+                    print(f"Matching Right for question {question.id}, pair {idx}: {right}")
+
+                    if left and right:
+                        matching_left.append(left)
+                        matching_right.append(right)
 
                 if matching_left and matching_right and len(matching_left) == len(matching_right):
                     student_answer = list(zip(matching_left, matching_right))
+                    print(f"Student answer for matching question {question.id}: {student_answer}")
                     student_question.student_answer = str(student_answer)
                     student_question.status = True
 
                     # Normalize the student's answer
                     normalized_student_answer = [(normalize_text(left), normalize_text(right)) for left, right in student_answer]
+                    print(f"Normalized student answer for question {question.id}: {normalized_student_answer}")
+                    print(f"Correct Answer (from DB) for question {question.id}: {correct_answer_pairs}")
+                    print(f"Student Answer (submitted) for question {question.id}: {normalized_student_answer}")
 
                     # Manually compare the correct answer to the student's answer
-                    correct_answer = question.correct_answer.split('->')
                     correct_answer_pairs = []
-                    for i in range(0, len(correct_answer), 2):
-                        if i + 1 < len(correct_answer):
-                            correct_answer_pairs.append((normalize_text(correct_answer[i]), normalize_text(correct_answer[i + 1])))
+                    correct_answer = question.correct_answer.split('->')
+                    for pair in correct_answer:
+                        if '->' in pair:
+                            left, right = pair.split(" -> ")
+                            correct_answer_pairs.append((normalize_text(left), normalize_text(right)))
+
+                    print(f"Correct answer pairs for question {question.id}: {correct_answer_pairs}")
 
                     if normalized_student_answer == correct_answer_pairs:
                         current_score = question.score
+                        print(f"Correct answer! Score for question {question.id}: {current_score}")
                     else:
                         current_score = 0
+                        print(f"Incorrect answer. Score for question {question.id}: {current_score}")
                 else:
+                    print(f"Question {question.id} not fully answered (matching).")
                     all_questions_answered = False
                     current_score = 0
             else:
                 if not answer and not student_question.student_answer:
+                    print(f"Question {question.id} not answered (other types).")
                     all_questions_answered = False
                     current_score = 0
                 else:

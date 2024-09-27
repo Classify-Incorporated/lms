@@ -106,13 +106,6 @@ def updateRole(request, pk):
     
     if request.method == 'POST':
         form = roleForm(request.POST, instance=role_obj)
-        
-        role_name = request.POST.get('name')
-        if Role.objects.filter(name__iexact=role_name).exclude(pk=pk).exists():  # Exclude the current role from the check
-            print(f"Role '{role_name}' already exists")
-            messages.error(request, f'The role "{role_name}" already exists. Please choose a different name.')
-            return redirect('roleList')
-        
         if form.is_valid():
             role = form.save()
             
@@ -130,7 +123,6 @@ def updateRole(request, pk):
     permissions = Permission.objects.filter(content_type__app_label__in=[
         'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles',
     ])
-
     structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
     for perm in permissions:
         action = perm.codename.split('_')[0]

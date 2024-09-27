@@ -46,3 +46,47 @@
 
 <!-- Custom Modal Backdrop -->
 <div id="customModalBackdrop" class="custom-modal-backdrop"></div>
+
+<!-- Flatpickr Library for Date Picking -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const disabledDates = {{ disabled_dates|safe }};  // List of unavailable start and end date tuples from backend
+
+    // Prepare disabled ranges for Flatpickr
+    const disableDateRanges = disabledDates.map(function(dates) {
+        const [start, end] = dates;
+        return { from: new Date(start), to: new Date(end) };
+    });
+
+    // Initialize Flatpickr for start date
+    const startDatePicker = flatpickr("#id_start_date", {
+        minDate: "today",  // Prevent past dates
+        disable: disableDateRanges,  // Disable unavailable date ranges
+        onChange: function(selectedDates, dateStr, instance) {
+            const startDate = selectedDates[0];  // Get the selected start date
+
+            // Check if the end date Flatpickr exists and reinitialize it to avoid any issues
+            if (endDatePicker) {
+                endDatePicker.destroy();  // Destroy the existing instance
+            }
+
+            // Reinitialize Flatpickr for the end date input with new `minDate`
+            endDatePicker = flatpickr("#id_end_date", {
+                minDate: startDate,  // Set minDate dynamically based on selected start date
+                disable: disableDateRanges,  // Disable unavailable date ranges
+                defaultDate: startDate,  // Optional: Set the default date for end date to start date for clarity
+            });
+        }
+    });
+
+    // Initialize Flatpickr for end date (initial state)
+    let endDatePicker = flatpickr("#id_end_date", {
+        disable: disableDateRanges,  // Disable unavailable date ranges
+        minDate: "today"  // Initially prevent past dates for end date
+    });
+});
+
+</script>

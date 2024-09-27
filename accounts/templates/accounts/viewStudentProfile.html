@@ -75,10 +75,6 @@
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item">
-                <a href="#">Home</a>
-              </li>
-              <li class="breadcrumb-item active">Student Profile</li>
             </ol>
           </div>
         </div>
@@ -104,9 +100,7 @@
                     <h6>{{ profile.user.email }}</h6>
                   </div>
                 </div>
-                {% if user.is_superuser %}
                   <button class="btn btn-secondary" id="editBtn"><i class="fas fa-edit"></i> Edit</button>
-                {% endif %}
               </div>
             </div>
 
@@ -138,7 +132,7 @@
                     </p>
                   </div>
                 </div>
-                {% if profile.role.name != "Teacher" %}
+                {% if profile.role.name|lower != "admin" and profile.role.name|lower != "teacher" and profile.role.name|lower != "registrar" %}
                 <div class="card mb-4">
                   <div class="card-header bg-success text-white">Academic Information</div>
                   <div class="card-body">
@@ -151,25 +145,6 @@
                   </div>
                 </div>
                 {% endif %}
-              </div>
-              <div class="col-md-4">
-                <div class="card mb-4">
-                  <div class="card-header bg-success text-white">System Settings</div>
-                  <div class="card-body">
-                    <p>
-                      <strong>Language:</strong> System Default (English (United States))
-                    </p>
-                    <p>
-                      <strong>Privacy Settings:</strong> Only instructors can view my profile information
-                    </p>
-                    <p>
-                      <strong>Global Notification Settings:</strong>
-                      <a href="#">Stream notifications</a><br />
-                      <a href="#">Email notifications</a><br />
-                      <a href="#">Push notifications</a>
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
           </main>

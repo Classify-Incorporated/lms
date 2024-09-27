@@ -4,6 +4,7 @@ from course.models import Semester
 from activity.models import Activity, ActivityQuestion, StudentActivity
 from accounts.models import CustomUser
 from logs.models import SubjectLog
+from module.models import Module
 
 def copy_activities_from_previous_semester(subject_id, old_semester_id, new_semester_id):
     subject = get_object_or_404(Subject, id=subject_id)
@@ -17,7 +18,15 @@ def copy_activities_from_previous_semester(subject_id, old_semester_id, new_seme
     print(f"Found {activities.count()} activities to copy from semester {old_semester.semester_name} to {new_semester.semester_name}")
 
     for activity in activities:
-        print(f"Copying activity: {activity.activity_name}")
+        if Activity.objects.filter(
+                subject=subject,
+                activity_name=activity.activity_name,
+                activity_type=activity.activity_type,
+                module=activity.module,  # Ensure the module is the same
+                term__semester=new_semester
+        ).exists():
+            print(f"Activity '{activity.activity_name}' already exists in the target semester '{new_semester.semester_name}', skipping.")
+            continue
 
         # Create the new activity
         new_activity = Activity.objects.create(

@@ -201,31 +201,37 @@
     </script>
 
     <script>
-    function displayToast(message, icon) {
-      Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: icon,
-        title: message,
-        showConfirmButton: false,
-        timer: 5000,
-      });
-    }
+      function displayToast(message, icon) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: icon,
+          title: message,
+          showConfirmButton: false,
+          timer: 5000,
+        });
+      }
 
-    {% if form.errors %}
-      {% for field in form %}
-        {% for error in field.errors %}
-          displayToast("{{ error }}", 'error');
+      // Check for form errors and display them with error icon
+      {% if form.errors %}
+        {% for field in form %}
+          {% for error in field.errors %}
+            displayToast("{{ error }}", 'error');  // Display form errors with 'error' icon
+          {% endfor %}
         {% endfor %}
-      {% endfor %}
-    {% endif %}
+      {% endif %}
 
-    {% if messages %}
-      {% for message in messages %}
-        displayToast("{{ message }}", 'success');
-      {% endfor %}
-    {% endif %}
-  </script>
+      // Check for Django messages and handle their type
+      {% if messages %}
+        {% for message in messages %}
+          {% if message.tags == 'error' %}
+            displayToast("{{ message }}", 'error');  // Display error messages
+          {% else %}
+            displayToast("{{ message }}", 'success');  // Display success or other messages
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    </script>
 
     <script>
     $(document).ready(function () {

@@ -4,7 +4,7 @@ from .views import (
     createModule, updateModule, viewModule, deleteModule, moduleList,
     progressList, module_progress,  detailModuleProgress, download_module,
     start_module_session, stop_module_session, copyLessons, check_lesson_exists,
-    update_module_order
+    update_module_order, file_validation_data
 )
 
 urlpatterns = [
@@ -17,6 +17,7 @@ urlpatterns = [
     path('progressList/', progressList, name='progressList'),
     path('detailProgress/module/<int:module_id>/', detailModuleProgress, name='detailModuleProgress'),
     path('download/<int:module_id>/', download_module, name='download'),
+    path('file_validation_data/', file_validation_data, name='file_validation_data'),
 
     path('start_module_session/', start_module_session, name='start_module_session'),
     path('stop_module_session/', stop_module_session, name='stop_module_session'),

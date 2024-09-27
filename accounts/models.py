@@ -15,6 +15,12 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
 
+    def __str__(self):
+        # Return full name if available, otherwise return the username
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        return self.username
+
     def has_perm(self, perm, obj=None):
         if super().has_perm(perm, obj):
             return True

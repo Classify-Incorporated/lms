@@ -6,7 +6,6 @@ from roles.models import Role
 from module.models import Module
 from activity.models import Activity ,StudentQuestion, ActivityQuestion
 from django.views import View
-import json
 from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
 from django.utils import timezone
@@ -23,6 +22,8 @@ from .utils import copy_activities_from_previous_semester
 from datetime import date
 from collections import defaultdict
 from django.http import JsonResponse
+from django.utils.dateformat import DateFormat
+from datetime import datetime
 
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
@@ -227,7 +228,9 @@ def subjectDetail(request, pk):
         )
 
         # Adjusted module visibility logic
-        modules = Module.objects.filter(subject=subject, term__semester=selected_semester).order_by('order')
+        modules = Module.objects.filter(subject=subject, term__semester=selected_semester).exclude(
+            Q(term__isnull=True) | Q(start_date__isnull=True) | Q(end_date__isnull=True)
+            ).order_by('order')
         visible_modules = []
 
         for module in modules:
@@ -237,7 +240,9 @@ def subjectDetail(request, pk):
         modules = Module.objects.filter( Q(term__semester=selected_semester) |
         Q(term__isnull=True, start_date__isnull=True, end_date__isnull=True),
         subject=subject).order_by('order')
+
         activities = Activity.objects.filter(subject=subject, term__in=terms)
+
         finished_activities = activities.filter(
             end_time__lte=timezone.localtime(timezone.now())
         )
@@ -281,6 +286,7 @@ def subjectDetail(request, pk):
     # Attach activities to each module directly in the context
     for module in modules:
         module.activities = activities_by_module[module.id]
+        module.red_flag = not module.term or not module.start_date or not module.end_date
 
     form = moduleForm()
 
@@ -537,38 +543,152 @@ def semesterList(request):
 @login_required
 @permission_required('course.add_semester', raise_exception=True)
 def createSemester(request):
+    # Fetch all unavailable date ranges (start and end dates) for frontend validation
+    unavailable_dates = Semester.objects.values_list('start_date', 'end_date')
+    unavailable_dates_formatted = [
+        (DateFormat(start).format('Y-m-d'), DateFormat(end).format('Y-m-d')) 
+        for start, end in unavailable_dates
+    ]
+
+    errors = []  # Initialize an empty list to store error messages
+
     if request.method == 'POST':
         form = semesterForm(request.POST)
-        if form.is_valid():
+
+        # Extract start_date and end_date directly from POST data
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        school_year = request.POST.get('school_year')
+
+        # Check if start_date or end_date is missing
+        if not start_date or not end_date:
+            errors.append("Both start and end dates are required.")
+        else:
+            # Convert the date strings to proper date objects for comparison
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            except ValueError:
+                errors.append("Invalid date format. Please enter dates in 'YYYY-MM-DD' format.")
+
+            if start_date and end_date:
+                # Check if the start date is after or equal to the end date
+                if start_date >= end_date:
+                    errors.append("End date must be after the start date.")
+
+                # Check for overlapping semesters within the same school year
+                overlapping_semesters = Semester.objects.filter(
+                    school_year=school_year,
+                    start_date__lt=end_date,  # Existing semester starts before the new semester ends
+                    end_date__gt=start_date   # Existing semester ends after the new semester starts
+                )
+
+                if overlapping_semesters.exists():
+                    errors.append("The selected dates overlap with an existing semester.")
+
+        # If no custom validation errors, proceed with form validation
+        if not errors and form.is_valid():
             form.save()
             messages.success(request, 'Semester created successfully!')
             return redirect('semesterList')
         else:
-            messages.error(request, 'There was an error creating the semester. Please try again.')
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+            else:
+                messages.error(request, 'There was an error creating the semester. Please try again.')
+
+            return redirect('semesterList')  # Single redirect after all error handling
+
     else:
         form = semesterForm()
+
     return render(request, 'course/semester/createSemester.html', {
         'form': form,
+        'disabled_dates': unavailable_dates_formatted  # Pass the formatted unavailable dates to the template for JS
     })
+
 
 # Update Semester
 @login_required
 @permission_required('course.change_semester', raise_exception=True)
 def updateSemester(request, pk):
     semester = get_object_or_404(Semester, pk=pk)
+
+    # Fetch all unavailable date ranges (excluding the current semester being updated)
+    unavailable_dates = Semester.objects.exclude(pk=pk).values_list('start_date', 'end_date')
+    unavailable_dates_formatted = [
+        (DateFormat(start).format('Y-m-d'), DateFormat(end).format('Y-m-d')) 
+        for start, end in unavailable_dates
+    ]
+
+    errors = []  # Initialize an empty list to store custom error messages
+
     if request.method == 'POST':
         form = semesterForm(request.POST, instance=semester)
-        if form.is_valid():
+
+        # Extract start_date and end_date directly from POST data
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        school_year = request.POST.get('school_year')
+
+        # Check if start_date or end_date is missing
+        if not start_date or not end_date:
+            errors.append("Both start and end dates are required.")
+        else:
+            # Convert the date strings to proper date objects for comparison
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            except ValueError:
+                errors.append("Invalid date format. Please enter dates in 'YYYY-MM-DD' format.")
+
+            if start_date and end_date:
+                # Check if the start date is after or equal to the end date
+                if start_date >= end_date:
+                    errors.append("End date must be after the start date.")
+
+                # Check for overlapping semesters within the same school year
+                overlapping_semesters = Semester.objects.filter(
+                    school_year=school_year,
+                    start_date__lt=end_date,  # Existing semester starts before the new semester ends
+                    end_date__gt=start_date   # Existing semester ends after the new semester starts
+                ).exclude(pk=semester.pk)  # Exclude the current semester from the overlap check
+
+                if overlapping_semesters.exists():
+                    errors.append("The selected dates overlap with an existing semester.")
+
+        # If no custom validation errors, proceed with form validation
+        if not errors and form.is_valid():
             form.save()
             messages.success(request, 'Semester updated successfully!')
             return redirect('semesterList')
         else:
-            messages.error(request, 'There was an error updating the semester. Please try again.')
+            # Add custom errors to the Django messages framework
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+            else:
+                messages.error(request, 'There was an error updating the semester. Please try again.')
+            
+            return redirect('semesterList')
+
     else:
         form = semesterForm(instance=semester)
+
     return render(request, 'course/semester/updateSemester.html', {
-        'form': form, 'semester': semester
+        'form': form,
+        'semester': semester,
+        'disabled_dates': unavailable_dates_formatted  # Pass the formatted unavailable dates to the template for JS
     })
+
+@login_required
+@permission_required('course.delete_semester', raise_exception=True)
+def delete_semester(request, pk):
+    semester = get_object_or_404(Semester, pk=pk)
+    semester.delete()
+    messages.success(request, 'Semester deleted successfully!')
+    return redirect('semesterList')
 
 @login_required
 def endSemester(request, pk):
@@ -648,14 +768,53 @@ def termList(request):
 def createTerm(request):
     if request.method == 'POST':
         form = termForm(request.POST)
-        if form.is_valid():
+
+        semester = request.POST.get('semester')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+
+        errors = []
+
+        # Check if start_date or end_date is missing
+        if not start_date or not end_date:
+            errors.append("Both start and end dates are required.")
+        else:
+            # Convert the date strings to proper date objects for comparison
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            except ValueError:
+                errors.append("Invalid date format. Please enter dates in 'YYYY-MM-DD' format.")
+
+            if start_date and end_date:
+                # Check if the start date is after or equal to the end date
+                if start_date >= end_date:
+                    errors.append("End date must be after the start date.")
+
+                # Check for overlapping semesters within the same school year
+                overlapping_semesters = Term.objects.filter(
+                    semester= semester,
+                    start_date__lt=end_date,  # Existing semester starts before the new semester ends
+                    end_date__gt=start_date   # Existing semester ends after the new semester starts
+                )
+
+                if overlapping_semesters.exists():
+                    errors.append("The selected dates overlap with an existing term.")
+                    
+        if not errors and form.is_valid():
             term = form.save(commit=False)
             term.created_by = request.user  
             term.save()
             messages.success(request, 'Term created successfully!')
             return redirect('termList')
         else:
-            messages.error(request, 'There was an error creating the term. Please try again.')
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+            else:
+                messages.error(request, 'There was an error creating the term. Please try again.')
+            return redirect('termList')
+            
     else:
         form = termForm()
     return render(request, 'course/term/createTerm.html', {
@@ -670,12 +829,50 @@ def updateTerm(request, pk):
 
     if request.method == 'POST':
         form = termForm(request.POST, instance=term)
-        if form.is_valid():
+
+        semester = request.POST.get('semester')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+
+        errors = []
+
+        # Check if start_date or end_date is missing
+        if not start_date or not end_date:
+            errors.append("Both start and end dates are required.")
+        else:
+            # Convert the date strings to proper date objects for comparison
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            except ValueError:
+                errors.append("Invalid date format. Please enter dates in 'YYYY-MM-DD' format.")
+
+            if start_date and end_date:
+                # Check if the start date is after or equal to the end date
+                if start_date >= end_date:
+                    errors.append("End date must be after the start date.")
+
+                # Check for overlapping semesters within the same school year
+                overlapping_semesters = Term.objects.filter(
+                    semester= semester,
+                    start_date__lt=end_date,  # Existing semester starts before the new semester ends
+                    end_date__gt=start_date   # Existing semester ends after the new semester starts
+                ).exclude(pk=term.pk)  # Exclude the current semester from the overlap check
+
+                if overlapping_semesters.exists():
+                    errors.append("The selected dates overlap with an existing term.")
+
+        if not errors and form.is_valid():
             form.save()
             messages.success(request, 'Term updated successfully!')
             return redirect('termList')
         else:
-            messages.error(request, 'There was an error updating the term. Please try again.')
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+            else:
+                messages.error(request, 'There was an error creating the term. Please try again.')
+            return redirect('termList')
     else:
         form = termForm(instance=term)
         
@@ -684,6 +881,12 @@ def updateTerm(request, pk):
         'term': term
     })
 
+@login_required
+def deleteTerm(request, pk):
+    term = get_object_or_404(Term, pk=pk)
+    term.delete()
+    messages.success(request, 'Term deleted successfully!')
+    return redirect('termList')
 
 # Participation Scores
 @login_required
@@ -715,14 +918,17 @@ class CopyActivitiesView(View):
 
     def post(self, request, subject_id):
         try:
-            print("POST request received")
             subject = get_object_or_404(Subject, id=subject_id)
             from_semester_id = request.POST.get('from_semester')
             to_semester_id = request.POST.get('to_semester')
 
-            print(f"From semester: {from_semester_id}, To semester: {to_semester_id}")
 
             if from_semester_id and to_semester_id:
+
+                if from_semester_id == to_semester_id:
+                    messages.error(request, "You cannot copy activities to the same semester.")
+                    return redirect('subjectDetail', pk=subject_id)
+                
                 result = copy_activities_from_previous_semester(subject_id, from_semester_id, to_semester_id)
                 messages.success(request, result)
             else:
@@ -731,6 +937,6 @@ class CopyActivitiesView(View):
             return redirect('subjectDetail', pk=subject_id)
 
         except Exception as e:
-            print(f"Error: {str(e)}")
-            messages.error(request, "An error occurred while processing your request.")
+            print(f"Error: {e}")
+            messages.error(request, "An error occurred while processing your request. : {e}")
             return redirect('subjectDetail', pk=subject_id)

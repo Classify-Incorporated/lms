@@ -54,7 +54,7 @@
                             <form method="post" action="{% url 'deleteActivity' activity.id %}" class="d-inline">
                               {% csrf_token %}
                               <button type="submit" class="dropdown-item" onclick="return confirm('Are you sure you want to delete this activity?');">
-                                <i class="fas fa-power-off"></i> Delete
+                                <i class="fas fa-trash"></i> Delete
                               </button>
                             </form>
                           </div>

@@ -13,6 +13,7 @@ from django.utils import timezone
 from course.models import Semester
 from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponse
+from course.models import Term
 # Create your views here.
 
 #Module List
@@ -22,6 +23,15 @@ def moduleList(request):
     modules = Module.objects.all()
     return render(request, 'module/module.html',{'modules': modules})
 
+@login_required
+@permission_required('module.add_module', raise_exception=True)
+def file_validation_data(request):
+    validation_data = {
+        'allowed_extensions': ['pdf', 'jpg', 'jpeg', 'png', 'mp4', 'avi', 'mov', 'wmv'],
+        'max_file_size_mb': 25  # Maximum file size in MB
+    }
+    return JsonResponse(validation_data)
+
 #Create Module
 @login_required
 @permission_required('module.add_module', raise_exception=True)
@@ -30,24 +40,70 @@ def createModule(request, subject_id):
     
     now = timezone.localtime(timezone.now())
     current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
-    
+
     if request.method == 'POST':
         form = moduleForm(request.POST, request.FILES, current_semester=current_semester)
-        if form.is_valid():
-            module = form.save(commit=False)
-            module.subject = subject
-            module.save()
-            
-            form.save_m2m()  # Save many-to-many data for selected users
 
-            messages.success(request, 'Module created successfully!')
+        file_name = request.POST.get('file_name')
+        term_id  = request.POST.get('term')
+        file = request.FILES.get('file')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+
+        has_errors = False
+
+        if file_name and term_id:
+            try:
+                term = Term.objects.get(id=term_id)
+                existing_module = Module.objects.filter(
+                    subject=subject,
+                    term__semester=term.semester,
+                    file_name=file_name
+                ).exists()
+
+                if existing_module:
+                    messages.error(request, f"A module with the name '{file_name}' already exists in this semester.")
+                    has_errors = True
+                
+            except Term.DoesNotExist:
+                messages.error(request, "Invalid term selected.")
+                has_errors = True
+        
+        # Check if file is provided
+        if not term_id:
+            messages.error(request, "Please select a term.")
+            has_errors = True
+
+        # Check if file is provided
+        if not file:
+            messages.error(request, "Please upload a valid file.")
+            has_errors = True
+        
+        # Validate start_date and end_date
+        if not start_date or not end_date:
+            messages.error(request, "Please provide both start and end dates.")
+            has_errors = True
+        elif start_date and end_date:
+            if start_date >= end_date:
+                messages.error(request, "End date must be after the start date.")
+                has_errors = True
+                
+        if has_errors or not form.is_valid():
             return redirect('subjectDetail', pk=subject_id)
-        else:
-            messages.error(request, 'There was an error creating the module. Please try again.')
+        
+        module = form.save(commit=False)
+        module.subject = subject
+        module.save()
+            
+        form.save_m2m()  # Save many-to-many data for selected users
+
+        messages.success(request, 'Module created successfully!')
+        return redirect('subjectDetail', pk=subject_id)
     else:
         form = moduleForm(current_semester=current_semester, subject=subject)
 
     return render(request, 'module/createModule.html', {'form': form, 'subject': subject})
+
 
 #Modify Module
 @login_required
@@ -61,12 +117,63 @@ def updateModule(request, pk):
 
     if request.method == 'POST':
         form = moduleForm(request.POST, request.FILES, instance=module, current_semester=current_semester)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Module updated successfully!')
+
+        file_name = request.POST.get('file_name')
+        term_id  = request.POST.get('term')
+        file = request.FILES.get('file')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+
+        has_errors = False
+
+        if file_name and term_id:
+            try:
+                term = Term.objects.get(id=term_id)
+                existing_module = Module.objects.filter(
+                    subject=subject_id,
+                    term__semester=term.semester,
+                    file_name=file_name
+                ).exclude(pk=module.pk).exists()
+
+                if existing_module:
+                    messages.error(request, f"A module with the name '{file_name}' already exists in this semester.")
+                    has_errors = True
+                
+            except Term.DoesNotExist:
+                messages.error(request, "Invalid term selected.")
+                has_errors = True
+        
+        # Check if file is provided
+        if not term_id:
+            messages.error(request, "Please select a term.")
+            has_errors = True
+
+        # Check if file is provided
+        if not file and not module.file:
+            messages.error(request, "Please upload a valid file.")
+            has_errors = True
+        
+        # Validate start_date and end_date
+        if not start_date or not end_date:
+            messages.error(request, "Please provide both start and end dates.")
+            has_errors = True
+
+        elif start_date and end_date:
+            if start_date >= end_date:
+                messages.error(request, "End date must be after the start date.")
+                has_errors = True
+                
+        if has_errors or not form.is_valid():
             return redirect('subjectDetail', pk=subject_id)
-        else:
-            messages.error(request, 'There was an error updating the module. Please try again.')
+        
+        module = form.save(commit=False)
+        module.subject = module.subject 
+        module.save()
+
+        form.save_m2m() 
+
+        messages.success(request, 'Module updated successfully!')
+        return redirect('subjectDetail', pk=subject_id)
     else:
         form = moduleForm(instance=module, current_semester=current_semester)
 
@@ -155,7 +262,7 @@ def start_module_session(request):
         request.session['is_active'] = True  # Mark session as active
         return JsonResponse({'status': 'session started'})
     
-    
+
 @login_required
 def stop_module_session(request):
     """
@@ -262,10 +369,31 @@ def copyLessons(request, subject_id):
     # Handle form submission
     if request.method == 'POST':
         form = CopyLessonForm(request.POST, subject=subject, current_semester=current_semester)
+        selected_module_ids = request.POST.getlist('selected_modules')
+        print(f"Selected modules IDs: {selected_module_ids}")
+
+        if not selected_module_ids:
+            messages.error(request, 'No lessons were selected for copying. Please select at least one lesson.')
+            return redirect('subjectDetail', pk=subject.id)
+        
         if form.is_valid():
             selected_modules = form.cleaned_data['selected_modules']
+            print(f"Selected modules: {selected_modules}")
 
             for module in selected_modules:
+                existing_module = Module.objects.filter(
+                    subject=subject,
+                    file_name=module.file_name,
+                    term__semester=current_semester
+                ).exists()
+
+                print(f"Checking if module '{module.file_name}' already exists: {existing_module}")
+
+                if existing_module:
+                    print(f"Module '{module.file_name}' already exists for the current semester, skipping duplication.")
+                    continue
+
+                print(f"Duplicating module: {module.file_name}")
                 # Duplicate the module and assign it to the new semester
                 new_module = Module.objects.create(
                     file_name=module.file_name,
@@ -273,10 +401,11 @@ def copyLessons(request, subject_id):
                     subject=module.subject,
                     url=module.url,
                     description=module.description,
-                    allow_download=module.allow_download,
-                )
+                    )
                 new_module.display_lesson_for_selected_users.set(module.display_lesson_for_selected_users.all())
                 new_module.save()
+
+                print(f"Module '{module.file_name}' duplicated successfully")
 
             messages.success(request, 'Selected lessons have been copied successfully!')
             return redirect('subjectDetail', pk=subject.id)
