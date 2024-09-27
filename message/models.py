@@ -8,7 +8,6 @@ class Message(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sent_messages', on_delete=models.CASCADE)
     recipients = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='received_messages')
     timestamp = models.DateTimeField(auto_now_add=True)
-    is_trashed = models.BooleanField(default=False)
     parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -27,6 +26,9 @@ class Message(models.Model):
             unread_status.created_at = timezone.now()  # Keep the timestamp but update it
             unread_status.save()
 
+    def is_trashed_by_user(self, user):
+        """Check if this message is trashed by the specified user."""
+        return MessageTrashStatus.objects.filter(user=user, message=self, is_trashed=True).exists()
 
 class MessageReadStatus(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -44,3 +46,13 @@ class MessageUnreadStatus(models.Model):
 
     def __str__(self):
         return f"Unread by {self.user} - {self.message.subject}"
+
+
+class MessageTrashStatus(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    is_trashed = models.BooleanField(default=False)
+    trashed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user} - {'Trashed' if self.is_trashed else 'Not Trashed'} - {self.message.subject}"
