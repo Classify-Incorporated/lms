@@ -5,6 +5,7 @@ Edit Question
 {% endblock %}
 
 {% block content %}
+<div class="content-wrapper">
 <h1>Edit Question for {{ activity.activity_name }}</h1>
 
 <form method="post">
@@ -36,7 +37,7 @@ Edit Question
                 <option value="False" {% if question.correct_answer == 'False' %}selected{% endif %}>False</option>
             </select>
         </div>
-    {% elif question.quiz_type != 'Essay' %}
+    {% elif question.quiz_type == 'Essay' or question.quiz_type == 'Document' %}
         <div class="form-group">
             <label for="correct_answer">Correct Answer:</label>
             <input type="text" id="correct_answer" name="correct_answer" class="form-control" value="{{ question.correct_answer }}" required>
@@ -44,7 +45,7 @@ Edit Question
     {% endif %}
     <button type="submit" class="btn btn-primary">Update Question</button>
 </form>
-
+</div>
 <script>
 function addChoice() {
     const choiceInput = document.createElement('input');

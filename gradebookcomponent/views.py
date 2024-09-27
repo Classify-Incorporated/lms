@@ -32,8 +32,27 @@ def viewGradeBookComponents(request):
             ).distinct()
     else:
         gradebookcomponents = GradeBookComponents.objects.none()  # No current semester found
+
+    grouped_components = {}
+    subject_totals = {}
+
+    for component in gradebookcomponents:
+        subject = component.subject
+        if subject not in grouped_components:
+            grouped_components[subject] = []
+            subject_totals[subject] = Decimal(0)
+        grouped_components[subject].append(component)
+        subject_totals[subject] += component.percentage
+
+    for subject, total_percentage in subject_totals.items():
+        print(f"Subject: {subject}, Total Percentage: {total_percentage}%")
+        
+    context = {
+        'grouped_components': grouped_components,
+        'subject_totals': subject_totals,
+    }
     
-    return render(request, 'gradebookcomponent/gradebook/gradeBook.html', {'gradebookcomponents': gradebookcomponents})
+    return render(request, 'gradebookcomponent/gradebook/gradeBook.html', context)
 
 
 #Create GradeBookComponents
@@ -46,6 +65,7 @@ def createGradeBookComponents(request):
         subject = request.POST.get('subject')
         activity_type = request.POST.get('activity_type')
         percentage = request.POST.get('percentage')
+
         try:
             subject = Subject.objects.get(id=subject)
             activity_type = ActivityType.objects.get(id=activity_type)
@@ -65,7 +85,7 @@ def createGradeBookComponents(request):
 
             if total_percentage > 100:
                 raise ValueError(
-                    f"The total percentage for {subject.subject_name} exceeds 100%. You currently have {existing_percentage}%, and adding this will result in {total_percentage}%."
+                    f"The total percentage for {subject.subject_name} exceeds 100%."
                 )
                 
         except Subject.DoesNotExist:
@@ -103,6 +123,58 @@ def createGradeBookComponents(request):
 def copyGradeBookComponents(request):
     if request.method == 'POST':
         form = CopyGradeBookForm(request.POST, user=request.user)
+
+        source_subject_id  = request.POST.get('copy_from_subject')
+        target_subject_ids  = request.POST.get('subject')
+
+        source_subject = Subject.objects.get(id=source_subject_id)
+        target_subjects = Subject.objects.filter(id__in=target_subject_ids)
+
+        errors_found = False
+
+        if any(target_subject.id == source_subject.id for target_subject in target_subjects):
+            messages.error(request, 'The source subject cannot be the same as any of the target subjects.')
+            errors_found = True
+
+        if source_subject and target_subjects:
+            components_to_copy = GradeBookComponents.objects.filter(subject=source_subject, teacher=request.user)
+            
+
+            if not components_to_copy.exists():
+                messages.error(request, 'No components found to copy from the selected subject.')
+                errors_found = True
+
+            all_components_exist = True
+
+            for target_subject in target_subjects:
+                for component in components_to_copy:
+                    if not GradeBookComponents.objects.filter(
+                        subject=target_subject,
+                        teacher=request.user,
+                        activity_type=component.activity_type,
+                        category_name=component.category_name
+                    ).exists():
+                        # Copy the component if it doesn't exist in the target subject
+                        GradeBookComponents.objects.create(
+                            teacher=request.user,
+                            subject=target_subject,
+                            activity_type=component.activity_type,
+                            category_name=component.category_name,
+                            percentage=component.percentage,
+                        )
+                        all_components_exist = False
+                    else:
+                        # Provide feedback for existing components, but continue the process
+                        messages.warning(request, f"Component '{component.activity_type} - {component.category_name}' already exists in {target_subject}.")
+            
+            # If all components exist, display a message and redirect
+            if all_components_exist:
+                messages.error(request, 'All gradebook components already exist in the target subjects.')
+                errors_found = True
+
+            if errors_found:
+                return redirect('viewGradeBookComponents')
+            
         if form.is_valid():
             source_subject = form.cleaned_data['copy_from_subject']
             target_subjects = form.cleaned_data['subject']
@@ -164,7 +236,7 @@ def updateGradeBookComponents(request, pk):
 
             if total_percentage > 100:
                 raise ValueError(
-                    f"The total percentage for {subject.subject_name} exceeds 100%. You currently have {existing_percentage}%, and adding this will result in {total_percentage}%."
+                    f"The total percentage for {subject.subject_name} exceeds 100%."
                 )
 
         except Subject.DoesNotExist:

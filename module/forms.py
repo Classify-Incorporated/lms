@@ -23,7 +23,11 @@ class moduleForm(forms.ModelForm):
                 'title': 'Select Term'
             }),
             'display_lesson_for_selected_users': forms.SelectMultiple(
-                attrs={'class': 'selectpicker form-control', 'data-live-search': 'true', 'data-actions-box': 'true'}
+                attrs={'class': 'selectpicker form-control',
+                    'data-live-search': 'true',
+                    'data-actions-box': 'true',
+                    'data-style': 'btn-outline-secondary',
+                    'title': 'Select a student',}
             ),
             'allow_download': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'start_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
@@ -36,7 +40,13 @@ class moduleForm(forms.ModelForm):
         queryset=get_user_model().objects.filter(profile__role__name__iexact='Student'),
         required=False,
         widget=forms.SelectMultiple(
-            attrs={'class': 'selectpicker form-control', 'data-live-search': 'true', 'data-actions-box': 'true', 'data-style': 'btn-outline-secondary'}
+            attrs={'class': 'selectpicker form-control',
+                    'data-live-search': 'true',
+                    'data-actions-box': 'true', 
+                    'data-style': 'btn-outline-secondary',
+                    'data-style': 'btn-outline-secondary',
+                    'title': 'Select a student',
+                    }
         ),
     )
 
@@ -64,33 +74,6 @@ class moduleForm(forms.ModelForm):
             self.fields['display_lesson_for_selected_users'].queryset = enrolled_students
 
         self.subject = subject
-
-    def clean(self):
-        cleaned_data = super().clean()
-        term = cleaned_data.get('term')
-        file_name = cleaned_data.get('file_name')
-        file = cleaned_data.get('file')
-
-        if not term:
-            raise ValidationError("The term field is required.")
-        if not file_name:
-            raise ValidationError("The file name is required.")
-        if not file:
-            raise ValidationError("The file is required.")
-
-        # Ensure both term and file_name exist
-        if term and file_name:
-            # Check for duplication in the current semester
-            existing_module = Module.objects.filter(
-                subject=self.subject,
-                term__semester=term.semester,  # Ensure it's in the same semester
-                file_name=file_name
-            ).exists()
-
-            if existing_module:
-                raise ValidationError(f"A lesson with the name '{file_name}' already exists in the current semester.")
-
-        return cleaned_data
 
 
 class CopyLessonForm(forms.Form):

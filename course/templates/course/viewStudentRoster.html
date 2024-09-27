@@ -37,7 +37,7 @@
                             {% if student.profile.student_photo %}
                               <img src="{{ student.profile.student_photo.url }}" class="rounded-image" alt="Student" />
                             {% else %}
-                              <img src="{% static 'images/default-profile.jpg' %}" class="rounded-image" alt="Student" />
+                              <img src="https://via.placeholder.com/100" alt="Profile Picture" class="rounded-image" />
                             {% endif %}
                             {{ student.profile.first_name }} {{ student.profile.last_name }}
                           </td>

@@ -82,9 +82,17 @@
                     <label>Match the pairs:</label>
                     {% for pair in question.pairs %}
                       <div class="input-group mb-3">
+                        <!-- Left side -->
                         <input type="text" class="form-control" value="{{ pair.left }}" readonly />
-                        <input type="text" name="matching_right_{{ question.id }}" class="form-control" placeholder="Match for {{ pair.left }}" {% if not can_retake %}disabled{% endif %} />
-                        <input type="hidden" name="matching_left_{{ question.id }}" value="{{ pair.left }}" />
+                        
+                        <!-- Dropdown for right-side matching -->
+                        <select name="matching_right_{{ question.id }}_{{ forloop.counter0 }}" class="form-control" required>
+                          <option value="" disabled selected>Select a match</option>
+                          {% for right_term in question.shuffled_right_terms %}
+                            <option value="{{ right_term }}">{{ right_term }}</option>
+                          {% endfor %}
+                        </select>
+                        <input type="hidden" name="matching_left_{{ question.id }}_{{ forloop.counter0 }}" value="{{ pair.left }}" />
                       </div>
                     {% endfor %}
                   </div>

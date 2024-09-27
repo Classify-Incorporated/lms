@@ -4,7 +4,7 @@ from .views import (
     enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,endSemester,
     previousSemestersView, createTerm,termList,updateTerm,subjectFinishedActivities, selectParticipation,
     enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, CopyActivitiesView, termActivitiesGraph,
-    displayActivitiesForTerm
+    displayActivitiesForTerm, delete_semester, deleteTerm
 )
 
 urlpatterns = [
@@ -24,6 +24,7 @@ urlpatterns = [
     path('createSemester/', createSemester, name='createSemester'),
     path('updateSemester/<int:pk>/', updateSemester, name='updateSemester'),
     path('semesterList/', semesterList, name='semesterList'),
+    path('delete_semester/<int:pk>/', delete_semester, name='delete_semester'),
     path('endSemester/<int:pk>/', endSemester, name='endSemester'),
 
     path('previousSemestersView/', previousSemestersView, name='previousSemestersView'),
@@ -31,6 +32,7 @@ urlpatterns = [
     # Term Crud
     path('createTerm/', createTerm, name='createTerm'),
     path('updateTerm/<int:pk>/', updateTerm, name='updateTerm'),
+    path('deleteTerm/<int:pk>/', deleteTerm, name='deleteTerm'),
     path('termList/', termList, name='termList'),
     path('displayActivitiesForTerm/<int:term_id>/<str:activity_type>/<int:subject_id>/', displayActivitiesForTerm, name='displayActivitiesForTerm'),
 

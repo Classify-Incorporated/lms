@@ -238,7 +238,7 @@
 
 
             {% if user|has_perm:'accounts.view_profile' %}
-              {% if user.profile.role.name|lower == 'admin' or user.is_superuser or user.is_staff %}
+              {% if user.profile.role.name|lower == 'admin' or user.profile.role.name|lower == 'registrar' or user.is_superuser or user.is_staff %}
                 <li class="nav-item">
                   <a href="{% url 'student' %}" class="nav-link d-flex align-items-center">
                     <i class="bx bx-circle nav-icon mr-2"></i>
@@ -250,7 +250,7 @@
 
 
             {% if user|has_perm:'accounts.view_profile' %}
-              {% if user.profile.role.name|lower == 'admin' or user.is_superuser or user.is_staff %}
+              {% if user.profile.role.name|lower == 'admin' or user.profile.role.name|lower == 'registrar' or user.is_superuser or user.is_staff %}
                 <li class="nav-item">
                   <a href="{% url 'staff_list' %}" class="nav-link d-flex align-items-center">
                     <i class="bx bx-circle nav-icon mr-2"></i>
