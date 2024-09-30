@@ -95,7 +95,9 @@
     
                 // Clear existing dynamic headers before adding new ones
                 termHeaders.find('th').not(':first, :nth-child(2), :last').remove();
-    
+                
+                
+                
                 if (data && data.student_data) {
                     // Extract and create term headers dynamically based on the first student's subjects
                     const firstStudentSubjects = Object.values(data.student_data)[0];
@@ -104,7 +106,10 @@
                     terms.forEach(term => {
                         termHeaders.find('th:last').before(`<th>${term}</th>`);
                     });
-    
+
+                    if (isTeacher){
+                    termHeaders.find('th:last').before(`<th>Total Term Weighted Score</th>`);
+                }
                     // Populate the student and subject rows
                     Object.keys(data.student_data).forEach(function(studentId) {
                         const studentSubjects = data.student_data[studentId];
@@ -133,8 +138,22 @@
                             });
     
                             // Add the total weighted grade
-                            const totalWeightedGrade = parseFloat(data.student_total_weighted_grade[studentId][subjectName]);
-                            studentRow.append(`<td>${totalWeightedGrade.toFixed(2)} (${calculateGrade(totalWeightedGrade)})</td>`);
+                            if (data.student_total_weighted_grade && data.student_total_weighted_grade[studentId] && data.student_total_weighted_grade[studentId][subjectName]) {
+                                const totalWeightedGrade = parseFloat(data.student_total_weighted_grade[studentId][subjectName]);
+                                studentRow.append(`<td> ${totalWeightedGrade.toFixed(2)} (${calculateGrade(totalWeightedGrade)})</td>`);
+                            } else {
+                                studentRow.append('<td>N/A</td>');
+                            }
+
+                            if (isTeacher) {
+                                const canViewGrade = subjectData[0].can_view_grade;
+                                studentRow.append(`<td>
+                                    <input type="checkbox" class="grade-visibility-checkbox" 
+                                    data-student-id="${studentId}" data-subject-id="${subjectId}" 
+                                    ${canViewGrade ? 'checked' : ''} 
+                                    onclick="toggleGradeVisibility(${studentId}, ${subjectId}, this.checked)">
+                                </td>`);
+                            }
     
                             scoresTableBody.append(studentRow);
                         });

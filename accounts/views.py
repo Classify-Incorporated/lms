@@ -85,6 +85,7 @@ def viewProfile(request, pk):
     else:
         return render(request, 'accounts/viewStudentProfile.html', {'profile': profile})
 
+
 @login_required
 @permission_required('accounts.change_profile', raise_exception=True)
 def updateProfile(request, pk):
@@ -262,6 +263,8 @@ def dashboard(request):
         'articles': articles,
         'greeting': greeting,
         'user_name': user.first_name or user.username,  # Use the first name or username
+        'is_teacher': is_teacher,
+        'is_student': is_student,
     }
 
     return render(request, 'accounts/dashboard.html', context)

@@ -53,12 +53,15 @@
           {% else %}
 
         {% if not has_answered %}
+        <div class="alert alert-warning">
+          <h4>Time Remaining: <span id="timer"></span></h4>
+        </div>
           <!-- Display interactive form for students to answer the questions -->
-          <form method="post" action="{% url 'submit_answers' activity.id %}" enctype="multipart/form-data">
+          <form method="post" action="{% url 'submit_answers' activity.id %}" enctype="multipart/form-data" id="activity-form">
             {% csrf_token %}
             {% for question in questions %}
               <div class="form-group">
-                <label>{{ forloop.counter }}. {{ question.question_text }}</label>
+                <label>{{ forloop.counter }}. {{ question.question_text }}  <span class="text-muted">(Max Score: {{ question.score }})</span></label>
                 {% if question.quiz_type.name == 'Multiple Choice' %}
                   {% for choice in question.choices.all %}
                     <div class="form-check">
@@ -127,5 +130,38 @@
       </div>
     </section>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Time in seconds from the backend
+      var timeRemaining = Math.floor({{ time_remaining }}); // Rounding down to the nearest second
+      var timerElement = document.getElementById('timer');
+    
+      function updateTimer() {
+        var minutes = Math.floor(timeRemaining / 60);
+        var seconds = timeRemaining % 60;
+    
+        // Ensure seconds are always displayed as two digits
+        var formattedSeconds = seconds < 10 ? '0' + seconds : seconds;
+    
+        // Display the timer in MM:SS format
+        timerElement.textContent = `${minutes}:${formattedSeconds}`;
+    
+        if (timeRemaining > 0) {
+          timeRemaining--;
+        } else {
+          // Auto-submit the form when time is up
+          document.getElementById('activity-form').submit();
+        }
+      }
+    
+      // Update the timer every second
+      setInterval(updateTimer, 1000);
+
+      // Display the initial formatted time immediately
+      updateTimer();
+    });
+  </script>
+
   {% endif %}
 {% endblock %}

@@ -90,6 +90,8 @@ class StudentActivity(models.Model):
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     term = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
     retake_count = models.PositiveIntegerField(default=0)
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.student.email} - {self.activity.activity_name}"

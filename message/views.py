@@ -12,6 +12,24 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import permission_required
 from course.models import Semester
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.http import HttpResponse
+
+def send_test_email(request):
+    subject = 'Test Email'
+    message = 'Hello'
+    recipient_list = ['royd@hccci.edu.ph']  # Replace with the actual recipient email address
+
+    send_mail(
+        subject,
+        message,
+        'mangazeen@gmail.com',  # This should be the email you're using as `DEFAULT_FROM_EMAIL`
+        recipient_list,
+        fail_silently=False,
+    )
+
+    return HttpResponse('Test email sent successfully!')
+
 
 @login_required
 @permission_required('message.add_message', raise_exception=True)

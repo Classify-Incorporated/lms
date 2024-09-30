@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from decouple import config
 
 # Load environment variables from .env file
 load_dotenv()
@@ -227,3 +228,10 @@ SCORMCLOUD_APP_ID = os.getenv('SCORM_APP_ID', '')
 SCORMCLOUD_SECRET_KEY = os.getenv('SCORM_SECRET_KEY', '')
 SCORMCLOUD_SERVICE_URL = 'https://cloud.scorm.com/api/v2'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')

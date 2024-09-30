@@ -19,6 +19,10 @@ from django.contrib.auth.decorators import permission_required
 import csv
 from io import TextIOWrapper
 from random import shuffle
+from datetime import timedelta
+from django.core.mail import send_mass_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 # Add type of activity
 
 @login_required
@@ -156,12 +160,56 @@ class AddActivityView(View):
             for student_id in remedial_students_ids:
                 student = CustomUser.objects.get(id=student_id)
                 StudentActivity.objects.create(student=student, activity=activity, term=term)
+            self.send_email_to_students(remedial_students, activity)
         else:
             students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
             for student in students:
                 StudentActivity.objects.create(student=student, activity=activity, term=term)
+            self.send_email_to_students(students, activity)
 
         return redirect('add_quiz_type', activity_id=activity.id)
+
+    def send_email_to_students(self, students, activity):
+        subject = f"New Activity Assigned: {activity.activity_name}"
+        from_email = 'managezeen@gmail.com' 
+
+        email_messages = []
+        print(f"Sending email for activity '{activity.activity_name}' to the following students:")
+        
+        base_url = 'http://localhost:8000/'  # Replace with your actual domain
+        teacher_name = activity.subject.assign_teacher.get_full_name() if activity.subject.assign_teacher else 'Your Teacher'
+
+        for student in students:
+            student_email = student.email
+            print(f"Preparing to send email to: {student.get_full_name()} - {student_email}")
+            plain_message = f"""
+            Dear {student.get_full_name()},
+            
+            A new activity has been assigned to you in the subject {activity.subject.subject_name}.
+            
+            Activity Name: {activity.activity_name}
+            Start Time: {activity.start_time.strftime('%Y-%m-%d %H:%M')}
+            End Time: {activity.end_time.strftime('%Y-%m-%d %H:%M')}
+            
+            Please log in to your account to complete the activity. Don't miss the deadline!
+
+            You can view the activity here: {base_url}
+            
+            Best regards,
+            {teacher_name}
+            """
+            
+            # Add each email to the list of messages
+            email_messages.append((subject, plain_message, from_email, [student_email]))
+
+        # Bulk send the email messages
+        try:
+            send_mass_mail(email_messages, fail_silently=False)
+            print("Emails successfully sent!")
+        except Exception as e:
+            print(f"Failed to send emails: {e}")
+
+        print("Email sending process completed.")
 
 # Update activity
 @login_required
@@ -227,56 +275,76 @@ def UpdateActivity(request, activity_id):
 @method_decorator(permission_required('quiztype.add_quiztype', raise_exception=True), name='dispatch')
 class AddQuizTypeView(View):
     def get(self, request, activity_id):
-        print(f"Received activity_id: {activity_id}")
-        activity = get_object_or_404(Activity, id=activity_id)
-        quiz_types = QuizType.objects.all()  # Make sure "Document" is included here
-        questions = request.session.get('questions', {}).get(str(activity_id), [])
-        total_points = sum(question.get('score', 0) for question in questions)
+        try:
+            activity = get_object_or_404(Activity, id=activity_id)
+            quiz_types = QuizType.objects.all()  # Ensure that "Document" is included here
 
-        return render(request, 'activity/question/createQuizType.html', {
-            'activity': activity,
-            'quiz_types': quiz_types,
-            'questions': questions,
-            'total_points': total_points
-        })
+            is_participation = activity.activity_type.name == 'Participation'
+
+            questions = request.session.get('questions', {}).get(str(activity_id), [])
+            total_points = sum(question.get('score', 0) for question in questions)
+
+            return render(request, 'activity/question/createQuizType.html', {
+                'activity': activity,
+                'quiz_types': quiz_types,
+                'questions': questions,
+                'total_points': total_points,
+                'is_participation': is_participation
+            })
+        
+        except Exception as e:
+            print(f"Error in AddQuizTypeView GET: {e}")
+            messages.error(request, "An error occurred while loading the quiz types.")
+            return redirect('error')  # Redirect to an error page
 
     def post(self, request, activity_id):
-        activity = get_object_or_404(Activity, id=activity_id)
-        quiz_type_id = request.POST.get('quiz_type')
-        return redirect('add_question', activity_id=activity_id, quiz_type_id=quiz_type_id)
+        try:
+            activity = get_object_or_404(Activity, id=activity_id)
+            quiz_type_id = request.POST.get('quiz_type')
+
+            if not quiz_type_id:
+                messages.error(request, "Quiz type not selected.")
+                return self.get(request, activity_id)
+
+            return redirect('add_question', activity_id=activity_id, quiz_type_id=quiz_type_id)
+        except Exception as e:
+            print(f"Error in AddQuizTypeView POST: {e}")
+            messages.error(request, "An error occurred while selecting the quiz type.")
+            return redirect('error')
 
 # Add question to quiz
 @method_decorator(login_required, name='dispatch')
 class AddQuestionView(View):
     def get(self, request, activity_id, quiz_type_id):
         try:
-            activity = Activity.objects.get(id=activity_id)
-        except Activity.DoesNotExist:
-            messages.error(request, 'Activity not found. Please ensure it is created before adding questions.')
-            return redirect('activity_list')
-        quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
+            activity = get_object_or_404(Activity, id=activity_id)
+            quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
 
-        if quiz_type.name == 'Participation':
-            students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct()
-            return render(request, 'course/participation/addParticipation.html', {
+            # If it's a participation quiz, fetch the related students
+            if quiz_type.name == 'Participation':
+                students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct()
+                return render(request, 'course/participation/addParticipation.html', {
+                    'activity': activity,
+                    'quiz_type': quiz_type,
+                    'students': students
+                })
+
+            # Handle other quiz types
+            return render(request, 'activity/question/createQuestion.html', {
                 'activity': activity,
                 'quiz_type': quiz_type,
-                'students': students 
             })
-        
-        return render(request, 'activity/question/createQuestion.html', {
-            'activity': activity,
-            'quiz_type': quiz_type,
-        })
+
+        except Exception as e:
+            print(f"Error in AddQuestionView GET: {e}")
+            messages.error(request, 'An error occurred while loading the question form.')
+            return redirect('error')
 
     def post(self, request, activity_id, quiz_type_id):
-        # activity = get_object_or_404(Activity, id=activity_id)
-        # quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
-
         try:
-            activity = Activity.objects.get(id=activity_id)
-            quiz_type = QuizType.objects.get(id=quiz_type_id)
-            # The rest of your logic
+            activity = get_object_or_404(Activity, id=activity_id)
+            quiz_type = get_object_or_404(QuizType, id=quiz_type_id)
+
         except Activity.DoesNotExist:
             messages.error(request, 'Activity does not exist.')
             return redirect('error')  # Redirect to the correct error page
@@ -304,9 +372,8 @@ class AddQuestionView(View):
                 else:
                     messages.error(request, f"Score for {student.get_full_name()} exceeds maximum score")
                     return self.get(request, activity_id, quiz_type_id)
-                
 
-        # Store the participation data in the session
+            # Store the participation data in the session
             questions = request.session.get('questions', {})
             if str(activity_id) not in questions:
                 questions[str(activity_id)] = []
@@ -345,7 +412,6 @@ class AddQuestionView(View):
                         messages.error(request, f"Correct answer '{correct_answer_text}' not found in choices for question: {question_text}")
                         return redirect('add_quiz_type', activity_id=activity.id)
 
-
                     question = {
                         'question_text': question_text.strip().replace('"', ''),
                         'correct_answer': correct_answer,
@@ -360,6 +426,7 @@ class AddQuestionView(View):
             request.session.modified = True
             return redirect('add_quiz_type', activity_id=activity.id)
 
+        # Handle normal question submission for non-participation, non-MC types
         question_text = request.POST.get('question_text', '')
         correct_answer = ''
         score = float(request.POST.get('score', 0))
@@ -371,6 +438,7 @@ class AddQuestionView(View):
                 file_path = default_storage.save(get_upload_path(None, uploaded_file.name), uploaded_file)
                 correct_answer = file_path
 
+        # Handle Multiple Choice, Matching, True/False
         choices = []
         if quiz_type.name == 'Multiple Choice':
             choices = request.POST.getlist('choices')
@@ -378,14 +446,15 @@ class AddQuestionView(View):
             if correct_answer_index < len(choices):
                 correct_answer = choices[correct_answer_index]
 
-        if quiz_type.name == 'Matching':
+        elif quiz_type.name == 'Matching':
             matching_left = request.POST.getlist('matching_left')
             matching_right = request.POST.getlist('matching_right')
             correct_answer = ", ".join([f"{left} -> {right}" for left, right in zip(matching_left, matching_right)])
 
-        if quiz_type.name in ['True/False', 'Calculated Numeric', 'Fill in the Blank']:
+        elif quiz_type.name in ['True/False', 'Calculated Numeric', 'Fill in the Blank']:
             correct_answer = request.POST.get('correct_answer', '')
 
+        # Save the question in session
         question = {
             'question_text': question_text,
             'correct_answer': correct_answer,
@@ -535,11 +604,18 @@ class DisplayQuestionsView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
         user = request.user
+
+        # if not activity.students.filter(id=user.id).exists():
+        #     # If the student is not enrolled, redirect to an error page or their dashboard
+        #     return redirect('display_question',)
+        
         questions = ActivityQuestion.objects.filter(activity=activity)
 
         # Check if the user is a teacher or a student
         is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
         is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
+
+        student_activity, created = StudentActivity.objects.get_or_create(student=user, activity=activity)
 
         # Prepare data for matching type questions (relevant for both students and teachers)
         for question in questions:
@@ -553,6 +629,7 @@ class DisplayQuestionsView(View):
                         question.pairs.append({"left": left, "right": right})
                         right_terms.append(right)
 
+
                 shuffle(right_terms)
                 question.shuffled_right_terms = right_terms
 
@@ -565,12 +642,32 @@ class DisplayQuestionsView(View):
                     # Student will see an option to upload a document
                     question.allow_upload = True
 
-        student_activity, created = StudentActivity.objects.get_or_create(student=user, activity=activity)
-        can_retake = student_activity.retake_count < activity.max_retake
         student_questions = StudentQuestion.objects.filter(student=user, activity_question__activity=activity)
         has_answered = student_questions.filter(status=True).exists()
-        print(has_answered)
-        print(can_retake)
+
+        if not has_answered:
+            # Start the timer only on the first attempt
+            if not student_activity.start_time:
+                student_activity.start_time = timezone.now()
+                student_activity.end_time = student_activity.start_time + timedelta(minutes=1)  # Set 1-hour time limit
+                student_activity.save()
+        else:
+            # If already answered, don't start or reset the timer
+            if not created:
+                student_activity.start_time = None
+                student_activity.end_time = None
+                student_activity.save()
+
+        # Calculate the remaining time for the student if the timer is active
+        time_remaining = None
+        if student_activity.end_time:
+            time_remaining = student_activity.end_time - timezone.now()
+            if time_remaining.total_seconds() <= 0:
+                # Time has run out, auto-submit any answers
+                return redirect('submit_answers', activity_id=activity_id)
+
+        # Check if the student is allowed to retake
+        can_retake = student_activity.retake_count < activity.max_retake
 
         context = {
             'activity': activity,
@@ -579,6 +676,7 @@ class DisplayQuestionsView(View):
             'is_student': is_student,
             'can_retake': can_retake,
             'has_answered': has_answered,
+            'time_remaining': time_remaining.total_seconds() if time_remaining else None,
         }
 
         return render(request, 'activity/question/displayQuestion.html', context)
@@ -586,24 +684,31 @@ class DisplayQuestionsView(View):
 # Submit answers
 @method_decorator(login_required, name='dispatch')
 class SubmitAnswersView(View):
-    def post(self, request, activity_id):
+    def post(self, request, activity_id, auto_submit=False):
         activity = get_object_or_404(Activity, id=activity_id)
         student = request.user
         total_score_current_attempt = 0  # Track the total score for this attempt
         has_non_essay_questions = False
 
-        all_questions_answered = True  # Assume all questions are answered initially
+        
 
+        student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
+
+        current_time = timezone.now()
+        if current_time > student_activity.end_time:
+            messages.error(request, 'Your time has expired. Your answers have been submitted automatically.')
+            
         def normalize_text(text):
             """Normalize the text by removing non-alphanumeric characters and converting to lowercase."""
             return re.sub(r'\W+', '', text).lower()
 
-        student_activity, created = StudentActivity.objects.get_or_create(student=student, activity=activity)
-
+    
         # Check if the student has exceeded the maximum number of retakes
         if student_activity.retake_count >= activity.max_retake + 1:
             messages.error(request, 'You have reached the maximum number of attempts for this activity.')
-            return redirect('activity_detail', activity_id=activity_id)
+            return self.auto_submit_answers(student_activity)
+        
+        all_questions_answered = True  # Assume all questions are answered initially
 
         # Track the current attempt's scores for comparison
         current_attempt_scores = []
@@ -612,15 +717,20 @@ class SubmitAnswersView(View):
         for question in ActivityQuestion.objects.filter(activity=activity):
             student_question, created = StudentQuestion.objects.get_or_create(student=student, activity_question=question)
             answer = request.POST.get(f'question_{question.id}')
+            current_score = 0  # Default score for the current question
 
+            # Handle Document type
             if question.quiz_type.name == 'Document':
                 uploaded_file = request.FILES.get(f'question_{question.id}')
                 if uploaded_file:
                     student_question.uploaded_file = uploaded_file
+                    student_question.student_answer = uploaded_file.name  # Store the file name as the answer
                     student_question.status = True
                 else:
-                    all_questions_answered = False
+                    all_questions_answered = not auto_submit
+                current_score = 0  # Documents are not auto-scored
 
+            # Handle Matching type
             elif question.quiz_type.name == 'Matching':
                 matching_left = []
                 matching_right = []
@@ -637,57 +747,42 @@ class SubmitAnswersView(View):
                     left = request.POST.get(f'matching_left_{question.id}_{idx}')
                     right = request.POST.get(f'matching_right_{question.id}_{idx}')
 
-                    print(f"Matching Left for question {question.id}, pair {idx}: {left}")
-                    print(f"Matching Right for question {question.id}, pair {idx}: {right}")
-
                     if left and right:
                         matching_left.append(left)
                         matching_right.append(right)
 
                 if matching_left and matching_right and len(matching_left) == len(matching_right):
                     student_answer = list(zip(matching_left, matching_right))
-                    print(f"Student answer for matching question {question.id}: {student_answer}")
                     student_question.student_answer = str(student_answer)
                     student_question.status = True
+                    student_question.save()  # Explicit save for Matching answers
 
                     # Normalize the student's answer
                     normalized_student_answer = [(normalize_text(left), normalize_text(right)) for left, right in student_answer]
-                    print(f"Normalized student answer for question {question.id}: {normalized_student_answer}")
-                    print(f"Correct Answer (from DB) for question {question.id}: {correct_answer_pairs}")
-                    print(f"Student Answer (submitted) for question {question.id}: {normalized_student_answer}")
-
-                    # Manually compare the correct answer to the student's answer
-                    correct_answer_pairs = []
-                    correct_answer = question.correct_answer.split('->')
-                    for pair in correct_answer:
-                        if '->' in pair:
-                            left, right = pair.split(" -> ")
-                            correct_answer_pairs.append((normalize_text(left), normalize_text(right)))
-
-                    print(f"Correct answer pairs for question {question.id}: {correct_answer_pairs}")
 
                     if normalized_student_answer == correct_answer_pairs:
                         current_score = question.score
-                        print(f"Correct answer! Score for question {question.id}: {current_score}")
                     else:
                         current_score = 0
-                        print(f"Incorrect answer. Score for question {question.id}: {current_score}")
                 else:
-                    print(f"Question {question.id} not fully answered (matching).")
-                    all_questions_answered = False
+                    all_questions_answered = not auto_submit
                     current_score = 0
+
+            # Handle Essay type
+            elif question.quiz_type.name == 'Essay':
+                student_question.student_answer = answer
+                student_question.status = True
+                student_question.save()  # Explicitly save the essay answers
+                current_score = 0  # Essays are not auto-scored
+
+            # Handle other types like Multiple Choice, True/False, etc.
             else:
                 if not answer and not student_question.student_answer:
-                    print(f"Question {question.id} not answered (other types).")
-                    all_questions_answered = False
+                    all_questions_answered = not auto_submit
                     current_score = 0
                 else:
                     student_question.student_answer = answer
-
-                    if question.quiz_type.name == 'Essay':
-                        student_question.status = True
-                        current_score = 0  # Essay answers are typically not auto-scored
-                    else:
+                    if question.quiz_type.name != 'Essay':
                         is_correct = (normalize_text(answer) == normalize_text(question.correct_answer))
                         if is_correct:
                             current_score = question.score
@@ -704,6 +799,7 @@ class SubmitAnswersView(View):
 
             total_score_current_attempt += current_score  # Accumulate total score for this attempt
             student_question.submission_time = timezone.now()
+            student_question.save()  # Save after processing each question
 
         # Calculate total score of all previous attempts
         previous_total_score = StudentQuestion.objects.filter(student=student, activity_question__activity=activity).aggregate(Sum('score'))['score__sum'] or 0
@@ -729,15 +825,53 @@ class SubmitAnswersView(View):
 
         # Update student_activity with the current total score
         student_activity.total_score = StudentQuestion.objects.filter(student=student, activity_question__activity=activity).aggregate(Sum('score'))['score__sum'] or 0
+        student_activity.retake_count += 1
         student_activity.save()
 
         # Redirect based on whether all questions were answered
-        if all_questions_answered:
+        if auto_submit or all_questions_answered:
             messages.success(request, 'Answers submitted successfully!')
             return redirect('activity_completed', score=int(total_score_current_attempt), activity_id=activity_id, show_score=has_non_essay_questions)
         else:
             messages.error(request, 'You did not answer all questions. Please complete the activity.')
             return redirect('display_question', activity_id=activity_id)
+        
+    def auto_submit_answers(self, student_activity):
+        """
+        Automatically submits answers if time expires.
+        """
+        student = student_activity.student
+        activity = student_activity.activity
+
+        # Fetch all questions for the activity
+        questions = ActivityQuestion.objects.filter(activity=activity)
+
+        # Initialize the total score for auto-submission
+        total_score = 0
+
+        for question in questions:
+            # Check if the student has answered the question
+            student_question, created = StudentQuestion.objects.get_or_create(student=student, activity_question=question)
+
+            if not student_question.student_answer:
+                # If the student hasn't answered the question, set the score to 0
+                student_question.score = 0
+                student_question.status = False  # Mark unanswered questions
+            else:
+                # Keep the existing score for the answered questions
+                total_score += student_question.score or 0
+                student_question.status = True
+
+            student_question.submission_time = timezone.now()
+            student_question.save()
+
+        # Update the student's total score and retake count
+        student_activity.total_score = total_score
+        student_activity.retake_count += 1
+        student_activity.save()
+
+        # Redirect to the activity completion page
+        return redirect('activity_completed', activity_id=activity.id)
 
         
 
@@ -756,10 +890,13 @@ class RetakeActivityView(View):
             StudentQuestion.objects.filter(student=student, activity_question__activity=activity).update(
                 student_answer='',
                 status=False,
-                uploaded_file=None
+                uploaded_file=None,
+                score=0,  # Reset score as well if it exists
+                submission_time=None  # Optionally reset submission time
             )
 
-            student_activity.retake_count += 1
+            student_activity.start_time = timezone.now()
+            student_activity.end_time = student_activity.start_time + timedelta(minutes=1)
             student_activity.save()
 
             # Redirect back to the activity questions page for retaking
