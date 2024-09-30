@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Open+Sans:wght@300;400;600&display=swap');;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Open+Sans:wght@300;400;600&display=swap');
+;
 
 /* General Styling for Dark Mode */
 .dark-mode {
@@ -13,10 +14,11 @@
     border-bottom: 1px solid #343a40;
 }
 
-.dark-mode .container-fluid{
+.dark-mode .container-fluid {
     background-color: #343a40;
 }
-.container-fluid{
+
+.container-fluid {
     background-color: #F4F6F9;
 }
 
@@ -56,37 +58,41 @@
 }
 
 
-.dark-mode .custom-sidebar .nav-link p{
-    color: #ffffff; /* Text color */
-  }
+.dark-mode .custom-sidebar .nav-link p {
+    color: #ffffff;
+    /* Text color */
+}
 
- .dark-mode .custom-sidebar .nav-link.active p{
-    color: #ffffff; /* Text color */
+.dark-mode .custom-sidebar .nav-link.active p {
+    color: #ffffff;
+    /* Text color */
     font-weight: 500;
-  }
+}
 
- .dark-mode .custom-sidebar .nav-link i{
-    color: #ffffff; /* Text color */
-  }
+.dark-mode .custom-sidebar .nav-link i {
+    color: #ffffff;
+    /* Text color */
+}
 
- .dark-mode .custom-sidebar .nav-link.active i{
-    color: #ffffff; /* Text color */
+.dark-mode .custom-sidebar .nav-link.active i {
+    color: #ffffff;
+    /* Text color */
     font-weight: 500;
-  }
+}
 
-.dark-mode .custom-sidebar .brand-link{
+.dark-mode .custom-sidebar .brand-link {
     background-color: #343a40;
     color: #ffffff;
     border-color: #757575;
 }
 
-.dark-mode .custom-sidebar .user-panel{
+.dark-mode .custom-sidebar .user-panel {
     background-color: #343a40;
     color: #ffffff;
     border-color: #757575;
 }
 
-  /* Remove border from the input field */
+/* Remove border from the input field */
 .form-control-sidebar {
     border: none !important;
     box-shadow: none !important;
@@ -98,11 +104,12 @@
     box-shadow: none !important;
 }
 
-  /* Optional: Remove border from the search button as well */
+/* Optional: Remove border from the search button as well */
 .btn-sidebar {
     border: 1px solid #8AA17C !important;
     box-shadow: none !important;
 }
+
 /* Circular Gradient similar to the provided design */
 .dark-mode .content-wrapper {
     background-color: #343a40;
@@ -122,9 +129,10 @@
 .dark-mode .card-pie {
     background-color: #F4F6F9;
     color: #ffffff;
-    border-bottom-left-radius:5px;
+    border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
 }
+
 /* Cards in Dark Mode */
 .dark-mode .card-bar1 {
     background-color: #F4F6F9;
@@ -250,32 +258,65 @@
 }
 
 /* Apply Poppins to headings and important elements */
-h1, h2, h3, h4, h5, h6, .navbar-brand, .card-header, .btn {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.navbar-brand,
+.card-header,
+.btn {
     font-family: 'Poppins', sans-serif;
-    font-weight: 500; /* Moderate boldness */
+    font-weight: 500;
+    /* Moderate boldness */
     color: #555555;
 }
 
 :root {
-    --primary: #75adee;            /* Modern vibrant blue */
-    --primary-hover: #357ABD;      /* Slightly darker blue for hover */
-    --secondary: #747476;          /* Sophisticated muted gray */
-    --secondary-hover: #5D6D6E;    /* Darker shade for hover */
-    --success: #A1C099;            /* Fresh, energetic green */
-    --success-hover: #89AD80;      /* Darker green for hover */
-    --info: #B899C0;               /* Calm teal */
-    --info-hover: #A788AF;         /* Deeper teal for hover */
-    --warning: #FDD095;            /* Bright, engaging orange */
-    --warning-hover: #E7B572;      /* Warmer orange for hover */
-    --danger: #C09999;             /* Bold, striking red */
-    --danger-hover: #AF8585;       /* Darker red for hover */
-    --primary-text: #205b9e;       /* Modern dark blue for text */
-    --success-text: #357623;       /* Modern dark blue for text */
-    --secondary-text: #E0E0E0;       /* Modern dark blue for text */
-    --warning-text: #C26E02;       /* Modern dark blue for text */
-    --info-text: #683C73;       /* Modern dark blue for text */
-    --danger-text: #7B3737;       /* Modern dark blue for text */
-    --light-text: #ECF0F1;         /* Soft light gray for contrast */
+    --primary: #75adee;
+    /* Modern vibrant blue */
+    --primary-hover: #357ABD;
+    /* Slightly darker blue for hover */
+    --secondary: #747476;
+    /* Sophisticated muted gray */
+    --secondary-hover: #5D6D6E;
+    /* Darker shade for hover */
+    --success: #A1C099;
+    /* Fresh, energetic green */
+    --success-hover: #89AD80;
+    /* Darker green for hover */
+    --info: #B899C0;
+    /* Calm teal */
+    --info-hover: #A788AF;
+    /* Deeper teal for hover */
+    --warning: #FDD095;
+    /* Bright, engaging orange */
+    --warning-hover: #E7B572;
+    /* Warmer orange for hover */
+    --danger: #C09999;
+    /* Bold, striking red */
+    --danger-hover: #AF8585;
+    /* Darker red for hover */
+    --primary-text: #205b9e;
+    /* Modern dark blue for text */
+    --success-text: #357623;
+    /* Modern dark blue for text */
+    --secondary-text: #E0E0E0;
+    /* Modern dark blue for text */
+    --warning-text: #C26E02;
+    /* Modern dark blue for text */
+    --info-text: #683C73;
+    /* Modern dark blue for text */
+    --danger-text: #7B3737;
+    /* Modern dark blue for text */
+    --light-text: #ECF0F1;
+    /* Soft light gray for contrast */
+}
+
+.page-link {
+    background-color: var(--success) !important;
+    border-color: var(--secondary) !important;
 }
 
 /* Dark Mode Background Colors (Primary, Success, Warning, etc.) */
@@ -448,47 +489,58 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .card-header, .btn {
 }
 
 .text-primary {
-    color: var(--primary-text) !important; /* Default: #007bff */
+    color: var(--primary-text) !important;
+    /* Default: #007bff */
 }
 
 .text-secondary {
-    color: var(--secondary-text) !important; /* Default: #6c757d */
+    color: var(--secondary-text) !important;
+    /* Default: #6c757d */
 }
 
 .text-success {
-    color: var(--success-text) !important; /* Default: #28a745 */
+    color: var(--success-text) !important;
+    /* Default: #28a745 */
 }
 
 .text-danger {
-    color: var(--danger-text) !important; /* Default: #dc3545 */
+    color: var(--danger-text) !important;
+    /* Default: #dc3545 */
 }
 
 .text-warning {
-    color: var(--warning-text) !important; /* Default: #ffc107 */
+    color: var(--warning-text) !important;
+    /* Default: #ffc107 */
 }
 
 .text-info {
-    color: var(--info-text) !important; /* Default: #17a2b8 */
+    color: var(--info-text) !important;
+    /* Default: #17a2b8 */
 }
 
 .text-light {
-    color: var(--light-text) !important; /* Default: #f8f9fa */
+    color: var(--light-text) !important;
+    /* Default: #f8f9fa */
 }
 
 .text-dark {
-    color: #343a40 !important; /* Default: #343a40 */
+    color: #343a40 !important;
+    /* Default: #343a40 */
 }
 
 .text-body {
-    color: #212529 !important; /* Default: #212529 */
+    color: #212529 !important;
+    /* Default: #212529 */
 }
 
 .text-muted {
-    color: #6c757d !important; /* Default: #6c757d */
+    color: #6c757d !important;
+    /* Default: #6c757d */
 }
 
 .text-white {
-    color: #ffffff !important; /* Default: #ffffff */
+    color: #ffffff !important;
+    /* Default: #ffffff */
 }
 
 .text-black-50 {
@@ -500,43 +552,81 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .card-header, .btn {
 }
 
 .bg-primary {
-    background-color: var(--primary) !important; /* Default: #007bff */
-    color: var(--light-text) !important; /* Default: #007bff */
+    background-color: var(--primary) !important;
+    /* Default: #007bff */
+    color: var(--light-text) !important;
+    /* Default: #007bff */
 }
 
 .bg-secondary {
-    background-color: var(--secondary) !important; /* Default: #6c757d */
-    color: var(--primary) !important; /* Default: #007bff */
+    background-color: var(--secondary) !important;
+    /* Default: #6c757d */
+    color: var(--primary) !important;
+    /* Default: #007bff */
 }
 
 .bg-success {
-    background-color: var(--success) !important; /* Default: #28a745 */
-    color: var(--success-text) !important; /* Default: #007bff */
+    background-color: var(--success) !important;
+    /* Default: #28a745 */
+    color: var(--success-text) !important;
+    /* Default: #007bff */
 }
 
 .bg-danger {
-    background-color: var(--danger) !important; /* Default: #dc3545 */
-    color: var(--danger-text) !important; /* Default: #007bff */
+    background-color: var(--danger) !important;
+    /* Default: #dc3545 */
+    color: var(--danger-text) !important;
+    /* Default: #007bff */
 }
 
 .bg-warning {
-    background-color: var(--warning) !important; /* Default: #ffc107 */
-    color: var(--warning-text) !important; /* Default: #007bff */
+    background-color: var(--warning) !important;
+    /* Default: #ffc107 */
+    color: var(--warning-text) !important;
+    /* Default: #007bff */
 }
 
 .bg-info {
-    background-color: var(--info) !important; /* Default: #17a2b8 */
-    color: var(--info-text) !important; /* Default: #007bff */
+    background-color: var(--info) !important;
+    /* Default: #17a2b8 */
+    color: var(--info-text) !important;
+    /* Default: #007bff */
 }
 
 .bg-light {
-    background-color: var(--light-text) !important; /* Default: #f8f9fa */
+    background-color: var(--light-text) !important;
+    /* Default: #f8f9fa */
 }
 
 .bg-dark {
-    background-color: #343a40 !important; /* Default: #343a40 */
+    background-color: #343a40 !important;
+    /* Default: #343a40 */
 }
 
-.badge-danger{
-    background-color: var(--danger) !important; /* Default: #17a2b8 */
+.badge-danger {
+    background-color: var(--danger) !important;
+    /* Default: #17a2b8 */
+}
+
+.main-header.fixed-top {
+    z-index: 1030;
+    /* Ensures it stays on top of other elements */
+    background-color: white;
+    /* Add background color */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* Optional: Adds a shadow for better visibility */
+}
+
+.dark-mode .main-header.fixed-top {
+    z-index: 1030;
+    /* Ensures it stays on top of other elements */
+    background-color: #484a4d;
+    color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* Optional: Adds a shadow for better visibility */
+}
+
+#content-wrapper {
+    margin-top: 48px;
+    /* Adjust based on the height of your navbar */
 }

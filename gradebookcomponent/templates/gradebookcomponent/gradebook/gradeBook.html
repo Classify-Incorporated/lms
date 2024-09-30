@@ -13,8 +13,7 @@
             <h1 class="m-0">GradeBook</h1>
           </div>
           <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-            </ol>
+            <ol class="breadcrumb float-sm-right"></ol>
           </div>
         </div>
       </div>
@@ -43,18 +42,15 @@
                 </thead>
                 <tbody>
                   {% for subject, components in grouped_components.items %}
-                    {% for gradebookcomponent in components  %}
+                    {% for gradebookcomponent in components %}
                       <tr>
                         {% if forloop.first %}
                           <!-- Display subject name only once with a total percentage badge -->
-                          <td rowspan="{{ components|length }}">
-                            {{ subject }} 
-                          </td>
+                          <td rowspan="{{ components|length }}">{{ subject }}</td>
                         {% endif %}
                         <td>{{ gradebookcomponent.activity_type }}</td>
                         <td>{{ gradebookcomponent.category_name }}</td>
-                        <td>{{ gradebookcomponent.percentage }}
-                        </td>
+                        <td>{{ gradebookcomponent.percentage }}</td>
                         <td>
                           <div class="dropdown">
                             <button class="btn btn-white btn-sm no-caret" type="button" id="dropdownMenuButton{{ gradebookcomponent.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>

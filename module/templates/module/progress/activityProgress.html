@@ -12,8 +12,7 @@
           <div class="col-sm-6">
             <h1 class="m-0">Activity Progress</h1>
           </div>
-          <div class="col-sm-6">
-          </div>
+          <div class="col-sm-6"></div>
         </div>
       </div>
     </div>
@@ -36,7 +35,8 @@
                   {% for activity in module_activities %}
                     <tr>
                       <td>
-                        <a href="{% url 'detailModuleProgress' module_id=activity.module.id %}" class="btn btn-success">{{ activity.module.file_name }}</a>
+                        <!-- Setting a consistent width for the buttons -->
+                        <a href="{% url 'detailModuleProgress' module_id=activity.module.id %}" class="btn btn-success" style="width: 150px;">{{ activity.module.file_name }}</a>
                       </td>
                     </tr>
                   {% endfor %}

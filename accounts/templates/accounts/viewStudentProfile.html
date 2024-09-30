@@ -4,67 +4,6 @@
   Student Profile
 {% endblock %}
 {% block content %}
-  <style>
-    .profile-header {
-      text-align: center;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-    }
-    .profile-header img {
-      border-radius: 50%;
-      width: 100px;
-      height: 100px;
-    }
-    .profile-header h2 {
-      margin-top: 10px;
-      font-size: 24px;
-      font-weight: bold;
-    }
-    .profile-header h3 {
-      color: #888;
-      font-size: 18px;
-    }
-    .card-body a:hover {
-      text-decoration: underline;
-    }
-    /* Slide-in Sidebar */
-    .slide-in-sidebar {
-      position: fixed;
-      top: 0;
-      right: -500px; /* Hide it initially */
-      width: 400px;
-      height: 100%;
-      background-color: white;
-      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
-      transition: right 0.3s ease;
-      z-index: 1000;
-      padding: 20px;
-      overflow-y: auto; /* Enable vertical scrolling */
-    }
-    .dark-mode .slide-in-sidebar {
-      background-color: #454d55;
-      color: #ffffff;
-    }
-    .slide-in-sidebar.open {
-      right: 0; /* Show it when open */
-    }
-    .close-btn {
-      position: absolute;
-      top: 10px;
-      right: 5px;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    .slide-in-sidebar h3 {
-      margin-top: 0;
-    }
-    .slide-in-sidebar form {
-      max-height: 100%; /* Ensure the form doesn't exceed the sidebar height */
-    }
-  </style>
-
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <div class="content-header">
@@ -74,8 +13,7 @@
             <h1 class="m-0">Student Profile</h1>
           </div>
           <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-            </ol>
+            <ol class="breadcrumb float-sm-right"></ol>
           </div>
         </div>
       </div>
@@ -100,7 +38,10 @@
                     <h6>{{ profile.user.email }}</h6>
                   </div>
                 </div>
+                <!-- Move the button to the right using ml-auto -->
+                <div class="ml-auto">
                   <button class="btn btn-secondary" id="editBtn"><i class="fas fa-edit"></i> Edit</button>
+                </div>
               </div>
             </div>
 
@@ -132,18 +73,18 @@
                     </p>
                   </div>
                 </div>
-                {% if profile.role.name|lower != "admin" and profile.role.name|lower != "teacher" and profile.role.name|lower != "registrar" %}
-                <div class="card mb-4">
-                  <div class="card-header bg-success text-white">Academic Information</div>
-                  <div class="card-body">
-                    <p>
-                      <strong>Year Level:</strong> {{ profile.grade_year_level }}
-                    </p>
-                    <p>
-                      <strong>Course:</strong> {{ profile.major }}
-                    </p>
+                {% if profile.role.name|lower != 'admin' and profile.role.name|lower != 'teacher' and profile.role.name|lower != 'registrar' %}
+                  <div class="card mb-4">
+                    <div class="card-header bg-success text-white">Academic Information</div>
+                    <div class="card-body">
+                      <p>
+                        <strong>Year Level:</strong> {{ profile.grade_year_level }}
+                      </p>
+                      <p>
+                        <strong>Course:</strong> {{ profile.major }}
+                      </p>
+                    </div>
                   </div>
-                </div>
                 {% endif %}
               </div>
             </div>
@@ -153,39 +94,56 @@
     </section>
   </div>
 
-  <!-- Slide-in Sidebar -->
-  <div class="slide-in-sidebar" id="slideInSidebar">
-    <span class="close-btn" id="closeBtn">&times;</span>
-    <h3>Edit Profile</h3>
-    <div id="editProfileForm">
+  <!-- Custom Modal -->
+  <div class="custom-modal" id="customModal">
+    <div class="custom-modal-header">
+      <span class="close-btn" id="closeBtn"></span>
+      <h3>Edit Profile</h3>
+    </div>
+    <div class="custom-modal-body" id="editProfileForm">
       <!-- The form will be loaded dynamically here -->
     </div>
   </div>
 
+  <!-- Custom Backdrop -->
+  <div class="custom-modal-backdrop" id="customModalBackdrop"></div>
+
   <script>
-    document.getElementById('editBtn').addEventListener('click', function () {
-      openEditModal({{ profile.id }});
-    });
-
-    function openEditModal(profileId) {
-      fetch(`/updateProfile/${profileId}/`)  // Fetch the update form
-        .then(response => response.text())
-        .then(html => {
-          document.getElementById('editProfileForm').innerHTML = html; // Load the form into the modal
-          document.getElementById('slideInSidebar').classList.add('open'); // Open the modal
-        });
-    }
-
-    document.getElementById('closeBtn').addEventListener('click', function () {
-      document.getElementById('slideInSidebar').classList.remove('open');
-    });
-
-    // Close the modal when clicking outside of it
-    window.addEventListener('click', function (event) {
-      const sidebar = document.getElementById('slideInSidebar');
-      if (sidebar.classList.contains('open') && !sidebar.contains(event.target) && !event.target.matches('#editBtn')) {
-        sidebar.classList.remove('open');
+      document.getElementById('editBtn').addEventListener('click', function () {
+        openEditModal({{ profile.id }});
+      });
+  
+      function openEditModal(profileId) {
+        fetch(`/updateProfile/${profileId}/`)  // Fetch the update form
+          .then(response => response.text())
+          .then(html => {
+            document.getElementById('editProfileForm').innerHTML = html; // Load the form into the modal
+            document.getElementById('customModal').classList.add('show'); // Show the custom modal
+            document.getElementById('customModalBackdrop').classList.add('show'); // Show the backdrop
+          });
       }
-    });
-  </script>
+  
+      document.getElementById('closeBtn').addEventListener('click', function () {
+        closeModal();
+      });
+  
+      function closeModal() {
+        document.getElementById('customModal').classList.remove('show');
+        document.getElementById('customModalBackdrop').classList.remove('show');
+      }
+  
+      // Close modal when clicking on the backdrop
+      document.getElementById('customModalBackdrop').addEventListener('click', function () {
+        closeModal();
+      });
+  
+      // Optional: Close the modal when clicking outside the modal content
+      window.addEventListener('click', function (event) {
+        const modal = document.getElementById('customModal');
+        const backdrop = document.getElementById('customModalBackdrop');
+        if (modal.classList.contains('show') && !modal.contains(event.target) && !event.target.matches('#editBtn')) {
+          closeModal();
+        }
+      });
+    </script>
 {% endblock %}
