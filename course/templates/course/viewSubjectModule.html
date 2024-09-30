@@ -13,8 +13,7 @@
             <h1 class="m-0">{{ subject.subject_name }}</h1>
           </div>
           <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-            </ol>
+            <ol class="breadcrumb float-sm-right"></ol>
           </div>
         </div>
       </div>
@@ -83,12 +82,14 @@
           {% now 'Y-m-d' as today_date %}
           {% if selected_semester.start_date|date:'Y-m-d' <= today_date and selected_semester.end_date|date:'Y-m-d' >= today_date %}
             <div class="row justify-content-center mb-4">
-              <div class="col-md-12 justify-content-between">
-                <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-success">Add Activity</a>
-                <a href="{% url 'activityList' subject.id %}" class="btn btn-primary">Activity List</a>
-                <a class="btn btn-info" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
-                <button class="btn btn-info" onclick="openCopyLessonModal('{{ subject.id }}')">Copy Lessons</button>
-                <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-warning">View Students List</a>
+              <div class="col-md-12">
+                <div class="d-flex flex-wrap justify-content-center">
+                  <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-success mb-2 mx-2">Add Activity</a>
+                  <a href="{% url 'activityList' subject.id %}" class="btn btn-primary mb-2 mx-2">Activity List</a>
+                  <a class="btn btn-info mb-2 mx-2" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
+                  <button class="btn btn-info mb-2 mx-2" onclick="openCopyLessonModal('{{ subject.id }}')">Copy Lessons</button>
+                  <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-warning mb-2 mx-2">View Students List</a>
+                </div>
               </div>
             </div>
           {% endif %}
@@ -101,7 +102,7 @@
               <div class="card-header bg-success d-flex justify-content-between">
                 <span>Lessons &nbsp; <sup>(Sort To Change Orders)</sup></span>
                 {% if is_teacher %}
-                <button id="editButton" class="btn btn-success ml-auto"><i class="fas fa-edit"></i> Edit</button>
+                  <button id="editButton" class="btn btn-success ml-auto"><i class="fas fa-edit"></i> Edit</button>
                 {% endif %}
               </div>
               <ul class="list-group list-group-flush" id="lesson-list">
@@ -223,8 +224,8 @@
     
           // Initialize or refresh selectpicker after loading the modal content
           $('.selectpicker').selectpicker('refresh')
-          
-          initializeFileValidation();
+    
+          initializeFileValidation()
           // Add file input label update functionality after the modal content loads
           document.querySelector('.custom-file-input').addEventListener('change', function (e) {
             var fileName = e.target.files[0].name
@@ -557,7 +558,7 @@ document.getElementById('editButton').addEventListener('click', function () {
 });
 </script>
 
-<script>
+  <script>
 function initializeFileValidation() {
 
   // Fetch validation rules from the backend
