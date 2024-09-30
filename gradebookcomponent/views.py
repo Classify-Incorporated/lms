@@ -785,7 +785,9 @@ def studentTotalScoreForActivityType(request):
 @login_required
 def studentTotalScoreApi(request):
     selected_semester_id = request.GET.get('semester', None)
-    current_semester = None
+
+    now = timezone.localtime(timezone.now())
+    current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
 
     if selected_semester_id == 'current' or not selected_semester_id:
         current_semester = get_current_semester(request)
@@ -1000,19 +1002,21 @@ def studentTotalScoreApi(request):
 
 @login_required
 def getSemesters(request):
+    now = timezone.localtime(timezone.now())  # Get the current time
     semesters = Semester.objects.all().order_by('-start_date')
 
     semesters_data = []
     for semester in semesters:
+        is_current_semester = semester.start_date <= now.date() <= semester.end_date
+
         semesters_data.append({
             'id': semester.id,
             'semester_name': semester.semester_name,
             'school_year': semester.school_year,
             'start_date': semester.start_date.strftime('%Y-%m-%d'),
             'end_date': semester.end_date.strftime('%Y-%m-%d'),
+            'is_current_semester': is_current_semester  # Add this field
         })
-
-    # Return the data as a JSON response
     return JsonResponse({'semesters': semesters_data})
 
 # fetcH subject

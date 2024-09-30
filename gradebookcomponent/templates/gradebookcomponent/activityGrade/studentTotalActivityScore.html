@@ -234,17 +234,35 @@
                 if (data && data.semesters) {
                     const semesterDropdown = $('#semester');
                     semesterDropdown.empty();
-
+                    const currentSemesterDisplay = $('#current-semester-display');
+                    currentSemesterDisplay.empty();
+    
                     semesterDropdown.append('<option value="" disabled>Select a Semester</option>');
-
+    
+                    let defaultSemesterId = null;
+    
                     data.semesters.forEach(function(semester) {
-                        const option = `<option value="${semester.id}" ${semester.is_current_semester ? 'selected' : ''}>${semester.semester_name} - ${semester.school_year}</option>`;
+                        // Create the dropdown option with semester name and date range
+                        const option = `<option value="${semester.id}" ${semester.is_current_semester ? 'selected' : ''}>
+                            ${semester.semester_name}
+                        </option>`;
                         semesterDropdown.append(option);
+    
+                        // If this is the current semester, set it as the default
+                        if (semester.is_current_semester) {
+                            currentSemesterDisplay.text(`${semester.semester_name} (${semester.start_date} - ${semester.end_date})`);
+                            defaultSemesterId = semester.id;
+                        }
                     });
-
-                    semesterId = data.semesters.find(semester => semester.is_current_semester)?.id || data.semesters[0].id;
-
-                    fetchSubjects();
+    
+                    // Automatically set the default semester ID and fetch subjects
+                    if (defaultSemesterId) {
+                        semesterId = defaultSemesterId;
+                        fetchSubjects();  // Fetch subjects for the current semester
+                    } else {
+                        semesterId = data.semesters[0].id;  // Fallback if no current semester
+                        fetchSubjects();
+                    }
                 } else {
                     console.warn('No semesters found or data structure is incorrect.');
                 }
