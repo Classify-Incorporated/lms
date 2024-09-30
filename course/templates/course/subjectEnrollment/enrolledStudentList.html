@@ -23,7 +23,7 @@
     <section class="content">
       <div class="container-fluid">
         {% if user.profile.role.name.lower != 'teacher' and user.profile.role.name.lower != 'student' %}
-          <a href="{% url 'enrollStudent' %}" class="btn btn-success mb-4"><i class="fas fa-user-add"></i>Enroll Student</a>
+          <a href="{% url 'enrollStudent' %}" class="btn btn-success mb-4"><i class="fas fa-user-add"></i> Enroll Student</a>
         {% endif %}
 
         <!-- Semester and Subject Filters -->
@@ -60,45 +60,45 @@
             <div class="card">
               <div class="card-header" id="heading{{ forloop.counter }}">
                 <h5 class="mb-0">
-                  <button class="btn text-dark" style="width:30%" type="button" data-toggle="collapse" data-target="#collapse{{ forloop.counter }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter }}">
+                  <button class="btn text-dark" type="button" data-toggle="collapse" data-target="#collapse{{ forloop.counter }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter }}">
                     {{ subject.subject_name }}
                   </button>
                 </h5>
               </div>
 
               <div id="collapse{{ forloop.counter }}" class="collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ forloop.counter }}" data-parent="#subjectsAccordion">
-                <div class="card-body">
-                  <table class="table table-striped table-hover">
-                    <thead>
-                      <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Student Name</th>
-                        <th scope="col">Semester</th>
-                        <th scope="col">Enrollment Date</th>
-                        {% if user.profile.role.name.lower != 'student' %}
-                          <th scope="col">Actions</th>
-                        {% endif %}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for enrollment in enrollments %}
+                <div class="card-body">         
+                    <table class="table table-striped table-hover" id="dataTable{{ forloop.counter }}">
+                      <thead>
                         <tr>
-                          <th scope="row">{{ forloop.counter }}</th>
-                          <td>{{ enrollment.student.get_full_name }}</td>
-                          <td>{{ enrollment.semester.semester_name }} - {{ enrollment.semester.school_year }}</td>
-                          <td>{{ enrollment.enrollment_date }}</td>
+                          <th scope="col">#</th>
+                          <th scope="col">Student Name</th>
+                          <th scope="col">Semester</th>
+                          <th scope="col">Enrollment Date</th>
                           {% if user.profile.role.name.lower != 'student' %}
-                            <td>
-                              <a href="{% url 'dropStudentFromSubject' enrollment.id %}" class="btn btn-primary btn-sm"
-                                onclick="return confirm('Are you sure you want to drop {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">
-                                Drop
-                              </a>
-                            </td>
+                            <th scope="col">Actions</th>
                           {% endif %}
                         </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {% for enrollment in enrollments %}
+                          <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ enrollment.student.get_full_name }}</td>
+                            <td>{{ enrollment.semester.semester_name }} - {{ enrollment.semester.school_year }}</td>
+                            <td>{{ enrollment.enrollment_date }}</td>
+                            {% if user.profile.role.name.lower != 'student' %}
+                              <td>
+                                <a href="{% url 'dropStudentFromSubject' enrollment.id %}" class="btn btn-primary btn-sm"
+                                  onclick="return confirm('Are you sure you want to drop {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">
+                                  Drop
+                                </a>
+                              </td>
+                            {% endif %}
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>                  
                 </div>
               </div>
             </div>
@@ -107,4 +107,30 @@
       </div>
     </section>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // DataTables options
+      const dataTableOptions = {
+        paging: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: false,
+        responsive: true,
+        lengthMenu: [5, 10, 25, 50]
+      };
+
+      // Initialize DataTable on the first visible table when page loads
+      $('#dataTable1').DataTable(dataTableOptions);
+
+      // Re-initialize DataTables for other accordions when they are shown
+      $('#subjectsAccordion .collapse').on('shown.bs.collapse', function (e) {
+        const tableId = $(this).find('table').attr('id');
+        if (!$.fn.DataTable.isDataTable('#' + tableId)) {
+          $('#' + tableId).DataTable(dataTableOptions);
+        }
+      });
+    });
+  </script>
 {% endblock %}

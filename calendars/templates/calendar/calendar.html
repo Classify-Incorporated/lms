@@ -12,8 +12,7 @@
           <div class="col-sm-6">
             <h1 class="m-0">Calendar</h1>
           </div>
-          <div class="col-sm-6">
-          </div>
+          <div class="col-sm-6"></div>
         </div>
       </div>
     </div>
@@ -51,8 +50,8 @@
     
     /* Override header text color */
     .fc-col-header-cell-cushion {
-      color: black !important; /* Black text color */
-      font-weight: normal; /* Light font weight */
+      color: var(--dark) !important; /* Black text color */
+      font-weight: 900; /* Light font weight */
     }
     
     .dark-mode .fc-col-header-cell-cushion {
@@ -63,6 +62,7 @@
     .fc-event-finished {
       background-color: var(--danger) !important;
       color: white !important;
+      border-color: #757575 !important;
     }
     
     .fc-event-upcoming {
@@ -96,6 +96,38 @@
     /* Add spacing and subtle border styling */
     .fc-daygrid-day-top {
       padding: 5px !important;
+    }
+    
+    /* Custom styling for FullCalendar buttons */
+    .fc-toolbar button {
+      background-color: var(--success) !important; /* Bootstrap success color */
+      border: none;
+      color: var(--success-text) !important;
+      padding: 5px 10px;
+      margin: 0 5px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .fc-daygrid-day-number {
+      color: var(--dark-text) !important;
+      font-weight: 500;
+    }
+    
+    .fc-toolbar button.fc-prev-button,
+    .fc-toolbar button.fc-next-button,
+    .fc-toolbar button.fc-today-button {
+      background-color: #218838;
+      color: white;
+    }
+    
+    .fc-toolbar button:hover {
+      background-color: #218838;
+    }
+    
+    .fc-toolbar .fc-button-active {
+      background-color: #218838;
+      border-color: #218838;
     }
   </style>
 
