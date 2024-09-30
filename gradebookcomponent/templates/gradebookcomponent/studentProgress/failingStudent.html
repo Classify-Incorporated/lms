@@ -6,7 +6,7 @@
 {% block content %}
   <div class="content-wrapper">
     <div class="container-fluid">
-      <h2 class="h3 mb-4 text-gray-800">List of Failing Students</h2>
+      <h2 class="h3 mb-4 text-gray-800">  {% if is_teacher %}  List of Failing Students {% endif %} {% if is_student %} List of Failing Grade {% endif %}</h2> 
 
       <!-- Back Button -->
       <a href="javascript:history.back()" class="btn btn-secondary mb-4"><i class="fas fa-arrow-left"></i> Back</a>

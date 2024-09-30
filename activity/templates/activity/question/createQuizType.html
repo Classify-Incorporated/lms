@@ -33,7 +33,9 @@
           </button>
           <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             {% for quiz_type in quiz_types %}
-              <a class="dropdown-item" href="#" data-toggle="modal" data-target="#quizTypeModal" data-id="{{ quiz_type.id }}" data-name="{{ quiz_type.name }}">{{ quiz_type.name }}</a>
+              {% if not is_participation or quiz_type.name == 'Participation' %}
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#quizTypeModal" data-id="{{ quiz_type.id }}" data-name="{{ quiz_type.name }}">{{ quiz_type.name }}</a>
+              {% endif %}
             {% endfor %}
           </div>
         </div>

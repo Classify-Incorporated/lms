@@ -1,7 +1,9 @@
 # urls.py
 from django.urls import path
-from .views import send_message, inbox, view_message, unread_count ,check_authentication,sent,trash,trash_messages,untrash_messages,view_sent_message,reply_message,view_trash_message
-
+from .views import (send_message, inbox, view_message, unread_count ,check_authentication,sent
+                    ,trash,trash_messages,untrash_messages,view_sent_message,reply_message,
+                    view_trash_message, send_test_email
+)
 urlpatterns = [
     path('send_message/', send_message, name='send_message'),
     path('inbox/', inbox, name='inbox'),
@@ -17,4 +19,5 @@ urlpatterns = [
     
     # New URL pattern for replying to messages
     path('message/<int:message_id>/reply/', reply_message, name='reply_message'),
+    path('send_test_email/', send_test_email, name='send_test_email'),
 ]

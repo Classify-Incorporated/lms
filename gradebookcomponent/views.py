@@ -1212,7 +1212,9 @@ def failingStudentsPerSubjectView(request):
 
     return render(request, 'gradebookcomponent/studentProgress/failingStudent.html', {
         'failing_students_summary': failing_students_summary,
-        'current_semester': current_semester.semester_name
+        'current_semester': current_semester.semester_name,
+        'is_teacher': is_teacher,
+        'is_student': is_student
     })
 
 @login_required
@@ -1347,5 +1349,7 @@ def excellingStudentsPerSubjectView(request):
 
     return render(request, 'gradebookcomponent/studentProgress/excellingStudent.html', {
         'excelling_students_summary': excelling_students_summary,
-        'current_semester': current_semester.semester_name
+        'current_semester': current_semester.semester_name,
+        'is_teacher': is_teacher,
+        'is_student': is_student
     })
