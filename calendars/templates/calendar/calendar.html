@@ -68,21 +68,25 @@
     .fc-event-upcoming {
       background-color: var(--info) !important;
       color: white !important;
+      border-color: #757575 !important;
     }
     
     .fc-event-ongoing {
       background-color: var(--warning) !important;
       color: white !important;
+      border-color: #757575 !important;
     }
     
     .fc-event-missed {
       background-color: #c09999 !important;
       color: white !important;
+      border-color: #757575 !important;
     }
     
     .fc-event-answered {
       background-color: var(--success) !important;
       color: white !important;
+      border-color: #757575 !important;
     }
     
     .fc .fc-event .fc-event-main {
@@ -138,7 +142,6 @@
       fetch('/api/activities/')
         .then((response) => response.json())
         .then((events) => {
-    
           const now = new Date()
     
           events = events.map(function (event) {
