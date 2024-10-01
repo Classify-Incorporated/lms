@@ -2,7 +2,11 @@
   <!-- Parent message details -->
   <h4>{{ message.subject }}</h4>
   <p>
-    <strong>From:</strong> {{ message.sender.get_full_name }}
+    <strong>From:</strong> {% if message.sender == request.user %}
+      You
+    {% else %}
+      {{ message.sender.get_full_name }}
+    {% endif %}
   </p>
   <p>
     <strong>Sent:</strong> {{ message.timestamp|date:'l, F j, Y, g:i A' }}
@@ -17,72 +21,18 @@
     {% for reply in replies %}
       <!-- Check if the reply is from the user or the other person -->
       <div class="{% if reply.sender == request.user %}
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
           text-right
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         {% else %}
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
           text-left
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         {% endif %} reply-container">
         <div class="message-header">
-          <strong>{{ reply.sender.get_full_name }} &nbsp; <small>{{ reply.timestamp|date:'l, F j, Y, g:i A' }}</small></strong>
+          <strong>
+            {% if reply.sender == request.user %}
+              You
+            {% else %}
+              {{ reply.sender.get_full_name }}
+            {% endif %}&nbsp; <small>{{ reply.timestamp|date:'l, F j, Y, g:i A' }}</small>
+          </strong>
           <br />
         </div>
         <div class="message-body">{{ reply.body|safe }}</div>

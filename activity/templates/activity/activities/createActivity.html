@@ -16,84 +16,119 @@
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
-        <form method="post">
-          {% csrf_token %}
-          <div class="form-group">
-            <label for="activity_name">Activity Name:</label>
-            <input type="text" id="activity_name" name="activity_name" class="form-control" required />
+        <!-- Card wrapper for the form -->
+        <div class="card shadow mb-4">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Activity Details</h6>
           </div>
+          <div class="card-body">
+            <form method="post">
+              {% csrf_token %}
 
-          <div class="form-group">
-            <label for="activity_type">Activity Type:</label>
-            <select id="activity_type" name="activity_type" class="form-control" required>
-              {% for activity_type in activity_types %}
-                <option value="{{ activity_type.id }}">{{ activity_type.name }}</option>
-              {% endfor %}
-            </select>
+              <!-- First row with 3 fields: Activity Name, Activity Type, and Term -->
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="activity_name">Activity Name:</label>
+                    <input type="text" id="activity_name" name="activity_name" class="form-control" required />
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="activity_type">Activity Type:</label>
+                    <select id="activity_type" name="activity_type" class="form-control" required>
+                      {% for activity_type in activity_types %}
+                        <option value="{{ activity_type.id }}">{{ activity_type.name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="term">Term:</label>
+                    <select id="term" name="term" class="form-control" required>
+                      {% for term in terms %}
+                        <option value="{{ term.id }}">{{ term.term_name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Second row with 3 fields: Module, Max Retake, and Retake Method -->
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="module">Select Module:</label>
+                    <select id="module" name="module" class="form-control" required>
+                      {% for module in modules %}
+                        <option value="{{ module.id }}">{{ module.file_name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="max_retake">Maximum Attempt:</label>
+                    <input type="number" id="max_retake" name="max_retake" class="form-control" value="2" required />
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="retake_method">Retake Method:</label>
+                    <select id="retake_method" name="retake_method" class="form-control" required>
+                      <option value="highest">Highest Score</option>
+                      <option value="lowest">Lowest Score</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Third row with 2 fields: Start Time and End Time -->
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="start_time">Start Time:</label>
+                    <input type="datetime-local" id="start_time" name="start_time" class="form-control" required />
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="end_time">End Time:</label>
+                    <input type="datetime-local" id="end_time" name="end_time" class="form-control" required />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Remedial Activity -->
+              <div class="form-check">
+                <input type="checkbox" id="remedial" name="remedial" class="form-check-input" />
+                <label for="remedial" class="form-check-label">Remedial Activity</label>
+              </div>
+
+              <div class="form-group" id="remedial_students_field" style="display: none;">
+                <label for="remedial_students">Select Students:</label>
+                <select id="remedial_students" name="remedial_students" class="form-control" multiple>
+                  {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.get_full_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Form buttons -->
+              <div class="text-right">
+                <button type="submit" class="btn btn-primary">Next</button>
+                <a href="{% url 'subjectDetail' subject.id %}" class="btn btn-secondary">Back</a>
+              </div>
+            </form>
           </div>
-
-          <div class="form-group">
-            <label for="term">Term:</label>
-            <select id="term" name="term" class="form-control" required>
-              {% for term in terms %}
-                <option value="{{ term.id }}">{{ term.term_name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="module">Select Module:</label>
-            <select id="module" name="module" class="form-control" required>
-              {% for module in modules %}
-                <option value="{{ module.id }}">{{ module.file_name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="form-check">
-            <input type="checkbox" id="remedial" name="remedial" class="form-check-input" />
-            <label for="remedial" class="form-check-label">Remedial Activity</label>
-          </div>
-
-          <div class="form-group" id="remedial_students_field" style="display: none;">
-            <label for="remedial_students">Select Students:</label>
-            <select id="remedial_students" name="remedial_students" class="form-control" multiple>
-              {% for student in students %}
-                <option value="{{ student.id }}">{{ student.get_full_name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="max_retake">Maximum Attempt:</label>
-            <input type="number" id="max_retake" name="max_retake" class="form-control" value="2" required>
-        </div>        
-
-          <!-- New Field: Retake Method -->
-          <div class="form-group">
-            <label for="retake_method">Retake Method:</label>
-            <select id="retake_method" name="retake_method" class="form-control" required>
-              <option value="highest">Highest Score</option>
-              <option value="lowest">Lowest Score</option>
-              
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="start_time">Start Time:</label>
-            <input type="datetime-local" id="start_time" name="start_time" class="form-control" required />
-          </div>
-
-          <div class="form-group">
-            <label for="end_time">End Time:</label>
-            <input type="datetime-local" id="end_time" name="end_time" class="form-control" required />
-          </div>
-
-          <div class="text-right">
-            <button type="submit" class="btn btn-primary">Next</button>
-            <a href="{% url 'subjectDetail' subject.id %}" class="btn btn-secondary">Back</a>
-          </div>
-        </form>
+        </div>
+        <!-- End of card -->
       </div>
     </section>
   </div>
