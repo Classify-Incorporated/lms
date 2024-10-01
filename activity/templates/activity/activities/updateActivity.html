@@ -16,39 +16,86 @@
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
-        <!-- Activity Edit Form -->
+        <!-- Activity Edit Form Card -->
         <div class="card shadow mb-4">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Edit Activity Details</h6>
+          </div>
           <div class="card-body">
             <form method="post">
               {% csrf_token %}
               <input type="hidden" name="subject" value="{{ activity.subject.id }}">
 
-              <!-- Activity Name -->
-              <div class="form-group">
-                <label for="activity_name">Activity Name:</label>
-                <input type="text" id="activity_name" name="activity_name" value="{{ form.activity_name.value }}" class="form-control" required />
+              <!-- First Row: Activity Name, Activity Type, Term -->
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="activity_name">Activity Name:</label>
+                    <input type="text" id="activity_name" name="activity_name" value="{{ form.activity_name.value }}" class="form-control" required />
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="activity_type">Activity Type:</label>
+                    {{ form.activity_type }}
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="term">Term:</label>
+                    {{ form.term }}
+                  </div>
+                </div>
               </div>
 
-              <!-- Activity Type -->
-              <div class="form-group">
-                <label for="activity_type">Activity Type:</label>
-                {{ form.activity_type }}
+              <!-- Second Row: Module Selection, Max Retakes, Retake Method -->
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="module">Select Module:</label>
+                    <select id="module" name="module" class="form-control" required>
+                      {% for module in modules %}
+                        <option value="{{ module.id }}" {% if module.id == form.module.value %}selected{% endif %}>{{ module.file_name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="max_retake">Max Retakes:</label>
+                    <input type="number" id="max_retake" name="max_retake" class="form-control" value="0" min="0" required />
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="retake_method">Retake Method:</label>
+                    <select id="retake_method" name="retake_method" class="form-control" required>
+                      <option value="highest">Highest Score</option>
+                      <option value="lowest">Lowest Score</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <!-- Term -->
-              <div class="form-group">
-                <label for="term">Term:</label>
-                {{ form.term }}
-              </div>
+              <!-- Third Row: Start Time, End Time -->
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="start_time">Start Time:</label>
+                    <input type="datetime-local" id="start_time" name="start_time" value="{{ form.start_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
+                  </div>
+                </div>
 
-              <!-- Module Selection -->
-              <div class="form-group">
-                <label for="module">Select Module:</label>
-                <select id="module" name="module" class="form-control" required>
-                  {% for module in modules %}
-                    <option value="{{ module.id }}" {% if module.id == form.module.value %}selected{% endif %}>{{ module.file_name }}</option>
-                  {% endfor %}
-                </select>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="end_time">End Time:</label>
+                    <input type="datetime-local" id="end_time" name="end_time" value="{{ form.end_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
+                  </div>
+                </div>
               </div>
 
               <!-- Remedial Activity -->
@@ -67,39 +114,13 @@
                 </select>
               </div>
 
-              <div class="form-group">
-                <label for="max_retake">Max Retakes:</label>
-                <input type="number" id="max_retake" name="max_retake" class="form-control" value="0" min="0" required />
-              </div>
-    
-              <!-- New Field: Retake Method -->
-              <div class="form-group">
-                <label for="retake_method">Retake Method:</label>
-                <select id="retake_method" name="retake_method" class="form-control" required>
-                  <option value="highest">Highest Score</option>
-                  <option value="lowest">Lowest Score</option>
-                  
-                </select>
-              </div>
-
-              <!-- Start Time -->
-              <div class="form-group">
-                <label for="start_time">Start Time:</label>
-                <input type="datetime-local" id="start_time" name="start_time" value="{{ form.start_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
-              </div>
-
-              <!-- End Time -->
-              <div class="form-group">
-                <label for="end_time">End Time:</label>
-                <input type="datetime-local" id="end_time" name="end_time" value="{{ form.end_time.value|date:'Y-m-d\\TH:i' }}" class="form-control" required />
-              </div>
-
               <!-- Buttons -->
               <button type="submit" class="btn btn-primary">Save Changes</button>
               <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
             </form>
           </div>
         </div>
+        <!-- End of card -->
       </div>
     </section>
   </div>
