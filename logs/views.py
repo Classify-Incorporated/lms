@@ -1,6 +1,6 @@
 
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import SubjectLog
+from .models import SubjectLog, UserSubjectLog
 from django.contrib.auth.decorators import login_required
 # Create your views here.
 
@@ -12,9 +12,10 @@ def subjectLogDetails(request):
     })
 
 def mark_log_as_read(request, log_id):
-    # Get the log by its ID and mark it as read
-    log = get_object_or_404(SubjectLog, id=log_id)
-    log.read = True
-    log.save()
-
-    return redirect('subjectDetail', pk=log.subject.id)
+    if request.user.is_authenticated:
+        log = get_object_or_404(SubjectLog, id=log_id)
+        user_log, created = UserSubjectLog.objects.get_or_create(user=request.user, subject_log=log)
+        user_log.read = True
+        user_log.save()
+        return redirect('subjectDetail', pk=log.subject.id)
+    

@@ -21,31 +21,34 @@
     </li>
 
     <!-- Notifications Dropdown Menu -->
+    {% if show_logs %}
     <li class="nav-item dropdown">
-      <a class="nav-link" data-toggle="dropdown" href="#">
-        <i class="far fa-bell text-dark"></i>
-        {% if unread_notifications_count > 0 %}
-          <span class="badge badge-danger navbar-badge">{{ unread_notifications_count }}</span>
-        {% endif %}
-      </a>
-      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-        <span class="dropdown-header">{{ unread_notifications_count }} Notifications</span>
-        <div class="dropdown-divider"></div>
-
-        {% for log in logs %}
-          <a href="{% url 'mark_log_as_read' log.id %}" class="dropdown-item d-flex align-items-start {% if not log.read %}bg-light{% endif %}">
-            <i class="fas fa-book mr-2"></i>
-            <div class="flex-grow-1">
-              <span class="d-block text-truncate" style="max-width: 250px;">{{ log.message }}</span>
-              <small class="text-muted">{{ log.created_at|timesince }} ago</small>
-            </div>
-          </a>
-          <div class="dropdown-divider"></div>
-        {% empty %}
-          <a class="dropdown-item">No new notifications</a>
-        {% endfor %}
-      </div>
+        <a class="nav-link" data-toggle="dropdown" href="#">
+            <i class="far fa-bell text-dark"></i>
+            {% if unread_notifications_count > 0 %}
+                <span class="badge badge-danger navbar-badge">{{ unread_notifications_count }}</span>
+            {% endif %}
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+            <span class="dropdown-header">{{ unread_notifications_count }} Notifications</span>
+            <div class="dropdown-divider"></div>
+    
+            {% for log in logs %}
+            <a href="{% url 'mark_log_as_read' log.id %}" class="dropdown-item d-flex align-items-start {% if not log.read %}bg-light unread-log{% else %}read-log{% endif %}">
+                <i class="fas fa-book mr-2"></i>
+                <div class="flex-grow-1">
+                    <span class="d-block text-truncate" style="max-width: 250px;">{{ log.message }}</span>
+                    <small class="text-muted">{{ log.created_at|timesince }} ago</small>
+                </div>
+            </a>
+            <div class="dropdown-divider"></div>
+            {% empty %}
+            <a class="dropdown-item">No new notifications</a>
+            {% endfor %}
+        </div>
     </li>
+    {% endif %}
+    
 
     <!-- Messages Dropdown Menu -->
     <li class="nav-item dropdown">
