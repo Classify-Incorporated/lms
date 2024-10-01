@@ -63,6 +63,7 @@ class Activity(models.Model):
         if not SubjectLog.objects.filter(subject=self.subject, message__icontains=self.activity_name).exists():
             SubjectLog.objects.create(
                 subject=self.subject,
+                activity=True,
                 message=f"A new activity named '{self.activity_name}' has been created for {self.subject.subject_name}."
             )
     
