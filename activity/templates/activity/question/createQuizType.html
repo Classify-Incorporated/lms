@@ -123,6 +123,12 @@
         var button = $(event.relatedTarget);
         var quizTypeId = button.data('id');
         var quizTypeName = button.data('name');
+
+        if (!quizTypeId || quizTypeId == 0) {
+          alert('Invalid quiz type selected.');
+          return;
+        }
+
         var modal = $(this);
         modal.find('.modal-title').text('Add Question for ' + quizTypeName);
 
