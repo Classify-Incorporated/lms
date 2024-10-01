@@ -8,20 +8,15 @@ def subject_logs(request):
         user_role = request.user.profile.role.name.lower()
 
         # Only show logs to students and teachers
-        show_logs = user_role in ['student', 'teacher']  # True if user is student or teacher
+        show_logs = user_role == 'student'
         
         logs_with_read_status = []
         unread_notifications_count = 0
 
         if show_logs:
-            if user_role == 'student':
-                # Get the subjects the student is enrolled in
-                enrolled_subjects = SubjectEnrollment.objects.filter(student=request.user).values_list('subject', flat=True)
-                logs = SubjectLog.objects.filter(activity=True, subject__in=enrolled_subjects).order_by('-created_at')[:5]
-            elif user_role == 'teacher':
-                # Get the subjects the teacher is assigned to
-                teaching_subjects = Subject.objects.filter(assign_teacher=request.user).values_list('id', flat=True)
-                logs = SubjectLog.objects.filter(activity=True, subject__in=teaching_subjects).order_by('-created_at')[:5]
+            # Get the subjects the student is enrolled in
+            enrolled_subjects = SubjectEnrollment.objects.filter(student=request.user).values_list('subject', flat=True)
+            logs = SubjectLog.objects.filter(activity=True, subject__in=enrolled_subjects).order_by('-created_at')[:5]
 
             # For each log, get the corresponding UserSubjectLog for the current user
             for log in logs:
