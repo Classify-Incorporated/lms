@@ -284,6 +284,10 @@ class AddQuizTypeView(View):
             questions = request.session.get('questions', {}).get(str(activity_id), [])
             total_points = sum(question.get('score', 0) for question in questions)
 
+            print(f"Activity ID: {activity_id}")
+            print(f"Total Questions Retrieved: {len(questions)}")
+            print(f"Total Points: {total_points}")
+
             return render(request, 'activity/question/createQuizType.html', {
                 'activity': activity,
                 'quiz_types': quiz_types,
@@ -302,9 +306,14 @@ class AddQuizTypeView(View):
             activity = get_object_or_404(Activity, id=activity_id)
             quiz_type_id = request.POST.get('quiz_type')
 
+            print(f"Quiz Type ID (POST): {quiz_type_id}")
+
             if not quiz_type_id:
                 messages.error(request, "Quiz type not selected.")
+                print("Error: Quiz type ID is zero or invalid.")
                 return self.get(request, activity_id)
+            else:
+                print(f"Quiz type ID is valid and equals: {quiz_type_id}")
 
             return redirect('add_question', activity_id=activity_id, quiz_type_id=quiz_type_id)
         except Exception as e:
@@ -347,12 +356,15 @@ class AddQuestionView(View):
 
         except Activity.DoesNotExist:
             messages.error(request, 'Activity does not exist.')
+            print(f"Activity with ID {activity_id} does not exist.")
             return redirect('error')  # Redirect to the correct error page
         except QuizType.DoesNotExist:
             messages.error(request, 'Quiz type does not exist.')
+            print(f"QuizType with ID {quiz_type_id} does not exist.")
             return redirect('error')  # Redirect to the correct error page
         except Exception as e:
             messages.error(request, f"An unexpected error occurred: {str(e)}")
+            print(f"Error in AddQuestionView GET method: {e}")
             return redirect('error')
 
         # Handle participation quiz type
