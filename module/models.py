@@ -54,8 +54,8 @@ class Module(models.Model):
         ordering = ['order']
     
 class StudentProgress(models.Model):
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    module = models.ForeignKey(Module, on_delete=models.CASCADE, null=True, blank=True)
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    module = models.ForeignKey(Module, on_delete=models.PROTECT, null=True, blank=True)
     progress = models.DecimalField(max_digits=5, decimal_places=2, default=0) 
     completed = models.BooleanField(default=False)
     first_accessed = models.DateTimeField(null=True, blank=True)  
@@ -64,7 +64,10 @@ class StudentProgress(models.Model):
     last_page = models.IntegerField(default=1) 
 
     def __str__(self):
-        return f"{self.student.username} - {self.module.file_name} - {self.progress}%"
+        if self.module and self.module.file_name:
+            return f"{self.student.username} - {self.module.file_name} - {self.progress}%"
+        else:
+            return f"{self.student.username} - No Module - {self.progress}%"
 
     def save(self, *args, **kwargs):
         now = timezone.now()

@@ -171,7 +171,7 @@ class AddActivityView(View):
 
     def send_email_to_students(self, students, activity):
         subject = f"New Activity Assigned: {activity.activity_name}"
-        from_email = 'managezeen@gmail.com' 
+        from_email = 'testsmtp@hccci.edu.ph' 
 
         email_messages = []
         print(f"Sending email for activity '{activity.activity_name}' to the following students:")

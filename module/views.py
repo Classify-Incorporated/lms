@@ -286,11 +286,12 @@ def deleteModule(request, pk):
 
 @login_required
 def progressList(request):
-    student = request.user
-    
-    module_activities = StudentProgress.objects.filter(
-        student=student, module__isnull=False
-    ).select_related('module').distinct()
+    module_ids = StudentProgress.objects.filter(
+        student__profile__role__name__iexact='student'
+    ).values('module_id').distinct()
+
+    # Fetch the actual module objects using the distinct IDs
+    module_activities = Module.objects.filter(id__in=module_ids)
 
     return render(request, 'module/progress/activityProgress.html', {
         'module_activities': module_activities
@@ -299,7 +300,7 @@ def progressList(request):
 
 @login_required
 def detailModuleProgress(request, module_id):
-    progress_list = StudentProgress.objects.filter(module_id=module_id)
+    progress_list = StudentProgress.objects.filter(module_id=module_id, student__profile__role__name__iexact='student')
     module = get_object_or_404(Module, id=module_id)
     activity_name = module.file_name
 
@@ -321,6 +322,7 @@ def detailModuleProgress(request, module_id):
         'progress_list': progress_list,
         'activity_name': activity_name
     })
+
 
 @login_required
 def download_module(request, module_id):

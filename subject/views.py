@@ -57,9 +57,9 @@ def createSubject(request):
         form = subjectForm(request.POST, request.FILES)
         if form.is_valid():
             # Check for duplicate subject name
-            subject_name = form.cleaned_data.get('subject_name')
-            if Subject.objects.filter(subject_name=subject_name).exists():
-                messages.error(request, 'Subject name already exists. Please choose another name.')
+            subject_short_name = form.cleaned_data.get('subject_short_name')
+            if Subject.objects.filter(subject_short_name=subject_short_name).exists():
+                messages.error(request, 'Subject short name already exists. Please choose another name.')
                 return redirect('subject')
 
             form.save()
