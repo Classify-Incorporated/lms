@@ -10,7 +10,7 @@ def subject_logs(request):
         # Only show logs to students and teachers
         show_logs = user_role in ['student', 'teacher']  # True if user is student or teacher
         
-        logs = []
+        logs_with_read_status = []
         unread_notifications_count = 0
 
         if show_logs:
@@ -23,18 +23,19 @@ def subject_logs(request):
                 teaching_subjects = Subject.objects.filter(assign_teacher=request.user).values_list('id', flat=True)
                 logs = SubjectLog.objects.filter(activity=True, subject__in=teaching_subjects).order_by('-created_at')[:5]
 
-            # For each log, check if it has been read by the current user
-            unread_logs = []
+            # For each log, get the corresponding UserSubjectLog for the current user
             for log in logs:
                 user_log, created = UserSubjectLog.objects.get_or_create(user=request.user, subject_log=log)
+                logs_with_read_status.append({
+                    'log': log,
+                    'read': user_log.read
+                })
                 if not user_log.read:
-                    unread_logs.append(log)
-
-            unread_notifications_count = len(unread_logs)
+                    unread_notifications_count += 1
 
         return {
             'show_logs': show_logs,
-            'logs': logs,
+            'logs_with_read_status': logs_with_read_status,
             'unread_notifications_count': unread_notifications_count
         }
     return {}
