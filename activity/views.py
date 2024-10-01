@@ -308,7 +308,7 @@ class AddQuizTypeView(View):
 
             print(f"Quiz Type ID (POST): {quiz_type_id}")
 
-            if not quiz_type_id:
+            if not quiz_type_id or int(quiz_type_id) == 0:
                 messages.error(request, "Quiz type not selected.")
                 print("Error: Quiz type ID is zero or invalid.")
                 return self.get(request, activity_id)
