@@ -29,7 +29,6 @@
                   <tr>
                     <th>Student Name</th>
                     <th>Progress</th>
-                    <th>Time Spent</th>
                     <th>First Access</th>
                     <th>Last Access</th>
                   </tr>
@@ -45,7 +44,6 @@
                           </div>
                         </div>
                       </td>
-                      <td>{{ progress.formatted_time_spent }}</td>
                       <td>{{ progress.first_accessed|date:'Y-m-d H:i:s' }}</td>
                       <td>{{ progress.last_accessed|date:'Y-m-d H:i:s' }}</td>
                     </tr>

@@ -25,6 +25,9 @@ from django.utils import timezone
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.urls import reverse
+from datetime import timedelta
+from django.db.models.functions import TruncDate
+
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -192,7 +195,17 @@ def dashboard(request):
         profile__role__name__iexact='student'
     ).distinct()
 
-    active_students_count = active_students.count()
+    today = timezone.now().date()
+    one_week_ago = today - timedelta(days=7)
+
+    # Grouping active students by day (for last 7 days)
+    active_users_per_day = active_students.filter(
+        last_login__date__gte=one_week_ago
+    ).annotate(
+        date=TruncDate('last_login')
+    ).values('date').annotate(
+        count=Count('id')
+    ).order_by('date')
 
     today = timezone.now().date()
     current_semester = Semester.objects.filter(start_date__lte=today, end_date__gte=today).first()
@@ -254,7 +267,7 @@ def dashboard(request):
 
     context = {
         'enrolled_students_count': enrolled_students_count,
-        'active_users_count': active_students_count,
+        'active_users_count': active_users_per_day,
         'student_counts': student_counts,
         'subject_count': subject_count,
         'failing_students_count': failing_students_count,

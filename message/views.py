@@ -23,7 +23,7 @@ def send_test_email(request):
     send_mail(
         subject,
         message,
-        'mangazeen@gmail.com',  # This should be the email you're using as `DEFAULT_FROM_EMAIL`
+        'testsmtp@hccci.edu.ph',  # This should be the email you're using as `DEFAULT_FROM_EMAIL`
         recipient_list,
         fail_silently=False,
     )

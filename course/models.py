@@ -4,10 +4,10 @@ from subject.models import Subject
 from django.utils import timezone
 
 class SubjectEnrollment(models.Model):
-    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
+    student = models.ForeignKey(CustomUser, on_delete=models.PROTECT)
+    subject = models.ForeignKey(Subject, on_delete=models.PROTECT, null=True, blank=True)
     enrollment_date = models.DateField(auto_now_add=True)
-    semester = models.ForeignKey('Semester', on_delete=models.CASCADE, null=True, blank=True)
+    semester = models.ForeignKey('Semester', on_delete=models.PROTECT, null=True, blank=True)
     can_view_grade = models.BooleanField(default=False)
 
     class Meta:
@@ -19,7 +19,7 @@ class SubjectEnrollment(models.Model):
         return f"{self.student} enrolled in {self.subject}"
 
 class Retake(models.Model):
-    subject_enrollment = models.ForeignKey(SubjectEnrollment, on_delete=models.CASCADE, related_name='retakes')
+    subject_enrollment = models.ForeignKey(SubjectEnrollment, on_delete=models.PROTECT, related_name='retakes')
     retake_date = models.DateField(auto_now_add=True)
     reason = models.TextField()
 
@@ -46,10 +46,9 @@ class Semester(models.Model):
         return f"{self.semester_name} ({self.start_date} - {self.end_date}) "
     
 
-    
 class Term(models.Model):
     term_name = models.CharField(max_length=50)
-    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, null=True, blank=True)
+    semester = models.ForeignKey(Semester, on_delete=models.PROTECT, null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
@@ -58,9 +57,9 @@ class Term(models.Model):
         return f"{self.term_name} - {self.start_date} - {self.end_date}"
 
 class StudentParticipationScore(models.Model):
-    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    term = models.ForeignKey(Term, on_delete=models.CASCADE)
+    student = models.ForeignKey(CustomUser, on_delete=models.PROTECT)
+    subject = models.ForeignKey(Subject, on_delete=models.PROTECT)
+    term = models.ForeignKey(Term, on_delete=models.PROTECT)
     score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     max_score = models.DecimalField(max_digits=5, decimal_places=2, default=100)
 

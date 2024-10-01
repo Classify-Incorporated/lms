@@ -4,6 +4,6 @@ from .models import SubjectLog
 
 class SubjectLogAdmin(admin.ModelAdmin):
     fields = ('subject', 'message')
-    list_display = ('subject', 'message', 'created_at')
+    list_display = ('subject', 'message', 'created_at','read')
 
 admin.site.register(SubjectLog, SubjectLogAdmin)

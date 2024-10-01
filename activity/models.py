@@ -37,7 +37,7 @@ class QuizType(models.Model):
 class Activity(models.Model):
     activity_name = models.CharField(max_length=100)
     activity_type = models.ForeignKey(ActivityType, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.PROTECT)
     term = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
     module = models.ForeignKey(Module, on_delete=models.CASCADE, null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
@@ -58,7 +58,9 @@ class Activity(models.Model):
     def save(self, *args, **kwargs):
         is_new = self.pk is None 
         super().save(*args, **kwargs)
-        if is_new:
+
+        # Check if a log already exists for this activity
+        if not SubjectLog.objects.filter(subject=self.subject, message__icontains=self.activity_name).exists():
             SubjectLog.objects.create(
                 subject=self.subject,
                 message=f"A new activity named '{self.activity_name}' has been created for {self.subject.subject_name}."
@@ -86,7 +88,7 @@ class QuestionChoice(models.Model):
     
 
 class StudentActivity(models.Model):
-    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    student = models.ForeignKey(CustomUser, on_delete=models.PROTECT)
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     term = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
     retake_count = models.PositiveIntegerField(default=0)

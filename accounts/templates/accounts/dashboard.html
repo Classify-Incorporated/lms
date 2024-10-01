@@ -349,14 +349,14 @@
       type: 'bar',
       data: {
         labels: [
-          {% for day in active_users_per_day %}
+          {% for day in active_users_count %}
             "{{ day.date|date:'M d' }}",
           {% endfor %}
         ],
         datasets: [{
           label: 'Active Students',
           data: [
-            {% for day in active_users_per_day %}
+            {% for day in active_users_count %}
               {{ day.count }},
             {% endfor %}
           ],

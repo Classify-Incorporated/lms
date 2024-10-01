@@ -5,6 +5,7 @@ class SubjectLog(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Log for {self.subject.subject_name} at {self.created_at}"
