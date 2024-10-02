@@ -34,7 +34,7 @@ urlpatterns = [
     path('updateTerm/<int:pk>/', updateTerm, name='updateTerm'),
     path('deleteTerm/<int:pk>/', deleteTerm, name='deleteTerm'),
     path('termList/', termList, name='termList'),
-    path('displayActivitiesForTerm/<int:term_id>/<str:activity_type>/<int:subject_id>/', displayActivitiesForTerm, name='displayActivitiesForTerm'),
+    path('displayActivitiesForTerm/<int:term_id>/<str:activity_type>/<int:subject_id>/<str:activity_name>/', displayActivitiesForTerm, name='displayActivitiesForTerm'),
 
     # Participation Scores
     path('selectParticipation/<int:subject_id>/', selectParticipation, name='selectParticipation'),
