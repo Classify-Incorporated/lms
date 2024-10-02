@@ -124,6 +124,8 @@
         var quizTypeId = button.data('id');
         var quizTypeName = button.data('name');
 
+        console.log(`QuizTypeModal opened: ID - ${quizTypeId}, Name - ${quizTypeName}`);
+
         if (!quizTypeId || quizTypeId == 0) {
           alert('Invalid quiz type selected.');
           return;
@@ -134,6 +136,7 @@
 
         var form = modal.find('#quizTypeForm');
         var action = "{% url 'add_question' activity.id 0 %}".replace('0', quizTypeId);
+        console.log(`Form action: ${action}`); 
         form.attr('action', action);
 
         var quizTypeFields = modal.find('#quiz-type-fields');
@@ -151,6 +154,7 @@
               <input type="number" id="score" name="score" class="form-control" required>
             </div>
           `);
+          console.log('Quiz Type Fields:', quizTypeFields.html());
         }
 
         // Handle Multiple Choice question type
