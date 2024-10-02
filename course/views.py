@@ -330,31 +330,38 @@ def termActivitiesGraph(request, subject_id):
 
     for i, term in enumerate(terms):
         # Filter activities by term and subject
-        activities = Activity.objects.filter(term=term, subject=subject, end_time__lt=now)
+        activities = Activity.objects.filter(term=term, subject=subject, end_time__lt=now).exclude(activity_type__name='Participation')
 
-        # Initialize term data for combined completed and missed counts
+        # Initialize term data for combined completed and missed counts for each activity_type
         if term.term_name not in activity_data:
             activity_data[term.term_name] = {
-                'id': term.id, 
-                'completed': 0,  # Sum of all completed activities in this term
-                'missed': 0,     # Sum of all missed activities in this term
+                'id': term.id,
+                'activity_types': {},  # Store activity_type specific data here
                 'term_color': term_colors[i % len(term_colors)],  # Cycle through term colors
                 'term_border_color': border_colors[i % len(border_colors)]
             }
 
-        # Loop through activities and sum completed/missed students
-        if is_teacher:
-            for activity in activities:
+        # Loop through activities and sum completed/missed students for each activity_type
+        for activity in activities:
+            activity_type_name = activity.activity_type.name  # Get the activity type (e.g., 'Quiz', 'Assignment')
+
+            # Initialize the activity type data if not already present
+            if activity_type_name not in activity_data[term.term_name]['activity_types']:
+                activity_data[term.term_name]['activity_types'][activity_type_name] = {
+                    'completed': 0,  # Sum of all completed activities for this activity_type
+                    'missed': 0,     # Sum of all missed activities for this activity_type
+                }
+
+            if is_teacher:
                 total_students = CustomUser.objects.filter(subjectenrollment__subject=activity.subject).distinct().count()
                 completed_students = StudentQuestion.objects.filter(activity_question__activity=activity, status=True).values('student').distinct().count()
                 missed_students = total_students - completed_students
 
-                # Add completed and missed counts to the term's total
-                activity_data[term.term_name]['completed'] += completed_students
-                activity_data[term.term_name]['missed'] += -missed_students  # Missed students stored as negative
+                # Add completed and missed counts to the activity_type's total
+                activity_data[term.term_name]['activity_types'][activity_type_name]['completed'] += completed_students
+                activity_data[term.term_name]['activity_types'][activity_type_name]['missed'] += -missed_students
 
-        elif is_student:
-            for activity in activities:
+            elif is_student:
                 completed_student = StudentQuestion.objects.filter(
                     student=user,  # Filter by logged-in student
                     activity_question__activity=activity,
@@ -363,21 +370,20 @@ def termActivitiesGraph(request, subject_id):
 
                 # Increment completed or missed count for the student
                 if completed_student:
-                    activity_data[term.term_name]['completed'] += 1
+                    activity_data[term.term_name]['activity_types'][activity_type_name]['completed'] += 1
                 else:
-                    activity_data[term.term_name]['missed'] += -1
+                    activity_data[term.term_name]['activity_types'][activity_type_name]['missed'] += -1
 
-    # Prepare the JSON response data, summing per term rather than per activity
+    # Prepare the JSON response data, summing per term and per activity type
     response_data = {
         'semester': current_semester.semester_name,
         'subject': subject.subject_name,  # Include subject information
-        'terms': activity_data  # Aggregated data by term
+        'terms': activity_data  # Aggregated data by term and activity type
     }
 
     return JsonResponse(response_data)
 
-
-def displayActivitiesForTerm(request, subject_id, term_id, activity_type):
+def displayActivitiesForTerm(request, subject_id, term_id, activity_type, activity_name):
     now = timezone.localtime(timezone.now())
     
     # Get the current semester
@@ -388,18 +394,21 @@ def displayActivitiesForTerm(request, subject_id, term_id, activity_type):
     term = get_object_or_404(Term, id=term_id, semester=current_semester)
     subject = get_object_or_404(Subject, id=subject_id)
 
-    # Filter activities based on the term, subject, and activity type (completed or missed)
+    # Filter activities based on the term, subject, and activity type (e.g., Quiz, Assignment)
     if activity_type == 'completed':
-        activities = Activity.objects.filter(term=term, subject=subject, end_time__lt=now)
+        activities = Activity.objects.filter(term=term, subject=subject, end_time__lt=now, activity_type__name=activity_name)
     elif activity_type == 'missed':
-        activities = Activity.objects.filter(term=term, subject=subject, end_time__lt=now)
+        # Assuming missed activities are those that were not completed (add your custom logic here)
+        activities = Activity.objects.filter(term=term, subject=subject, end_time__lt=now, activity_type__name=activity_name)
 
     return render(request, 'course/activitiesPerTerm.html', {
         'activities': activities,
         'term': term,
         'subject': subject,
         'activity_type': activity_type,
+        'activity_name': activity_name,
     })
+
 
 # get all the finished activities
 @login_required

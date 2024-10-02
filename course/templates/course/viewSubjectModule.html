@@ -67,6 +67,12 @@
         <!-- Completed Activities Chart -->
         <div class="row mb-4">
           <div class="col-md-12">
+            <div class="form-group">
+              <label for="activityTypeSelect">Select Activity Type:</label>
+              <select id="activityTypeSelect" class="form-control">
+                <!-- Options will be populated dynamically -->
+              </select>
+            </div>
             <div class="card shadow-sm">
               <div class="card-header gradient-header bg-success text-center">Completed Activities</div>
               <div class="card-body" style="height: 300px;">
@@ -374,116 +380,188 @@
     const gradingNeededLinks = [{% for activity, count in activities_with_grading_needed %}'{% url "grade_essays" activity.id %}?semester={{ selected_semester_id }}',{% endfor %}];
     createPieChart('activitiesToBeGradedChart', gradingNeededLabels, gradingNeededData, gradingNeededLinks, 'noDataGradingNeeded');
 
-    const subjectId = {{ subject.id }};
-
-    fetch("{% url 'termActivitiesGraph' 0 %}".replace('0', subjectId))
-      .then(response => response.json())
-      .then(data => {
-        const terms = Object.keys(data.terms);  // Get all term names (e.g., ['Prelim', 'Midterm', 'Finals'])
-        const termIds = terms.map(term => data.terms[term].id);
-        const completedData = terms.map(term => data.terms[term].completed);  // Get completed counts for each term
-        const missedData = terms.map(term => data.terms[term].missed);  // Get missed counts for each term (negative)
-
-
-        // Create the stacked line chart using the processed data
-        createStackedLineChart('finishedActivitiesChart', terms, termIds,  completedData, missedData);
-      })
-      .catch(error => console.error('Error fetching term activities:', error));
-
-      const createStackedLineChart = (chartId, labels, termIds, completedData, missedData) => {
-        const ctx = document.getElementById(chartId).getContext('2d');
-      
-        const chart = new Chart(ctx, {
-          type: 'line',  // Stacked line chart
-          data: {
-            labels: labels,  // Term names as labels (Prelim, Midterm, Finals)
-            datasets: [
-              {
-                label: 'Completed',
-                data: completedData,  // Data for completed students
-                backgroundColor: 'rgb(54,162,235)', // Solid blue fill for completed
-                borderColor: 'rgb(54,162,235)',  // Blue border
+    document.addEventListener('DOMContentLoaded', function() {
+      const subjectId = {{ subject.id }};
+    
+      fetch("{% url 'termActivitiesGraph' 0 %}".replace('0', subjectId))
+        .then(response => response.json())
+        .then(data => {
+          const terms = Object.keys(data.terms);  // Get all term names (e.g., ['Prelim', 'Midterm', 'Finals'])
+          const termIds = terms.map(term => data.terms[term].id);
+          const activityTypeSelect = document.getElementById('activityTypeSelect');
+    
+          // Get all activity types and add "All" option
+          let activityTypes = [...new Set(terms.flatMap(term => Object.keys(data.terms[term].activity_types || {})))];
+          const allOption = document.createElement('option');
+          allOption.value = 'All';
+          allOption.textContent = 'All Activities';
+          activityTypeSelect.appendChild(allOption);
+    
+          // Populate dropdown with individual activity types
+          activityTypes.forEach(activityType => {
+            const option = document.createElement('option');
+            option.value = activityType;
+            option.textContent = activityType;
+            activityTypeSelect.appendChild(option);
+          });
+    
+          // Initial chart display for "All" activities
+          updateChartForActivityType('All');
+    
+          // Event listener to update chart when a new activity type is selected
+          activityTypeSelect.addEventListener('change', function() {
+            const selectedActivityType = this.value;
+            updateChartForActivityType(selectedActivityType);
+          });
+    
+          function updateChartForActivityType(activityType) {
+            let datasets = [];
+    
+            const distinctColors = [
+              '#FF5733',  // Orange-Red
+              '#33FF57',  // Green
+              '#3357FF',  // Blue
+              '#FF33A5',  // Pink
+              '#FFC133',  // Yellow
+              '#33FFD5',  // Turquoise
+              '#8D33FF',  // Purple
+            ];
+    
+            if (activityType === 'All') {
+              activityTypes.forEach((type, index) => {
+                const completedData = terms.map(term => data.terms[term].activity_types[type]?.completed || 0);
+                const missedData = terms.map(term => data.terms[term].activity_types[type]?.missed || 0);
+    
+                datasets.push({
+                  label: `${type} - Completed`,
+                  data: completedData,
+                  backgroundColor: distinctColors[index % distinctColors.length],
+                  borderColor: distinctColors[index % distinctColors.length],
+                  borderWidth: 2,
+                  fill: true,
+                  pointBackgroundColor: distinctColors[index % distinctColors.length],
+                  pointRadius: 5,
+                  pointHoverRadius: 7
+                });
+    
+                datasets.push({
+                  label: `${type} - Missed`,
+                  data: missedData,
+                  backgroundColor: distinctColors[(index + 1) % distinctColors.length],
+                  borderColor: distinctColors[(index + 1) % distinctColors.length],
+                  borderWidth: 2,
+                  fill: true,
+                  pointBackgroundColor: distinctColors[(index + 1) % distinctColors.length],
+                  pointRadius: 5,
+                  pointHoverRadius: 7
+                });
+              });
+            } else {
+              const completedData = terms.map(term => data.terms[term].activity_types[activityType]?.completed || 0);
+              const missedData = terms.map(term => data.terms[term].activity_types[activityType]?.missed || 0);
+    
+              datasets.push({
+                label: `${activityType} - Completed`,
+                data: completedData,
+                backgroundColor: distinctColors[0],
+                borderColor: distinctColors[0],
                 borderWidth: 2,
-                fill: true,  // Fill the area below the line for stacking effect
-                pointBackgroundColor: 'rgb(5,155,255)',
+                fill: true,
+                pointBackgroundColor: distinctColors[0],
                 pointRadius: 5,
                 pointHoverRadius: 7
-              },
-              {
-                label: 'Missed',
-                data: missedData,  // Data for missed students
-                backgroundColor: 'rgb(255,99,132)',  // Solid red fill for missed
-                borderColor: 'rgb(255,99,132)',  // Red border
+              });
+    
+              datasets.push({
+                label: `${activityType} - Missed`,
+                data: missedData,
+                backgroundColor: distinctColors[1],
+                borderColor: distinctColors[1],
                 borderWidth: 2,
-                fill: true,  // Fill the area below the line for stacking effect
-                pointBackgroundColor: 'rgb(255,99,132)',
+                fill: true,
+                pointBackgroundColor: distinctColors[1],
                 pointRadius: 5,
                 pointHoverRadius: 7
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                stacked: true,  // Enable stacking on the Y-axis
-                title: {
-                  display: true,
-                  text: 'Number of Students'
-                }
-              },
-              x: {
-                title: {
-                  display: true,
-                  text: 'Terms'
-                }
-              }
-            },
-            plugins: {
-              legend: {
-                display: true
-              },
-              title: {
-                display: true,
-                text: 'Students Completed vs Missed per Term'
-              },
-              tooltip: {
-                callbacks: {
-                  label: function(tooltipItem) {
-                    return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
-                  }
-                }
-              }
-            },
-            onClick: function(evt) {
-              const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-
-              if (points.length > 0) {
-                  const firstPoint = points[0];  // Get the first clicked point
-                  const index = firstPoint.index;  // The index of the clicked data point
-                  const datasetIndex = firstPoint.datasetIndex;  // The dataset index
-
-                  const termId = termIds[index];  // Use the index to fetch the correct term ID
-                  const activityType = datasetIndex === 0 ? 'completed' : 'missed';
-
-                  // Redirect to the activities page for the selected term and activity type
-                  if (termId) {
-                      window.location.href = `/displayActivitiesForTerm/${termId}/${activityType}/${subjectId}/`;
-                  } else {
-                      console.error('Term ID is undefined for index:', index);
-                  }
-              } else {
-                  console.error('No elements detected on chart click.');
-              }
+              });
             }
+    
+            createStackedLineChart('finishedActivitiesChart', terms, termIds, datasets);
           }
-        });
-      };
-      
-      // Call the function to create the chart
-      createStackedLineChart('finishedActivitiesChart', terms, completedData, missedData);        
+    
+          function createStackedLineChart(chartId, labels, termIds, datasets) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            
+            if (window.chartInstance) {
+              window.chartInstance.destroy();  // Destroy previous chart instance before creating a new one
+            }
+    
+            window.chartInstance = new Chart(ctx, {
+              type: 'line',  // Stacked line chart
+              data: {
+                labels: labels,  // Term names as labels (Prelim, Midterm, Finals)
+                datasets: datasets
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    stacked: true,
+                    title: {
+                      display: true,
+                      text: 'Number of Students'
+                    }
+                  },
+                  x: {
+                    title: {
+                      display: true,
+                      text: 'Terms'
+                    }
+                  }
+                },
+                plugins: {
+                  legend: {
+                    display: true
+                  },
+                  title: {
+                    display: true,
+                    text: 'Students Completed vs Missed per Term'
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(tooltipItem) {
+                        return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
+                      }
+                    }
+                  }
+                },
+                onClick: function(evt) {
+                  const points = window.chartInstance.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+    
+                  if (points.length > 0) {
+                    const firstPoint = points[0];
+                    const index = firstPoint.index;
+                    const datasetIndex = firstPoint.datasetIndex;
+    
+                    const termId = termIds[index];  // Use the index to fetch the correct term ID
+                    const activityType = datasetIndex % 2 === 0 ? 'completed' : 'missed';  // Even index means completed, odd means missed
+                    const activityName = datasets[datasetIndex].label.split(' - ')[0];  // Get the activity type name from the dataset label
+    
+                    // Redirect to the activities page for the selected term and activity type
+                    if (termId) {
+                      window.location.href = `/displayActivitiesForTerm/${termId}/${activityType}/${subjectId}/${activityName}/`;
+                    } else {
+                      console.error('Term ID is undefined for index:', index);
+                    }
+                  }
+                }
+              }
+            });
+          }
+        })
+        .catch(error => console.error('Error fetching term activities:', error));
+    });
   </script>
 
   <!-- SortableJS for drag-and-drop functionality (Frontend Only) -->
