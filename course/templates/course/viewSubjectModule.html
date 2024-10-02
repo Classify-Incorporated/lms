@@ -68,7 +68,7 @@
         <div class="row mb-4">
           <div class="col-md-12">
             <div class="card shadow-sm">
-              <div class="card-header gradient-header bg-success text-center">Completed Activities</div>
+              <div class="card-header gradient-header bg-success text-center">Completed Activities Summaries</div>
               <div class="card-body" style="height: 300px;">
                 <canvas id="finishedActivitiesChart" class="activity-chart"></canvas>
                 <p id="noDataFinished" class="text-center text-muted" style="display: none;">No completed activities</p>
@@ -376,20 +376,19 @@
 
     const subjectId = {{ subject.id }};
 
-    fetch("{% url 'termActivitiesGraph' 0 %}".replace('0', subjectId))
-      .then(response => response.json())
-      .then(data => {
-        const terms = Object.keys(data.terms);  // Get all term names (e.g., ['Prelim', 'Midterm', 'Finals'])
-        const termIds = terms.map(term => data.terms[term].id);
-        const completedData = terms.map(term => data.terms[term].completed);  // Get completed counts for each term
-        const missedData = terms.map(term => data.terms[term].missed);  // Get missed counts for each term (negative)
-
-
-        // Create the stacked line chart using the processed data
-        createStackedLineChart('finishedActivitiesChart', terms, termIds,  completedData, missedData);
-      })
-      .catch(error => console.error('Error fetching term activities:', error));
-
+        fetch("{% url 'termActivitiesGraph' 0 %}".replace('0', subjectId))
+        .then(response => response.json())
+        .then(data => {
+          const terms = Object.keys(data.terms);  // Get all term names (e.g., ['Prelim', 'Midterm', 'Finals'])
+          const termIds = terms.map(term => data.terms[term].id);
+          const completedData = terms.map(term => data.terms[term].completed);  // Get completed counts for each term
+          const missedData = terms.map(term => -Math.abs(data.terms[term].missed));  // Set missed counts as negative values
+      
+          // Create the stacked line chart using the processed data
+          createStackedLineChart('finishedActivitiesChart', terms, termIds, completedData, missedData);
+        })
+        .catch(error => console.error('Error fetching term activities:', error));
+      
       const createStackedLineChart = (chartId, labels, termIds, completedData, missedData) => {
         const ctx = document.getElementById(chartId).getContext('2d');
       
@@ -399,23 +398,23 @@
             labels: labels,  // Term names as labels (Prelim, Midterm, Finals)
             datasets: [
               {
-                label: 'Completed',
+                label: 'Completed Activities Per Term',
                 data: completedData,  // Data for completed students
                 backgroundColor: 'rgb(54,162,235)', // Solid blue fill for completed
                 borderColor: 'rgb(54,162,235)',  // Blue border
                 borderWidth: 2,
-                fill: true,  // Fill the area below the line for stacking effect
+                fill: 'origin',  // Fill the area from the x-axis (y=0)
                 pointBackgroundColor: 'rgb(5,155,255)',
                 pointRadius: 5,
                 pointHoverRadius: 7
               },
               {
-                label: 'Missed',
-                data: missedData,  // Data for missed students
-                backgroundColor: 'rgb(255,99,132)',  // Solid red fill for missed
+                label: 'Missed Activities Per Term',
+                data: missedData,  // Set missed data as negative values
+                backgroundColor: 'rgba(255,99,132, 0.3)',  // Light red for missed
                 borderColor: 'rgb(255,99,132)',  // Red border
                 borderWidth: 2,
-                fill: true,  // Fill the area below the line for stacking effect
+                fill: 'start',  // Fill downwards from the x-axis
                 pointBackgroundColor: 'rgb(255,99,132)',
                 pointRadius: 5,
                 pointHoverRadius: 7
@@ -427,11 +426,16 @@
             maintainAspectRatio: false,
             scales: {
               y: {
-                beginAtZero: true,
                 stacked: true,  // Enable stacking on the Y-axis
                 title: {
                   display: true,
                   text: 'Number of Students'
+                },
+                ticks: {
+                  callback: function(value, index, values) {
+                    // Make the y-axis ticks always show positive values
+                    return Math.abs(value);
+                  }
                 }
               },
               x: {
@@ -452,35 +456,37 @@
               tooltip: {
                 callbacks: {
                   label: function(tooltipItem) {
-                    return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
+                    // Show positive values for both completed and missed in the tooltip
+                    return `${tooltipItem.dataset.label}: ${Math.abs(tooltipItem.raw)}`;
                   }
                 }
               }
             },
             onClick: function(evt) {
               const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-
+      
               if (points.length > 0) {
-                  const firstPoint = points[0];  // Get the first clicked point
-                  const index = firstPoint.index;  // The index of the clicked data point
-                  const datasetIndex = firstPoint.datasetIndex;  // The dataset index
-
-                  const termId = termIds[index];  // Use the index to fetch the correct term ID
-                  const activityType = datasetIndex === 0 ? 'completed' : 'missed';
-
-                  // Redirect to the activities page for the selected term and activity type
-                  if (termId) {
-                      window.location.href = `/displayActivitiesForTerm/${termId}/${activityType}/${subjectId}/`;
-                  } else {
-                      console.error('Term ID is undefined for index:', index);
-                  }
+                const firstPoint = points[0];  // Get the first clicked point
+                const index = firstPoint.index;  // The index of the clicked data point
+                const datasetIndex = firstPoint.datasetIndex;  // The dataset index
+      
+                const termId = termIds[index];  // Use the index to fetch the correct term ID
+                const activityType = datasetIndex === 0 ? 'completed' : 'missed';
+      
+                // Redirect to the activities page for the selected term and activity type
+                if (termId) {
+                  window.location.href = `/displayActivitiesForTerm/${termId}/${activityType}/${subjectId}/`;
+                } else {
+                  console.error('Term ID is undefined for index:', index);
+                }
               } else {
-                  console.error('No elements detected on chart click.');
+                console.error('No elements detected on chart click.');
               }
             }
           }
         });
       };
+      
       
       // Call the function to create the chart
       createStackedLineChart('finishedActivitiesChart', terms, completedData, missedData);        
