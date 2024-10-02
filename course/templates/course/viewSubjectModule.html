@@ -74,7 +74,7 @@
               </select>
             </div>
             <div class="card shadow-sm">
-              <div class="card-header gradient-header bg-success text-center">Completed Activities</div>
+              <div class="card-header gradient-header bg-success text-center">Completed Activities Summaries</div>
               <div class="card-body" style="height: 300px;">
                 <canvas id="finishedActivitiesChart" class="activity-chart"></canvas>
                 <p id="noDataFinished" class="text-center text-muted" style="display: none;">No completed activities</p>
@@ -380,6 +380,7 @@
     const gradingNeededLinks = [{% for activity, count in activities_with_grading_needed %}'{% url "grade_essays" activity.id %}?semester={{ selected_semester_id }}',{% endfor %}];
     createPieChart('activitiesToBeGradedChart', gradingNeededLabels, gradingNeededData, gradingNeededLinks, 'noDataGradingNeeded');
 
+
     document.addEventListener('DOMContentLoaded', function() {
       const subjectId = {{ subject.id }};
     
@@ -559,9 +560,11 @@
               }
             });
           }
+
         })
         .catch(error => console.error('Error fetching term activities:', error));
     });
+
   </script>
 
   <!-- SortableJS for drag-and-drop functionality (Frontend Only) -->
