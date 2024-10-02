@@ -90,7 +90,7 @@ class AddActivityView(View):
         
 
         students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
-        modules = Module.objects.filter(subject=subject) 
+        modules = Module.objects.filter(subject=subject, term__semester=current_semester, start_date__isnull=False, end_date__isnull=False) 
 
         return render(request, 'activity/activities/createActivity.html', {
             'subject': subject,
@@ -276,6 +276,7 @@ def UpdateActivity(request, activity_id):
 class AddQuizTypeView(View):
     def get(self, request, activity_id):
         try:
+            print(f"Received activity_id: {activity_id}")
             activity = get_object_or_404(Activity, id=activity_id)
             quiz_types = QuizType.objects.all()  # Ensure that "Document" is included here
 
@@ -616,18 +617,66 @@ class DisplayQuestionsView(View):
     def get(self, request, activity_id):
         activity = get_object_or_404(Activity, id=activity_id)
         user = request.user
-
-        # if not activity.students.filter(id=user.id).exists():
-        #     # If the student is not enrolled, redirect to an error page or their dashboard
-        #     return redirect('display_question',)
-        
-        questions = ActivityQuestion.objects.filter(activity=activity)
+        print(activity.max_retake)
 
         # Check if the user is a teacher or a student
         is_teacher = user.is_authenticated and user.profile.role.name.lower() == 'teacher'
         is_student = user.is_authenticated and user.profile.role.name.lower() == 'student'
 
-        student_activity, created = StudentActivity.objects.get_or_create(student=user, activity=activity)
+        # If activity has ended, redirect based on role
+        now = timezone.now()
+        if activity.end_time and activity.end_time < now:
+            if is_student:
+                return redirect('studentActivityView', activity_id=activity.id)
+            else:
+                return redirect('teacherActivityView', activity_id=activity.id)
+
+        # Retrieve or create student activity (only relevant for students)
+        if is_student:
+            student_activity, created = StudentActivity.objects.get_or_create(student=user, activity=activity)
+            print(student_activity.retake_count)
+
+            # If student has reached the maximum number of retakes, redirect
+            if student_activity.retake_count > activity.max_retake:
+                return redirect('studentActivityView', activity_id=activity.id)
+
+            # Check if the student has already answered the questions
+            student_questions = StudentQuestion.objects.filter(student=user, activity_question__activity=activity)
+            has_answered = student_questions.filter(status=True).exists()
+
+            # Start the timer only on the first attempt (if not answered yet)
+            if not has_answered:
+                if not student_activity.start_time:
+                    student_activity.start_time = timezone.now()
+                    student_activity.end_time = student_activity.start_time + timedelta(minutes=60)  # Set 1-hour time limit
+                    student_activity.save()
+
+            # If already answered, stop the timer (do not reset)
+            if not created and has_answered:
+                student_activity.start_time = None
+                student_activity.end_time = None
+                student_activity.save()
+
+            # Calculate the remaining time for the student
+            time_remaining = None
+            if student_activity.end_time:
+                time_remaining = student_activity.end_time - timezone.now()
+                if time_remaining.total_seconds() <= 0:
+                    # Time has run out, auto-submit any answers
+                    return redirect('submit_answers', activity_id=activity_id)
+
+            # Check if the student is allowed to retake
+            can_retake = student_activity.retake_count <= activity.max_retake
+
+        else:
+            # For teachers, no timer or submission logic is needed
+            student_activity = None
+            has_answered = False
+            time_remaining = None
+            can_retake = False
+
+        # Fetch activity questions
+        questions = ActivityQuestion.objects.filter(activity=activity)
 
         # Prepare data for matching type questions (relevant for both students and teachers)
         for question in questions:
@@ -641,7 +690,6 @@ class DisplayQuestionsView(View):
                         question.pairs.append({"left": left, "right": right})
                         right_terms.append(right)
 
-
                 shuffle(right_terms)
                 question.shuffled_right_terms = right_terms
 
@@ -653,33 +701,6 @@ class DisplayQuestionsView(View):
                 elif is_student:
                     # Student will see an option to upload a document
                     question.allow_upload = True
-
-        student_questions = StudentQuestion.objects.filter(student=user, activity_question__activity=activity)
-        has_answered = student_questions.filter(status=True).exists()
-
-        if not has_answered:
-            # Start the timer only on the first attempt
-            if not student_activity.start_time:
-                student_activity.start_time = timezone.now()
-                student_activity.end_time = student_activity.start_time + timedelta(minutes=1)  # Set 1-hour time limit
-                student_activity.save()
-        else:
-            # If already answered, don't start or reset the timer
-            if not created:
-                student_activity.start_time = None
-                student_activity.end_time = None
-                student_activity.save()
-
-        # Calculate the remaining time for the student if the timer is active
-        time_remaining = None
-        if student_activity.end_time:
-            time_remaining = student_activity.end_time - timezone.now()
-            if time_remaining.total_seconds() <= 0:
-                # Time has run out, auto-submit any answers
-                return redirect('submit_answers', activity_id=activity_id)
-
-        # Check if the student is allowed to retake
-        can_retake = student_activity.retake_count < activity.max_retake
 
         context = {
             'activity': activity,
@@ -716,7 +737,7 @@ class SubmitAnswersView(View):
 
     
         # Check if the student has exceeded the maximum number of retakes
-        if student_activity.retake_count >= activity.max_retake + 1:
+        if student_activity.retake_count > activity.max_retake:
             messages.error(request, 'You have reached the maximum number of attempts for this activity.')
             return self.auto_submit_answers(student_activity)
         
@@ -817,27 +838,31 @@ class SubmitAnswersView(View):
         previous_total_score = StudentQuestion.objects.filter(student=student, activity_question__activity=activity).aggregate(Sum('score'))['score__sum'] or 0
 
         # Compare total score of current attempt with previous attempts based on retake_method
-        if activity.retake_method == 'highest' and total_score_current_attempt > previous_total_score:
-            # If current attempt's score is higher, save it for all questions
-            for score_data in current_attempt_scores:
-                score_data['student_question'].score = score_data['current_score']
-                score_data['student_question'].save()
+        if activity.retake_method == 'highest':
+            # If the current attempt's score is higher, save the new scores
+            if total_score_current_attempt > previous_total_score:
+                for score_data in current_attempt_scores:
+                    score_data['student_question'].score = score_data['current_score']
+                    score_data['student_question'].save()
 
-        elif activity.retake_method == 'lowest' and total_score_current_attempt < previous_total_score:
-            # If current attempt's score is lower, save it for all questions
-            for score_data in current_attempt_scores:
-                score_data['student_question'].score = score_data['current_score']
-                score_data['student_question'].save()
+        elif activity.retake_method == 'lowest':
+            # If the current attempt's score is lower, save the new scores
+            if total_score_current_attempt < previous_total_score:
+                for score_data in current_attempt_scores:
+                    score_data['student_question'].score = score_data['current_score']
+                    score_data['student_question'].save()
 
-        elif activity.retake_method is None:
-            # Default: save the current attempt's score regardless of previous attempts
+        else:
+            # If no retake method is set, always save the current attempt's score
             for score_data in current_attempt_scores:
                 score_data['student_question'].score = score_data['current_score']
                 score_data['student_question'].save()
 
         # Update student_activity with the current total score
         student_activity.total_score = StudentQuestion.objects.filter(student=student, activity_question__activity=activity).aggregate(Sum('score'))['score__sum'] or 0
-        student_activity.retake_count += 1
+        
+        if student_activity.retake_count == activity.max_retake:
+            student_activity.retake_count += 1
         student_activity.save()
 
         # Redirect based on whether all questions were answered
@@ -908,6 +933,7 @@ class RetakeActivityView(View):
             )
 
             student_activity.start_time = timezone.now()
+            student_activity.retake_count += 1
             student_activity.end_time = student_activity.start_time + timedelta(minutes=1)
             student_activity.save()
 
