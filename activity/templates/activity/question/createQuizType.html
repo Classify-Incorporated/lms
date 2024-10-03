@@ -4,17 +4,19 @@
 {% endblock %}
 {% block content %}
   <div class="content-wrapper">
-    <!-- Content Header -->
+    <!-- Content Header with breadcrumbs and title -->
     <div class="content-header">
       <div class="container-fluid">
-        <div class="row mb-2">
+        <div class="row mb-2 align-items-center">
           <div class="col-sm-6">
-            <h1 class="m-0">Add Activity</h1>
+            <h1 class="display-5 mb-">Add Quiz Type</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Add Activity</li>
+              <li class="breadcrumb-item">
+                <a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active">Add Quiz Type</li>
             </ol>
           </div>
         </div>
@@ -24,31 +26,33 @@
     <!-- Main Content -->
     <section class="content">
       <div class="container-fluid">
-        <h1>{{ activity.activity_name }}</h1>
+        <!-- Activity Heading with Icon and Description -->
+        <div class="activity-heading mb-4">
+          <h5>Activity Name: {{ activity.activity_name }}</h5>
+          <p class="text-muted">Manage and configure questions for this activity.</p>
+        </div>
 
         <!-- Add Question Dropdown -->
         <div class="dropdown">
-          <button class="btn btn-primary dropdown-toggle mb-3" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Add
-          </button>
-          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          <button class="btn btn-primary dropdown-toggle shadow-sm mb-3" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">Add Quiz Type</button>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             {% for quiz_type in quiz_types %}
               {% if not is_participation or quiz_type.name == 'Participation' %}
-                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#quizTypeModal" data-id="{{ quiz_type.id }}" data-name="{{ quiz_type.name }}">{{ quiz_type.name }}</a>
+                <li>
+                  <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#quizTypeModal" data-id="{{ quiz_type.id }}" data-name="{{ quiz_type.name }}">{{ quiz_type.name }}</a>
+                </li>
               {% endif %}
             {% endfor %}
-          </div>
+          </ul>
         </div>
 
         <!-- Modal for Adding Questions -->
-        <div class="modal fade" id="quizTypeModal" tabindex="-1" role="dialog" aria-labelledby="quizTypeModalLabel" aria-hidden="true">
-          <div class="modal-dialog" role="document">
+        <div class="modal fade" id="quizTypeModal" tabindex="-1" aria-labelledby="quizTypeModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="quizTypeModalLabel">Add</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
+                <h5 class="modal-title" id="quizTypeModalLabel">Add Question</h5>
+                <a type="button" class="btn" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></a>
               </div>
               <div class="modal-body">
                 <form id="quizTypeForm" method="post" action="" enctype="multipart/form-data">
@@ -61,54 +65,66 @@
                     <input type="file" id="csv_file" name="csv_file" accept=".csv" class="form-control" />
                   </div>
 
-                  <button type="submit" class="btn btn-primary">Add</button>
+                  <div class="text-end mt-3">
+                    <button type="submit" class="btn btn-primary">Add Question</button>
+                  </div>
                 </form>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Existing Questions Table -->
-        <h2>Existing Questions</h2>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Question</th>
-              <th>Quiz Type</th>
-              <th>Points</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for question in questions %}
-              <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ question.question_text }}</td>
-                <td>{{ question.quiz_type }}</td>
-                <td>{{ question.score }}</td>
-                <td>
-                  <a href="{% url 'edit_question' activity.id forloop.counter0 %}" class="btn btn-sm btn-warning">Edit</a>
-                  <form action="{% url 'delete_temp_question' activity.id forloop.counter0 %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this question?');">Delete</button>
-                  </form>
-                </td>
-              </tr>
-            {% endfor %}
-            <tr>
-              <td colspan="3" class="text-right"><strong>Total Points:</strong></td>
-              <td><strong>{{ total_points }}</strong></td>
-              <td colspan="3"></td> <!-- Empty cells to match the layout -->
-            </tr>
-          </tbody>
-        </table>
-        
+        <!-- Existing Questions Card -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-success text-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Existing Questions ( <span class="badge bg-light text-success">{{ questions|length }} Total Questions</span> )</h5>
+          </div>
+          <div class="card-body">
+            <table class="table table-hover table-bordered">
+              <thead class="text-center bg-light">
+                <tr>
+                  <th>#</th>
+                  <th>Question</th>
+                  <th>Quiz Type</th>
+                  <th>Points</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody class="text-center">
+                {% for question in questions %}
+                  <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ question.question_text }}</td>
+                    <td>{{ question.quiz_type }}</td>
+                    <td>{{ question.score }}</td>
+                    <td>
+                      <a href="{% url 'edit_question' activity.id forloop.counter0 %}" class="btn btn-sm btn-warning me-2"><i class="fas fa-edit"></i></a>
+                      <form action="{% url 'delete_temp_question' activity.id forloop.counter0 %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger ms-2" onclick="return confirm('Are you sure you want to delete this question?');"><i class="fas fa-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+                <tr>
+                  <td colspan="3" class="text-end">
+                    <strong>Total Points:</strong>
+                  </td>
+                  <td>
+                    <strong>{{ total_points }}</strong>
+                  </td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Save All Questions Form -->
         <div class="d-flex justify-content-end mt-4">
           <form method="post" action="{% url 'save_all_questions' activity.id %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to save all questions?')">Save All Questions</button>
+            <button type="submit" class="btn btn-success me-2" onclick="return confirm('Are you sure you want to save all questions?')">Save All Questions</button>
             <a href="{% url 'SubjectList' %}" class="btn btn-secondary">Back</a>
           </form>
         </div>
@@ -116,191 +132,133 @@
     </section>
   </div>
 
-  <!-- Script -->
+  <!-- Bootstrap 5 & JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Script to handle quiz type modal and form actions -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       $('#quizTypeModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget);
-        var quizTypeId = button.data('id');
-        var quizTypeName = button.data('name');
-
-        console.log(`QuizTypeModal opened: ID - ${quizTypeId}, Name - ${quizTypeName}`);
-
-        if (!quizTypeId || quizTypeId == 0) {
-          alert('Invalid quiz type selected.');
-          return;
-        }
-
-        var modal = $(this);
-        modal.find('.modal-title').text('Add Question for ' + quizTypeName);
-
-        var form = modal.find('#quizTypeForm');
-        var action = "{% url 'add_question' activity.id 0 %}".replace('0', quizTypeId);
-        console.log(`Form action: ${action}`); 
-        form.attr('action', action);
-
-        var quizTypeFields = modal.find('#quiz-type-fields');
-        quizTypeFields.empty();
-        
-        // Add common fields for most question types
+        var button = $(event.relatedTarget)
+        var quizTypeId = button.data('id')
+        var quizTypeName = button.data('name')
+    
+        var modal = $(this)
+        modal.find('.modal-title').text('Add Question for ' + quizTypeName)
+    
+        var form = modal.find('#quizTypeForm')
+        var action = "{% url 'add_question' activity.id 0 %}".replace('0', quizTypeId)
+        form.attr('action', action)
+    
+        var quizTypeFields = modal.find('#quiz-type-fields')
+        quizTypeFields.empty()
+    
         if (quizTypeName !== 'Participation') {
           quizTypeFields.append(`
-            <div class="form-group">
-              <label for="question_text">Question:</label>
-              <textarea id="question_text" name="question_text" class="form-control" required></textarea>
-            </div>
-            <div class="form-group">
-              <label for="score">Equivalent Points:</label>
-              <input type="number" id="score" name="score" class="form-control" required>
-            </div>
-          `);
-          console.log('Quiz Type Fields:', quizTypeFields.html());
+                                                                                                                                                                                                                            <div class="form-group">
+                                                                                                                                                                                                                              <label for="question_text">Question:</label>
+                                                                                                                                                                                                                              <textarea id="question_text" name="question_text" class="form-control" required></textarea>
+                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                            <div class="form-group">
+                                                                                                                                                                                                                              <label for="score">Equivalent Points:</label>
+                                                                                                                                                                                                                              <input type="number" id="score" name="score" class="form-control" required>
+                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                          `)
         }
-
-        // Handle Multiple Choice question type
+    
         if (quizTypeName === 'Multiple Choice') {
           quizTypeFields.append(`
-            <div id="choices">
-              <div class="form-group">
-                <label>Choices:</label>
-                <div class="input-group mb-3">
-                  <input type="radio" name="correct_answer" value="0" required>
-                  <input type="text" name="choices" class="form-control ml-2" placeholder="Choice 1" required>
-                </div>
-              </div>
-            </div>
-            <button type="button" class="btn btn-secondary mb-2" onclick="addChoice()">Add Choice</button>
-          `);
-          document.getElementById('csv-file-upload').style.display = 'block';
+                                                                                                                                                                                                                            <div id="choices">
+                                                                                                                                                                                                                              <div class="form-group">
+                                                                                                                                                                                                                                <label>Choices:</label>
+                                                                                                                                                                                                                                <div class="input-group mb-3">
+                                                                                                                                                                                                                                  <input type="radio" name="correct_answer" value="0" required>
+                                                                                                                                                                                                                                  <input type="text" name="choices" class="form-control ml-2" placeholder="Choice 1" required>
+                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                              </div>
+                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                            <button type="button" class="btn btn-secondary mb-2" onclick="addChoice()">Add Choice</button>
+                                                                                                                                                                                                                          `)
+          document.getElementById('csv-file-upload').style.display = 'block'
         } else {
-          document.getElementById('csv-file-upload').style.display = 'none';
+          document.getElementById('csv-file-upload').style.display = 'none'
         }
-
-        // Other quiz type-specific fields
+    
         if (quizTypeName === 'True/False') {
           quizTypeFields.append(`
-            <div class="form-group">
-              <label for="correct_answer">Correct Answer:</label>
-              <select id="correct_answer" name="correct_answer" class="form-control" required>
-                <option value="True">True</option>
-                <option value="False">False</option>
-              </select>
-            </div>
-          `);
+                                                                                                                                                                                                                            <div class="form-group">
+                                                                                                                                                                                                                              <label for="correct_answer">Correct Answer:</label>
+                                                                                                                                                                                                                              <select id="correct_answer" name="correct_answer" class="form-control" required>
+                                                                                                                                                                                                                                <option value="True">True</option>
+                                                                                                                                                                                                                                <option value="False">False</option>
+                                                                                                                                                                                                                              </select>
+                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                          `)
         }
-
+    
         if (quizTypeName === 'Matching') {
           quizTypeFields.append(`
-            <div id="matching_pairs">
-              <div class="form-group">
-                <label for="matching_pair">Matching Pairs:</label>
-                <div class="input-group mb-3">
-                  <input type="text" name="matching_left" class="form-control" placeholder="Left side" required>
-                  <input type="text" name="matching_right" class="form-control" placeholder="Right side" required>
-                </div>
-              </div>
-            </div>
-            <button type="button" class="btn btn-secondary mb-2" onclick="addMatchingPair()">Add Pair</button>
-          `);
+                                                                                                                                                                                                                            <div id="matching_pairs">
+                                                                                                                                                                                                                              <div class="form-group">
+                                                                                                                                                                                                                                <label for="matching_pair">Matching Pairs:</label>
+                                                                                                                                                                                                                                <div class="input-group mb-3">
+                                                                                                                                                                                                                                  <input type="text" name="matching_left" class="form-control" placeholder="Left side" required>
+                                                                                                                                                                                                                                  <input type="text" name="matching_right" class="form-control" placeholder="Right side" required>
+                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                              </div>
+                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                            <button type="button" class="btn btn-secondary mb-2" onclick="addMatchingPair()">Add Pair</button>
+                                                                                                                                                                                                                          `)
         }
-
-        if (quizTypeName === 'Calculated Numeric' || quizTypeName === 'Fill in the Blank') {
-          quizTypeFields.append(`
-            <div class="form-group">
-              <label for="correct_answer">Correct Answer:</label>
-              <input type="text" id="correct_answer" name="correct_answer" class="form-control" required>
-            </div>
-          `);
-        }
-
-        if (quizTypeName === 'Participation') {
-          quizTypeFields.append(`
-            <div class="form-group">
-              <label for="max_score">Maximum Score:</label>
-              <input type="number" id="max_score" name="max_score" class="form-control" required>
-            </div>
-            <h4>Participation Scores</h4>
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Points</th>
-                </tr>
-              </thead>
-              <tbody id="participation-students"></tbody>
-            </table>
-          `);
-          fetch(`/participation_scores/{{ activity.id }}`)
-            .then(response => response.json())
-            .then(data => {
-              const studentsTable = document.getElementById('participation-students');
-              data.students.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${student.name}</td><td><input type="number" name="score_${student.id}" class="form-control" required></td>`;
-                studentsTable.appendChild(row);
-              });
-            });
-        }
-      });
-
-      // Add choice for Multiple Choice questions
-      window.addChoice = function() {
-        const choiceIndex = document.querySelectorAll('input[name="choices"]').length;
-        const choiceContainer = document.createElement('div');
-        choiceContainer.classList.add('input-group', 'mb-3');
-
-        const radioInput = document.createElement('input');
-        radioInput.type = 'radio';
-        radioInput.name = 'correct_answer';
-        radioInput.value = choiceIndex;
-        radioInput.required = true;
-
-        const textInput = document.createElement('input');
-        textInput.type = 'text';
-        textInput.name = 'choices';
-        textInput.classList.add('form-control', 'ml-2');
-        textInput.placeholder = `Choice ${choiceIndex + 1}`;
-        textInput.required = true;
-
-        const deleteButton = document.createElement('button');
-        deleteButton.type = 'button';
-        deleteButton.classList.add('btn', 'btn-danger', 'btn-sm', 'ml-2');
-        deleteButton.textContent = 'Delete';
-        deleteButton.onclick = function () {
-          choiceContainer.remove();
-        };
-
-        choiceContainer.appendChild(radioInput);
-        choiceContainer.appendChild(textInput);
-        choiceContainer.appendChild(deleteButton);
-
-        document.getElementById('choices').appendChild(choiceContainer);
-      };
-
-      // Add matching pair for Matching questions
-      window.addMatchingPair = function() {
-        const pairContainer = document.createElement('div');
-        pairContainer.classList.add('input-group', 'mb-3');
-
-        const leftInput = document.createElement('input');
-        leftInput.type = 'text';
-        leftInput.name = 'matching_left';
-        leftInput.classList.add('form-control');
-        leftInput.placeholder = 'Left side';
-        leftInput.required = true;
-
-        const rightInput = document.createElement('input');
-        rightInput.type = 'text';
-        rightInput.name = 'matching_right';
-        rightInput.classList.add('form-control');
-        rightInput.placeholder = 'Right side';
-        rightInput.required = true;
-
-        pairContainer.appendChild(leftInput);
-        pairContainer.appendChild(rightInput);
-
-        document.getElementById('matching_pairs').appendChild(pairContainer);
-      };
-    });
+      })
+    
+      window.addChoice = function () {
+        const choiceIndex = document.querySelectorAll('input[name="choices"]').length
+        const choiceContainer = document.createElement('div')
+        choiceContainer.classList.add('input-group', 'mb-3')
+    
+        const radioInput = document.createElement('input')
+        radioInput.type = 'radio'
+        radioInput.name = 'correct_answer'
+        radioInput.value = choiceIndex
+        radioInput.required = true
+    
+        const textInput = document.createElement('input')
+        textInput.type = 'text'
+        textInput.name = 'choices'
+        textInput.classList.add('form-control', 'ml-2')
+        textInput.placeholder = `Choice ${choiceIndex + 1}`
+        textInput.required = true
+    
+        choiceContainer.appendChild(radioInput)
+        choiceContainer.appendChild(textInput)
+    
+        document.getElementById('choices').appendChild(choiceContainer)
+      }
+    
+      window.addMatchingPair = function () {
+        const pairContainer = document.createElement('div')
+        pairContainer.classList.add('input-group', 'mb-3')
+    
+        const leftInput = document.createElement('input')
+        leftInput.type = 'text'
+        leftInput.name = 'matching_left'
+        leftInput.classList.add('form-control')
+        leftInput.placeholder = 'Left side'
+        leftInput.required = true
+    
+        const rightInput = document.createElement('input')
+        rightInput.type = 'text'
+        rightInput.name = 'matching_right'
+        rightInput.classList.add('form-control')
+        rightInput.placeholder = 'Right side'
+        rightInput.required = true
+    
+        pairContainer.appendChild(leftInput)
+        pairContainer.appendChild(rightInput)
+    
+        document.getElementById('matching_pairs').appendChild(pairContainer)
+      }
+    })
   </script>
 {% endblock %}

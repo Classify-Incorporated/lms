@@ -504,12 +504,14 @@ class DeleteTempQuestionView(View):
 class UpdateQuestionView(View):
     def get(self, request, activity_id, index):
         questions = request.session.get('questions', {}).get(str(activity_id), [])
+        activity = get_object_or_404(Activity, id=activity_id)
         if index >= len(questions):
             return redirect('add_quiz_type', activity_id=activity_id)  # Redirect if index is out of range
 
         question = questions[index]
         return render(request, 'activity/question/updateQuestion.html', {
             'activity_id': activity_id,
+            'activity': activity,
             'index': index,
             'question': question,
         })

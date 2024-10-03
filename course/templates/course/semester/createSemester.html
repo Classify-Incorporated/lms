@@ -4,41 +4,50 @@
     <h5>Add Semester</h5>
   </div>
   <div class="custom-modal-body">
-    <form method="post" action="{% url 'createSemester' %}">
+    <form method="post" action="{% url 'createSemester' %}" class="needs-validation" novalidate>
       {% csrf_token %}
 
+      <!-- Semester Name -->
       <div class="form-group">
         <label for="id_semester_name">Semester Name</label>
         {{ form.semester_name }}
+        <div class="invalid-feedback">Please provide a valid semester name.</div>
         {% if form.semester_name.errors %}
           <div class="text-danger">{{ form.semester_name.errors }}</div>
         {% endif %}
       </div>
 
+      <!-- Start Date -->
       <div class="form-group">
         <label for="id_start_date">Start Date</label>
         {{ form.start_date }}
+        <div class="invalid-feedback">Please provide a valid start date.</div>
         {% if form.start_date.errors %}
           <div class="text-danger">{{ form.start_date.errors }}</div>
         {% endif %}
       </div>
 
+      <!-- End Date -->
       <div class="form-group">
         <label for="id_end_date">End Date</label>
         {{ form.end_date }}
+        <div class="invalid-feedback">Please provide a valid end date.</div>
         {% if form.end_date.errors %}
           <div class="text-danger">{{ form.end_date.errors }}</div>
         {% endif %}
       </div>
 
+      <!-- School Year -->
       <div class="form-group">
         <label for="id_school_year">School Year</label>
         {{ form.school_year }}
+        <div class="invalid-feedback">Please provide a valid school year.</div>
         {% if form.school_year.errors %}
           <div class="text-danger">{{ form.school_year.errors }}</div>
         {% endif %}
       </div>
 
+      <!-- Submit Button -->
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
   </div>
@@ -48,7 +57,7 @@
 <div id="customModalBackdrop" class="custom-modal-backdrop"></div>
 
 <!-- Flatpickr Library for Date Picking -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
@@ -88,5 +97,4 @@
         minDate: "today"  // Initially prevent past dates for end date
     });
 });
-
 </script>
