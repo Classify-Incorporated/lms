@@ -1,7 +1,7 @@
 from django import forms
 from .models import Semester, Term
 from subject.models import Subject
-from activity.models import Activity
+from activity.models import *
 
 class semesterForm(forms.ModelForm):
     school_year = forms.ChoiceField(

@@ -108,9 +108,10 @@ class AddActivityView(View):
         })
 
     def post(self, request, subject_id):
+        print(request.POST)
         subject = get_object_or_404(Subject, id=subject_id)
         activity_name = request.POST.get('activity_name')
-        activity_type_id = request.POST.get('activity_type')
+        activity_type_id = request.GET.get('activity_type_id') or request.POST.get('activity_type_id')
         term_id = request.POST.get('term')
         module_id = request.POST.get('module')
         start_time = request.POST.get('start_time')

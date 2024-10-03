@@ -359,8 +359,8 @@
 
     function selectActivityTypeAndRedirect(activityTypeName, subjectId, activityTypeId) {
       if (activityTypeId) {
-          // If activity_type_id is defined, redirect to the proper URL
-          window.location.href = `/subject/${subjectId}/add_activity/?activity_type_id=${activityTypeId}`;
+          const url = `/subject/${subjectId}/add_activity/?activity_type_id=${activityTypeId}`;
+          window.location.href = url;
       } else {
           console.error('Activity Type ID is undefined');
           alert('Activity Type is not defined for ' + activityTypeName);

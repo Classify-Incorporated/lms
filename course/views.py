@@ -9,7 +9,7 @@ from django.views import View
 from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
 from django.utils import timezone
-from .forms import semesterForm, termForm, ParticipationForm
+from .forms import *
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django import forms
