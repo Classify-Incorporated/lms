@@ -211,6 +211,8 @@ def viewModule(request, pk):
             context['is_pdf'] = True
         elif module.file.name.endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
             context['is_image'] = True
+            progress.progress = 100
+            progress.save()
         elif module.file.name.endswith(('.mp4', '.avi', '.mov', '.mkv')):
             context['is_video'] = True
         else:

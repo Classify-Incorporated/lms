@@ -20,14 +20,19 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import permission_required
 from .utils import copy_activities_from_previous_semester
 from datetime import date
-from collections import defaultdict
-from django.http import JsonResponse
 from django.utils.dateformat import DateFormat
 from datetime import datetime
 from django.db.models import ProtectedError
 from django.db.models import Avg
 from module.models import StudentProgress
 from activity.models import ActivityType
+from django.views.decorators.csrf import csrf_exempt
+from .msteams_utils import create_teams_meeting
+import json
+from django.http import JsonResponse, HttpResponseBadRequest
+from collections import defaultdict
+
+
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
 class enrollStudentView(View):
@@ -1002,40 +1007,35 @@ class CopyActivitiesView(View):
             print(f"Error: {e}")
             messages.error(request, "An error occurred while processing your request. : {e}")
             return redirect('subjectDetail', pk=subject_id)
+        
 
-# def createActivity(request):
-#     form = ActivityForm(request.POST)
-#     if request.method == 'POST':
-#         form = ActivityForm(request.POST)
-#         if form.is_valid():
+@csrf_exempt
+def create_teams_meeting_view(request, subject_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
 
-#             subject = get_object_or_404(Subject, id=subject_id)
+            subject = data.get('subject')
+            start_time = data.get('start_time')
+            end_time = data.get('end_time')
+            organizer_email = data.get('organizer_email')
 
-#             now = timezone.localtime(timezone.now())
-#             current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+            # Log the data for debugging
+            print(f"Subject: {subject}, Start time: {start_time}, End time: {end_time}, Organizer email: {organizer_email}")
 
-#             terms = Term.objects.filter(
-#                 semester=current_semester,
-#                 #created_by=request.user,
-#                 start_date__lte=now,
-#                 end_date__gte=now
-#             )
-            
-#             students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
-#             modules = Module.objects.filter(subject=subject, term__semester=current_semester, start_date__isnull=False, end_date__isnull=False) 
+            if not subject or not start_time or not end_time or not organizer_email:
+                return JsonResponse({'error': 'Missing required fields'}, status=400)
 
-#             activity_type_id = request.GET.get('activity_type_id', None)
-#             if activity_type_id:
-#                 activity_type = get_object_or_404(ActivityType, id=activity_type_id)
-#             else:
-#                 activity_type = None
+            # Call the function to create the Teams meeting
+            meeting_data = create_teams_meeting(organizer_email, subject, start_time, end_time)
 
-#     return render(request, 'activity/activities/createActivity.html', {
-#         'subject': subject,
-#         'activity_types': ActivityType.objects.all(),
-#         'terms': terms,
-#         'students': students,
-#         'modules': modules,
-#         'retake_methods': Activity.RETAKE_METHOD_CHOICES,
-#         'selected_activity_type': activity_type
-#     })
+            # If meeting creation was successful, return the meeting URL
+            if 'joinUrl' in meeting_data:
+                return JsonResponse({'meetingUrl': meeting_data['joinUrl']})
+            return JsonResponse({'error': 'Unable to create meeting'}, status=400)
+        
+        except Exception as e:
+            print(f"Error creating meeting: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return HttpResponseBadRequest("Invalid request method.")
