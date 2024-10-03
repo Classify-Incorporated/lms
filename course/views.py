@@ -9,7 +9,7 @@ from django.views import View
 from django.core.serializers.json import DjangoJSONEncoder
 from accounts.models import CustomUser
 from django.utils import timezone
-from .forms import semesterForm, termForm, ParticipationForm
+from .forms import *
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django import forms
@@ -1002,3 +1002,40 @@ class CopyActivitiesView(View):
             print(f"Error: {e}")
             messages.error(request, "An error occurred while processing your request. : {e}")
             return redirect('subjectDetail', pk=subject_id)
+
+# def createActivity(request):
+#     form = ActivityForm(request.POST)
+#     if request.method == 'POST':
+#         form = ActivityForm(request.POST)
+#         if form.is_valid():
+
+#             subject = get_object_or_404(Subject, id=subject_id)
+
+#             now = timezone.localtime(timezone.now())
+#             current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
+
+#             terms = Term.objects.filter(
+#                 semester=current_semester,
+#                 #created_by=request.user,
+#                 start_date__lte=now,
+#                 end_date__gte=now
+#             )
+            
+#             students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
+#             modules = Module.objects.filter(subject=subject, term__semester=current_semester, start_date__isnull=False, end_date__isnull=False) 
+
+#             activity_type_id = request.GET.get('activity_type_id', None)
+#             if activity_type_id:
+#                 activity_type = get_object_or_404(ActivityType, id=activity_type_id)
+#             else:
+#                 activity_type = None
+
+#     return render(request, 'activity/activities/createActivity.html', {
+#         'subject': subject,
+#         'activity_types': ActivityType.objects.all(),
+#         'terms': terms,
+#         'students': students,
+#         'modules': modules,
+#         'retake_methods': Activity.RETAKE_METHOD_CHOICES,
+#         'selected_activity_type': activity_type
+#     })
