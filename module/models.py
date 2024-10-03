@@ -30,7 +30,7 @@ class Module(models.Model):
 
 
     def __str__(self):
-        return f"{self.file_name} - {self.order}"
+        return f"{self.file_name}"
     
     def save(self, *args, **kwargs):
         is_new = self.pk is None  # Check if the object is new (not yet saved)

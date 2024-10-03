@@ -41,11 +41,17 @@
                       <h5 class="card-title mb-3 font-weight-bold text-dark">{{ subject.subject_name }}</h5>
                       <p class="card-text mb-0">
                         {% if subject.assign_teacher %}
-                          <small class="teacher-name">Teacher: <span class="font-italic">{{ subject.assign_teacher.get_full_name }}</span></small>
+                          <small class="teacher-name">Teacher: <span class="font-italic">{{ subject.assign_teacher.get_full_name }}</span></small><br>
+                          <small class="teacher-name">Schedule: <span class="font-italic">{{ subject.schedule_start_time }} - {{ subject.schedule_end_time }}</span></small>
                         {% else %}
                           <small class="teacher-name">No teacher assigned</small>
                         {% endif %}
                       </p>
+                      <div class="progress mt-3">
+                        <div class="progress-bar" role="progressbar" style="width: {{ subject.student_progress }}%;" aria-valuenow="{{ subject.student_progress }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ subject.student_progress }}%
+                        </div>
+                      </div>                   
                     </div>
                   </div>
                 </a>

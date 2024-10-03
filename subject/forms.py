@@ -29,4 +29,9 @@ class subjectForm(forms.ModelForm):
                 'title': 'Select Teacher',  # This sets a placeholder-like text without adding an option
                 'data-style': 'btn-outline-secondary',
             }),
+            'subject_description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'subject_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'schedule_start_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'schedule_end_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+
         }

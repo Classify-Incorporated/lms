@@ -24,6 +24,9 @@ from collections import defaultdict
 from django.http import JsonResponse
 from django.utils.dateformat import DateFormat
 from datetime import datetime
+from django.db.models import ProtectedError
+from django.db.models import Avg
+from module.models import StudentProgress
 
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
@@ -383,6 +386,7 @@ def termActivitiesGraph(request, subject_id):
 
     return JsonResponse(response_data)
 
+@login_required
 def displayActivitiesForTerm(request, subject_id, term_id, activity_type, activity_name):
     now = timezone.localtime(timezone.now())
     
@@ -527,6 +531,23 @@ def subjectList(request):
     if not selected_semester:
         subjects = Subject.objects.none()
 
+    for subject in subjects:
+        # Get all modules for the subject
+        modules = Module.objects.filter(subject=subject)
+        total_modules = modules.count()
+
+        if total_modules > 0:
+            # Get average progress of the student for all modules in this subject
+            avg_progress = StudentProgress.objects.filter(
+                student=user,
+                module__in=modules
+            ).aggregate(average_progress=Avg('progress'))['average_progress'] or 0
+
+            # Attach the calculated progress to the subject object
+            subject.student_progress = avg_progress
+        else:
+            subject.student_progress = 0
+
     return render(request, 'course/subjectList.html', {
         'subjects': subjects,
         'semesters': semesters,
@@ -535,13 +556,11 @@ def subjectList(request):
         'current_semester': current_semester,
     })
 
-
-
 # Display semester list
 @login_required
 @permission_required('course.view_semester', raise_exception=True)
 def semesterList(request):
-    semesters = Semester.objects.all()
+    semesters = Semester.objects.all().order_by('-create_at')
     form = semesterForm()
     return render(request, 'course/semester/semesterList.html', {
         'semesters': semesters, 'form': form,
@@ -585,11 +604,19 @@ def createSemester(request):
                 if start_date >= end_date:
                     errors.append("End date must be after the start date.")
 
+                start_year = start_date.year
+                end_year = end_date.year
+
+                if int(school_year) != start_year or int(school_year) != end_year:
+                    errors.append(f"The selected year {school_year} must match the start and end dates year.")
+
                 # Check for overlapping semesters within the same school year
                 overlapping_semesters = Semester.objects.filter(
-                    school_year=school_year,
-                    start_date__lt=end_date,  # Existing semester starts before the new semester ends
-                    end_date__gt=start_date   # Existing semester ends after the new semester starts
+                    school_year=school_year
+                ).filter(
+                    # Check if the new semester's start date falls within an existing semester
+                    start_date__lte=end_date,  # The existing semester starts before or on the new semester's end date
+                    end_date__gte=start_date   # The existing semester ends after or on the new semester's start date
                 )
 
                 if overlapping_semesters.exists():
@@ -657,11 +684,18 @@ def updateSemester(request, pk):
                 if start_date >= end_date:
                     errors.append("End date must be after the start date.")
 
+                start_year = start_date.year
+                end_year = end_date.year
+
+                if int(school_year) != start_year or int(school_year) != end_year:
+                    errors.append(f"The selected year {school_year} must match the start and end dates year.")
+
                 # Check for overlapping semesters within the same school year
                 overlapping_semesters = Semester.objects.filter(
-                    school_year=school_year,
-                    start_date__lt=end_date,  # Existing semester starts before the new semester ends
-                    end_date__gt=start_date   # Existing semester ends after the new semester starts
+                    school_year=school_year
+                    ).filter(
+                    Q(start_date__lte=end_date, end_date__gte=start_date) |
+                    Q(start_date__gte=start_date, end_date__lte=end_date)  # The existing semester ends after or on the new semester's start date
                 ).exclude(pk=semester.pk)  # Exclude the current semester from the overlap check
 
                 if overlapping_semesters.exists():
@@ -695,8 +729,12 @@ def updateSemester(request, pk):
 @permission_required('course.delete_semester', raise_exception=True)
 def delete_semester(request, pk):
     semester = get_object_or_404(Semester, pk=pk)
-    semester.delete()
-    messages.success(request, 'Semester deleted successfully!')
+    try:
+        semester.delete()
+        messages.success(request, 'Semester deleted successfully!')
+    except ProtectedError as e:
+        messages.error(request, f"Cannot delete this semester because it is referenced by other records.")
+
     return redirect('semesterList')
 
 @login_required

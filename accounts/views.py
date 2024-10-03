@@ -179,6 +179,8 @@ def fetch_facebook_posts():
     else:
         return []
 
+
+
 @login_required
 def dashboard(request):
     sessions = Session.objects.filter(expire_date__gte=timezone.now())
@@ -264,6 +266,8 @@ def dashboard(request):
         greeting = "Good Afternoon"
     else:
         greeting = "Good Evening"
+
+
 
     context = {
         'enrolled_students_count': enrolled_students_count,

@@ -40,6 +40,30 @@
           <div class="invalid-feedback">Please assign a teacher.</div>
         </div>
 
+         <!-- Subject Description -->
+         <div class="form-group">
+          {{ form.subject_description.label_tag }}
+          {{ form.subject_description }}
+        </div>
+
+        <!-- Subject Code -->
+        <div class="form-group">
+          {{ form.subject_code.label_tag }}
+          {{ form.subject_code }}
+        </div>
+
+        <!-- Schedule Start Time -->
+        <div class="form-group">
+          {{ form.schedule_start_time.label_tag }}
+          {{ form.schedule_start_time }}
+        </div>
+
+        <!-- Schedule End Time -->
+        <div class="form-group">
+          {{ form.schedule_end_time.label_tag }}
+          {{ form.schedule_end_time }}
+        </div>
+
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
