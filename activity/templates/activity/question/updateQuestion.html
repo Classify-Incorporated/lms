@@ -6,54 +6,77 @@ Edit Question
 
 {% block content %}
 <div class="content-wrapper">
-<h1>Edit Question for {{ activity.activity_name }}</h1>
-
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label for="question_text">Question:</label>
-        <textarea id="question_text" name="question_text" class="form-control" required>{{ question.question_text }}</textarea>
+    <!-- Content Header with breadcrumbs and title -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2 align-items-center">
+          <div class="col-sm-6">
+            <h1 class="display-5 mb-">Edit Question for {{ activity.activity_name }}</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item">
+                <a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active">Edit Question</li>
+            </ol>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-        <label for="score">Score:</label>
-        <input type="number" id="score" name="score" class="form-control" value="{{ question.score }}" required>
-    </div>
 
-    {% if question.quiz_type == 'Multiple Choice' %}
-        <div id="choices">
-            {% for choice in question.choices %}
-                <div class="input-group mb-3">
-                    <input type="radio" name="correct_answer" value="{{ forloop.counter0 }}" {% if forloop.counter0 == question.correct_answer %}checked{% endif %}>
-                    <input type="text" name="choices" class="form-control ml-2" value="{{ choice }}" required>
+    <!-- Main Content -->
+    <section class="content">
+      <div class="container-fluid">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="question_text">Question:</label>
+                    <textarea id="question_text" name="question_text" class="form-control" required>{{ question.question_text }}</textarea>
                 </div>
-            {% endfor %}
+                <div class="form-group">
+                    <label for="score">Score:</label>
+                    <input type="number" id="score" name="score" class="form-control" value="{{ question.score }}" required>
+                </div>
+
+                {% if question.quiz_type == 'Multiple Choice' %}
+                    <div id="choices">
+                        {% for choice in question.choices %}
+                            <div class="input-group mb-3">
+                                <input type="radio" name="correct_answer" value="{{ forloop.counter0 }}" {% if forloop.counter0 == question.correct_answer %}checked{% endif %}>
+                                <input type="text" name="choices" class="form-control ml-2" value="{{ choice }}" required>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addChoice()">Add Another Choice</button>
+                {% elif question.quiz_type == 'True/False' %}
+                    <div class="form-group">
+                        <label for="correct_answer">Correct Answer:</label>
+                        <select id="correct_answer" name="correct_answer" class="form-control" required>
+                            <option value="True" {% if question.correct_answer == 'True' %}selected{% endif %}>True</option>
+                            <option value="False" {% if question.correct_answer == 'False' %}selected{% endif %}>False</option>
+                        </select>
+                    </div>
+                {% elif question.quiz_type == 'Essay' or question.quiz_type == 'Document' %}
+                    <div class="form-group">
+                        <label for="correct_answer">Correct Answer:</label>
+                        <input type="text" id="correct_answer" name="correct_answer" class="form-control" value="{{ question.correct_answer }}" required>
+                    </div>
+                {% endif %}
+                <button type="submit" class="btn btn-primary">Update Question</button>
+                <a onclick="history.back()" class="btn btn-secondary">Back</a>
+            </form>
         </div>
-        <button type="button" class="btn btn-secondary" onclick="addChoice()">Add Another Choice</button>
-    {% elif question.quiz_type == 'True/False' %}
-        <div class="form-group">
-            <label for="correct_answer">Correct Answer:</label>
-            <select id="correct_answer" name="correct_answer" class="form-control" required>
-                <option value="True" {% if question.correct_answer == 'True' %}selected{% endif %}>True</option>
-                <option value="False" {% if question.correct_answer == 'False' %}selected{% endif %}>False</option>
-            </select>
-        </div>
-    {% elif question.quiz_type == 'Essay' or question.quiz_type == 'Document' %}
-        <div class="form-group">
-            <label for="correct_answer">Correct Answer:</label>
-            <input type="text" id="correct_answer" name="correct_answer" class="form-control" value="{{ question.correct_answer }}" required>
-        </div>
-    {% endif %}
-    <button type="submit" class="btn btn-primary">Update Question</button>
-</form>
+    </section>
 </div>
 <script>
-function addChoice() {
-    const choiceInput = document.createElement('input');
-    choiceInput.type = 'text';
-    choiceInput.name = 'choices';
-    choiceInput.classList.add('form-control');
-    choiceInput.required = true;
-    document.getElementById('choices').appendChild(choiceInput);
-}
+    function addChoice() {
+        const choiceInput = document.createElement('input');
+        choiceInput.type = 'text';
+        choiceInput.name = 'choices';
+        choiceInput.classList.add('form-control');
+        choiceInput.required = true;
+        document.getElementById('choices').appendChild(choiceInput);
+    }
 </script>
 {% endblock %}
