@@ -25,7 +25,7 @@
       <div class="container-fluid">
         <h1>{{ module.file_name }}</h1>
 
-        {% if is_pdf %}
+        {% if is_pdf and module.file %}
           <div id="pdf-container" style="min-height: 500px; position: relative;">
             <canvas id="pdf-canvas" style="width: 100%;"></canvas>
 
@@ -45,20 +45,41 @@
           </div>
         {% endif %}
 
-        {% if is_image %}
+        {% if is_image and module.file %}
           <div>
             <img src="{{ module.file.url }}" class="img-fluid" alt="Image" style="width: 100%;" />
           </div>
         {% endif %}
 
-        {% if is_video %}
+        {% if is_video and module.file %}
           <div>
             <video controls style="width: 100%;">
               <source src="{{ module.file.url }}" type="video/mp4" />Your browser does not support the video tag.
             </video>
           </div>
         {% endif %}
-
+        
+        {% if is_video_url %}
+          <div>
+            <video controls style="width: 100%;">
+              <source src="{{ module.url }}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        {% elif is_youtube %}
+          <div class="embed-responsive embed-responsive-16by9">
+            <iframe class="embed-responsive-item" src="{{ embed_url }}" allowfullscreen></iframe>
+          </div>
+        {% elif is_vimeo %}
+          <div class="embed-responsive embed-responsive-16by9">
+            <iframe class="embed-responsive-item" src="{{ embed_url }}" allowfullscreen></iframe>
+          </div>
+        {% elif is_url %}
+          <div>
+            <a href="{{ module.url }}" target="_blank" class="btn btn-primary">Open {{ module.file_name }}</a>
+          </div>
+        {% endif %}
+        
         {% if is_unknown %}
           <p>Unsupported file format. Unable to display the content.</p>
         {% endif %}
@@ -70,6 +91,8 @@
     </section>
   </div>
   <br />
+
+  {% if is_pdf and module.file %}
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       var url = '{{ module.file.url }}';
@@ -205,4 +228,5 @@
       }
     });
   </script>
+  {% endif %}
 {% endblock %}

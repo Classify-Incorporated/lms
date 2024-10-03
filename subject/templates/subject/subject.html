@@ -41,6 +41,8 @@
                   <tr>
                     <th>Subject Name</th>
                     <th>Short Name</th>
+                    <th>Subject Code</th>
+                    <th>Schedule Time</th>
                     <th>Assigned Teacher</th>
                     {% if perms.subject.add_subject %}
                     <th>Action</th>
@@ -52,6 +54,8 @@
                     <tr>
                       <td>{{ subject.subject_name }}</td>
                       <td>{{ subject.subject_short_name }}</td>
+                      <td>{{ subject.subject_code }}</td>
+                      <td>{{ subject.schedule_start_time }} - {{ subject.schedule_end_time}}</td>
                       <td>{{ subject.assign_teacher.first_name }} {{ subject.assign_teacher.last_name }}</td>
                       {% if perms.subject.add_subject %}
                       <td>

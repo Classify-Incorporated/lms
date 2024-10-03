@@ -30,11 +30,16 @@ class Retake(models.Model):
 
 
 class Semester(models.Model):
-    semester_name = models.CharField(max_length=50)
+    SEMESTER_CHOICES = [
+        ('First Semester', 'First Semester'),
+        ('Second Semester', 'Second Semester'),
+    ]
+    semester_name = models.CharField(max_length=50, choices=SEMESTER_CHOICES)
     school_year = models.PositiveIntegerField()
     start_date = models.DateField()
     end_date = models.DateField()
     end_semester = models.BooleanField(default=False)
+    create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.end_semester and not self.end_date == timezone.now().date():

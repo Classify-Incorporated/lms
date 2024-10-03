@@ -47,6 +47,7 @@ def createModule(request, subject_id):
         file_name = request.POST.get('file_name')
         term_id  = request.POST.get('term')
         file = request.FILES.get('file')
+        url = request.POST.get('url')
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
 
@@ -75,8 +76,8 @@ def createModule(request, subject_id):
             has_errors = True
 
         # Check if file is provided
-        if not file:
-            messages.error(request, "Please upload a valid file.")
+        if not file and not url:
+            messages.error(request, "You must provide either a file or a URL, or both.")
             has_errors = True
         
         # Validate start_date and end_date
@@ -121,6 +122,7 @@ def updateModule(request, pk):
         file_name = request.POST.get('file_name')
         term_id  = request.POST.get('term')
         file = request.FILES.get('file')
+        url = request.POST.get('url')
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
 
@@ -149,8 +151,8 @@ def updateModule(request, pk):
             has_errors = True
 
         # Check if file is provided
-        if not file and not module.file:
-            messages.error(request, "Please upload a valid file.")
+        if not file and not url:
+            messages.error(request, "You must provide either a file or a URL, or both.")
             has_errors = True
         
         # Validate start_date and end_date
@@ -193,7 +195,7 @@ def viewModule(request, pk):
         module=module,
         defaults={'progress': 0, 'last_page': 1}
     )
-
+    
     progress.save()
 
     context = {
@@ -202,13 +204,33 @@ def viewModule(request, pk):
         'last_page': progress.last_page,
     }
 
-    # Determine the file type and prepare context accordingly
-    if module.file.name.endswith('.pdf'):
-        context['is_pdf'] = True
-    elif module.file.name.endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
-        context['is_image'] = True
-    elif module.file.name.endswith(('.mp4', '.avi', '.mov', '.mkv')):
-        context['is_video'] = True
+    # Determine the content source (file or URL)
+    if module.file:
+        # Determine the file type and prepare context accordingly
+        if module.file.name.endswith('.pdf'):
+            context['is_pdf'] = True
+        elif module.file.name.endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+            context['is_image'] = True
+        elif module.file.name.endswith(('.mp4', '.avi', '.mov', '.mkv')):
+            context['is_video'] = True
+        else:
+            context['is_unknown'] = True
+    elif module.url:
+        if 'youtube.com' in module.url:
+            embed_url = module.url.replace("watch?v=", "embed/")
+            context['is_youtube'] = True
+            context['embed_url'] = embed_url
+        elif 'vimeo.com' in module.url:
+            vimeo_id = module.url.split('/')[-1]
+            embed_url = f"https://player.vimeo.com/video/{vimeo_id}"
+            context['is_vimeo'] = True
+            context['embed_url'] = embed_url
+        elif module.url.endswith(('.mp4', '.webm', '.ogg')):
+            context['is_video_url'] = True
+        else:
+            context['is_url'] = True
+        progress.progress = 100
+        progress.save()
     else:
         context['is_unknown'] = True
 

@@ -55,6 +55,8 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         login(request, user)
         return user
 
+
+
 class MicrosoftAuth2Adapter(OAuth2Adapter):
     provider_id = MicrosoftProvider.id
 
@@ -70,6 +72,7 @@ class MicrosoftAuth2Adapter(OAuth2Adapter):
         resp = requests.get(self.profile_url, headers=headers)
         extra_data = resp.json()
         return self.get_provider().sociallogin_from_response(request, extra_data)
+
 
 oauth2_login = OAuth2LoginView.adapter_view(MicrosoftAuth2Adapter)
 oauth2_callback = OAuth2CallbackView.adapter_view(MicrosoftAuth2Adapter)

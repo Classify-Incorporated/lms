@@ -7,30 +7,7 @@
     <form method="post" action="{% url 'createSemester' %}">
       {% csrf_token %}
 
-      <div class="form-group">
-        <label for="id_semester_name">Semester Name</label>
-        {{ form.semester_name }}
-        {% if form.semester_name.errors %}
-          <div class="text-danger">{{ form.semester_name.errors }}</div>
-        {% endif %}
-      </div>
-
-      <div class="form-group">
-        <label for="id_start_date">Start Date</label>
-        {{ form.start_date }}
-        {% if form.start_date.errors %}
-          <div class="text-danger">{{ form.start_date.errors }}</div>
-        {% endif %}
-      </div>
-
-      <div class="form-group">
-        <label for="id_end_date">End Date</label>
-        {{ form.end_date }}
-        {% if form.end_date.errors %}
-          <div class="text-danger">{{ form.end_date.errors }}</div>
-        {% endif %}
-      </div>
-
+      <!-- School Year Field (Visible by default) -->
       <div class="form-group">
         <label for="id_school_year">School Year</label>
         {{ form.school_year }}
@@ -39,7 +16,40 @@
         {% endif %}
       </div>
 
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <!-- Button to proceed after selecting School Year -->
+      <div class="form-group">
+        <button type="button" class="btn btn-info" id="nextButton">Next</button>
+      </div>
+
+      <!-- Hidden Fields (Initially hidden, shown after clicking "Next") -->
+      <div id="semesterFields" style="display: none;">
+        <div class="form-group">
+          <label for="id_semester_name">Semester Name</label>
+          {{ form.semester_name }}
+          {% if form.semester_name.errors %}
+            <div class="text-danger">{{ form.semester_name.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="id_start_date">Start Date</label>
+          {{ form.start_date }}
+          {% if form.start_date.errors %}
+            <div class="text-danger">{{ form.start_date.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="id_end_date">End Date</label>
+          {{ form.end_date }}
+          {% if form.end_date.errors %}
+            <div class="text-danger">{{ form.end_date.errors }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </div>
     </form>
   </div>
 </div>
@@ -47,46 +57,21 @@
 <!-- Custom Modal Backdrop -->
 <div id="customModalBackdrop" class="custom-modal-backdrop"></div>
 
-<!-- Flatpickr Library for Date Picking -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const disabledDates = {{ disabled_dates|safe }};  // List of unavailable start and end date tuples from backend
+    const nextButton = document.querySelector('#nextButton');
+    const semesterFields = document.querySelector('#semesterFields');
+    const schoolYearSelect = document.querySelector('#id_school_year');
 
-    // Prepare disabled ranges for Flatpickr
-    const disableDateRanges = disabledDates.map(function(dates) {
-        const [start, end] = dates;
-        return { from: new Date(start), to: new Date(end) };
+    // Event listener for "Next" button
+    nextButton.addEventListener('click', function () {
+      if (schoolYearSelect.value) {
+        // If School Year is selected, show the rest of the form
+        semesterFields.style.display = 'block';
+        nextButton.style.display = 'none';  // Hide the "Next" button after clicking
+      } else {
+        alert("Please select a school year.");
+      }
     });
-
-    // Initialize Flatpickr for start date
-    const startDatePicker = flatpickr("#id_start_date", {
-        minDate: "today",  // Prevent past dates
-        disable: disableDateRanges,  // Disable unavailable date ranges
-        onChange: function(selectedDates, dateStr, instance) {
-            const startDate = selectedDates[0];  // Get the selected start date
-
-            // Check if the end date Flatpickr exists and reinitialize it to avoid any issues
-            if (endDatePicker) {
-                endDatePicker.destroy();  // Destroy the existing instance
-            }
-
-            // Reinitialize Flatpickr for the end date input with new `minDate`
-            endDatePicker = flatpickr("#id_end_date", {
-                minDate: startDate,  // Set minDate dynamically based on selected start date
-                disable: disableDateRanges,  // Disable unavailable date ranges
-                defaultDate: startDate,  // Optional: Set the default date for end date to start date for clarity
-            });
-        }
-    });
-
-    // Initialize Flatpickr for end date (initial state)
-    let endDatePicker = flatpickr("#id_end_date", {
-        disable: disableDateRanges,  // Disable unavailable date ranges
-        minDate: "today"  // Initially prevent past dates for end date
-    });
-});
-
+  });
 </script>
