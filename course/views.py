@@ -20,14 +20,19 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import permission_required
 from .utils import copy_activities_from_previous_semester
 from datetime import date
-from collections import defaultdict
-from django.http import JsonResponse
 from django.utils.dateformat import DateFormat
 from datetime import datetime
 from django.db.models import ProtectedError
 from django.db.models import Avg
 from module.models import StudentProgress
 from activity.models import ActivityType
+from django.views.decorators.csrf import csrf_exempt
+from .msteams_utils import create_teams_meeting
+import json
+from django.http import JsonResponse, HttpResponseBadRequest
+from collections import defaultdict
+
+
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
 class enrollStudentView(View):
@@ -1002,3 +1007,35 @@ class CopyActivitiesView(View):
             print(f"Error: {e}")
             messages.error(request, "An error occurred while processing your request. : {e}")
             return redirect('subjectDetail', pk=subject_id)
+        
+
+@csrf_exempt
+def create_teams_meeting_view(request, subject_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+
+            subject = data.get('subject')
+            start_time = data.get('start_time')
+            end_time = data.get('end_time')
+            organizer_email = data.get('organizer_email')
+
+            # Log the data for debugging
+            print(f"Subject: {subject}, Start time: {start_time}, End time: {end_time}, Organizer email: {organizer_email}")
+
+            if not subject or not start_time or not end_time or not organizer_email:
+                return JsonResponse({'error': 'Missing required fields'}, status=400)
+
+            # Call the function to create the Teams meeting
+            meeting_data = create_teams_meeting(organizer_email, subject, start_time, end_time)
+
+            # If meeting creation was successful, return the meeting URL
+            if 'joinUrl' in meeting_data:
+                return JsonResponse({'meetingUrl': meeting_data['joinUrl']})
+            return JsonResponse({'error': 'Unable to create meeting'}, status=400)
+        
+        except Exception as e:
+            print(f"Error creating meeting: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return HttpResponseBadRequest("Invalid request method.")

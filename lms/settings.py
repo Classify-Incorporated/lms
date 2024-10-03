@@ -185,7 +185,7 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'AUTH_PARAMS': {
             'response_type': 'code',
-            'scope': 'email openid profile User.Read'
+            'scope': 'email openid profile User.Read OnlineMeetings.ReadWrite'
         },
         'TENANT': os.getenv('MICROSOFT_TENANT', ''),
         'REDIRECT_URI': 'http://localhost:8000/accounts/microsoft/login/callback/',
