@@ -1,28 +1,35 @@
-<form method="post" enctype="multipart/form-data" action="{% url 'updateSubject' subject.id %}">
+<form method="post" enctype="multipart/form-data" action="{% url 'updateSubject' subject.id %}" class="needs-validation" novalidate>
   {% csrf_token %}
 
   <!-- Subject Name Field -->
   <div class="form-group">
     <label for="{{ form.subject_name.id_for_label }}">Subject Name</label>
     {{ form.subject_name }}
+    <div class="invalid-feedback">Please provide a valid subject name.</div>
   </div>
 
   <!-- Subject Short Name Field -->
   <div class="form-group">
     <label for="{{ form.subject_short_name.id_for_label }}">Subject Short Name</label>
     {{ form.subject_short_name }}
+    <div class="invalid-feedback">Please provide a valid subject short name.</div>
   </div>
 
   <!-- Custom File Input for Subject Photo -->
   <div class="form-group">
     <label for="{{ form.subject_photo.id_for_label }}">Subject Photo</label>
-    {{ form.subject_photo }}
+    <div class="custom-file">
+      {{ form.subject_photo }}
+      <label class="custom-file-label" for="customFile">Choose file</label>
+      <div class="invalid-feedback">Please upload a valid file for the subject photo.</div>
+    </div>
   </div>
 
   <!-- Assign Teacher Dropdown -->
   <div class="form-group">
     <label for="{{ form.assign_teacher.id_for_label }}">Assign Teacher</label>
     {{ form.assign_teacher }}
+    <div class="invalid-feedback">Please assign a teacher to this subject.</div>
   </div>
 
   <!-- Subject Description -->
@@ -52,6 +59,7 @@
   <!-- Submit Button -->
   <button type="submit" class="btn btn-primary">Submit</button>
 </form>
+
 <script>
   // Function to dynamically update the label of the custom file input
   function updateFileLabel() {

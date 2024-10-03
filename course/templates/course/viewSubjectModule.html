@@ -90,7 +90,7 @@
             <div class="row justify-content-center mb-4">
               <div class="col-md-12">
                 <div class="d-flex flex-wrap justify-content-center">
-                  <a href="{% url 'add_activity' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-success mb-2 mx-2">Add Activity</a>
+                  <a class="btn btn-success mb-2 mx-2" data-toggle="modal" data-target="#addActivityLessonModal"><i class="fas fa-plus"></i> Add an Activity or Lesson</a>
                   <a href="{% url 'activityList' subject.id %}" class="btn btn-primary mb-2 mx-2">Activity List</a>
                   <a class="btn btn-info mb-2 mx-2" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
                   <button class="btn btn-info mb-2 mx-2" onclick="openCopyLessonModal('{{ subject.id }}')">Copy Lessons</button>
@@ -155,17 +155,53 @@
                 {% endfor %}
               </ul>
             </div>
-
-            <!-- Add Lesson Button -->
-            {% if is_teacher %}
-              <div class="d-flex justify-content-center mt-4">
-                <button id="addLessonButton" class="btn btn-success" onclick="openModuleModal('{{ subject.id }}')" style="display: none;">Add Lesson</button>
-              </div>
-            {% endif %}
           </div>
         </div>
       </div>
     </section>
+  </div>
+
+  <!-- Bootstrap Modal for Adding Activity or Lesson -->
+  <div class="modal fade" id="addActivityLessonModal" tabindex="-1" role="dialog" aria-labelledby="addActivityLessonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addActivityLessonModalLabel">Add an Activity or Lesson</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <!-- Button-app layout for all content types with colored icons and fixed margin -->
+          <div class="container">
+            <div class="row justify-content-center">
+              <div class="col-md-3 mb-3 d-flex justify-content-center">
+                <a href="#" class="btn btn-app"><i class="fas fa-check-square text-primary"></i> Assignment</a>
+              </div>
+              <div class="col-md-3 mb-3 d-flex justify-content-center">
+                <a href="#" class="btn btn-app"><i class="fas fa-user-check text-success"></i> Attendance</a>
+              </div>
+              <div class="col-md-3 mb-3 d-flex justify-content-center">
+                <a href="#" class="btn btn-app"><i class="fas fa-file-alt text-info"></i> File</a>
+              </div>
+              <div class="col-md-3 mb-3 d-flex justify-content-center">
+                <a href="#" class="btn btn-app"><i class="fas fa-book text-warning"></i> Lesson</a>
+              </div>
+            </div>
+
+            <div class="row justify-content-center">
+              <div class="col-md-3 mb-3 d-flex justify-content-center">
+                <a href="#" class="btn btn-app"><i class="fab fa-microsoft text-secondary"></i> MS Teams Meeting</a>
+              </div>
+              <div class="col-md-3 mb-3 d-flex justify-content-center">
+                <a href="#" class="btn btn-app"><i class="fas fa-question-circle text-danger"></i> Quiz</a>
+              </div>
+              <div class="col-md-3 mb-3 d-flex justify-content-center">
+                <a href="#" class="btn btn-app"><i class="fas fa-link text-purple"></i> URL</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Custom Modal for Adding Participation -->
@@ -384,185 +420,194 @@
     document.addEventListener('DOMContentLoaded', function() {
       const subjectId = {{ subject.id }};
     
-      fetch("{% url 'termActivitiesGraph' 0 %}".replace('0', subjectId))
-        .then(response => response.json())
-        .then(data => {
-          const terms = Object.keys(data.terms);  // Get all term names (e.g., ['Prelim', 'Midterm', 'Finals'])
-          const termIds = terms.map(term => data.terms[term].id);
-          const activityTypeSelect = document.getElementById('activityTypeSelect');
-    
-          // Get all activity types and add "All" option
-          let activityTypes = [...new Set(terms.flatMap(term => Object.keys(data.terms[term].activity_types || {})))];
-          const allOption = document.createElement('option');
-          allOption.value = 'All';
-          allOption.textContent = 'All Activities';
-          activityTypeSelect.appendChild(allOption);
-    
-          // Populate dropdown with individual activity types
-          activityTypes.forEach(activityType => {
-            const option = document.createElement('option');
-            option.value = activityType;
-            option.textContent = activityType;
-            activityTypeSelect.appendChild(option);
+        // Fetch the computed styles of the root element (where CSS variables are defined)
+  const rootStyles = getComputedStyle(document.documentElement);
+
+  // Get the CSS variable values
+  const primaryColor = rootStyles.getPropertyValue('--primary').trim();  // Primary color for completed
+  const dangerColor = rootStyles.getPropertyValue('--danger').trim();    // Danger color for missed
+
+  fetch("{% url 'termActivitiesGraph' 0 %}".replace('0', subjectId))
+    .then(response => response.json())
+    .then(data => {
+      const terms = Object.keys(data.terms);  // Get all term names (e.g., ['Prelim', 'Midterm', 'Finals'])
+      const termIds = terms.map(term => data.terms[term].id);
+      const activityTypeSelect = document.getElementById('activityTypeSelect');
+
+      // Get all activity types and add "All" option
+      let activityTypes = [...new Set(terms.flatMap(term => Object.keys(data.terms[term].activity_types || {})))];
+      const allOption = document.createElement('option');
+      allOption.value = 'All';
+      allOption.textContent = 'All Activities';
+      activityTypeSelect.appendChild(allOption);
+
+      // Populate dropdown with individual activity types
+      activityTypes.forEach(activityType => {
+        const option = document.createElement('option');
+        option.value = activityType;
+        option.textContent = activityType;
+        activityTypeSelect.appendChild(option);
+      });
+
+      // Initial chart display for "All" activities
+      updateChartForActivityType('All');
+
+      // Event listener to update chart when a new activity type is selected
+      activityTypeSelect.addEventListener('change', function() {
+        const selectedActivityType = this.value;
+        updateChartForActivityType(selectedActivityType);
+      });
+
+      function updateChartForActivityType(activityType) {
+        let datasets = [];
+
+        if (activityType === 'All') {
+          activityTypes.forEach((type) => {
+            const completedData = terms.map(term => data.terms[term].activity_types[type]?.completed || 0);
+            const missedData = terms.map(term => -Math.abs(data.terms[term].activity_types[type]?.missed || 0)); // Set missed data as negative
+
+            // Completed dataset with primary color
+            datasets.push({
+              label: `${type} - Completed`,
+              data: completedData,
+              backgroundColor: primaryColor,
+              borderColor: primaryColor,
+              borderWidth: 2,
+              fill: true,
+              pointBackgroundColor: primaryColor,
+              pointRadius: 5,
+              pointHoverRadius: 7
+            });
+
+            // Missed dataset with danger color
+            datasets.push({
+              label: `${type} - Missed`,
+              data: missedData,  // Negative values for missed data
+              backgroundColor: dangerColor,
+              borderColor: dangerColor,
+              borderWidth: 2,
+              fill: true,
+              pointBackgroundColor: dangerColor,
+              pointRadius: 5,
+              pointHoverRadius: 7
+            });
           });
-    
-          // Initial chart display for "All" activities
-          updateChartForActivityType('All');
-    
-          // Event listener to update chart when a new activity type is selected
-          activityTypeSelect.addEventListener('change', function() {
-            const selectedActivityType = this.value;
-            updateChartForActivityType(selectedActivityType);
+        } else {
+          const completedData = terms.map(term => data.terms[term].activity_types[activityType]?.completed || 0);
+          const missedData = terms.map(term => -Math.abs(data.terms[term].activity_types[activityType]?.missed || 0)); // Set missed data as negative
+
+          // Completed dataset with primary color
+          datasets.push({
+            label: `${activityType} - Completed`,
+            data: completedData,
+            backgroundColor: primaryColor,
+            borderColor: primaryColor,
+            borderWidth: 2,
+            fill: true,
+            pointBackgroundColor: primaryColor,
+            pointRadius: 5,
+            pointHoverRadius: 7
           });
-    
-          function updateChartForActivityType(activityType) {
-            let datasets = [];
-    
-            const distinctColors = [
-              '#FF5733',  // Orange-Red
-              '#33FF57',  // Green
-              '#3357FF',  // Blue
-              '#FF33A5',  // Pink
-              '#FFC133',  // Yellow
-              '#33FFD5',  // Turquoise
-              '#8D33FF',  // Purple
-            ];
-    
-            if (activityType === 'All') {
-              activityTypes.forEach((type, index) => {
-                const completedData = terms.map(term => data.terms[term].activity_types[type]?.completed || 0);
-                const missedData = terms.map(term => data.terms[term].activity_types[type]?.missed || 0);
-    
-                datasets.push({
-                  label: `${type} - Completed`,
-                  data: completedData,
-                  backgroundColor: distinctColors[index % distinctColors.length],
-                  borderColor: distinctColors[index % distinctColors.length],
-                  borderWidth: 2,
-                  fill: true,
-                  pointBackgroundColor: distinctColors[index % distinctColors.length],
-                  pointRadius: 5,
-                  pointHoverRadius: 7
-                });
-    
-                datasets.push({
-                  label: `${type} - Missed`,
-                  data: missedData,
-                  backgroundColor: distinctColors[(index + 1) % distinctColors.length],
-                  borderColor: distinctColors[(index + 1) % distinctColors.length],
-                  borderWidth: 2,
-                  fill: true,
-                  pointBackgroundColor: distinctColors[(index + 1) % distinctColors.length],
-                  pointRadius: 5,
-                  pointHoverRadius: 7
-                });
-              });
-            } else {
-              const completedData = terms.map(term => data.terms[term].activity_types[activityType]?.completed || 0);
-              const missedData = terms.map(term => data.terms[term].activity_types[activityType]?.missed || 0);
-    
-              datasets.push({
-                label: `${activityType} - Completed`,
-                data: completedData,
-                backgroundColor: distinctColors[0],
-                borderColor: distinctColors[0],
-                borderWidth: 2,
-                fill: true,
-                pointBackgroundColor: distinctColors[0],
-                pointRadius: 5,
-                pointHoverRadius: 7
-              });
-    
-              datasets.push({
-                label: `${activityType} - Missed`,
-                data: missedData,
-                backgroundColor: distinctColors[1],
-                borderColor: distinctColors[1],
-                borderWidth: 2,
-                fill: true,
-                pointBackgroundColor: distinctColors[1],
-                pointRadius: 5,
-                pointHoverRadius: 7
-              });
-            }
-    
-            createStackedLineChart('finishedActivitiesChart', terms, termIds, datasets);
-          }
-    
-          function createStackedLineChart(chartId, labels, termIds, datasets) {
-            const ctx = document.getElementById(chartId).getContext('2d');
-            
-            if (window.chartInstance) {
-              window.chartInstance.destroy();  // Destroy previous chart instance before creating a new one
-            }
-    
-            window.chartInstance = new Chart(ctx, {
-              type: 'line',  // Stacked line chart
-              data: {
-                labels: labels,  // Term names as labels (Prelim, Midterm, Finals)
-                datasets: datasets
+
+          // Missed dataset with danger color
+          datasets.push({
+            label: `${activityType} - Missed`,
+            data: missedData,  // Negative values for missed data
+            backgroundColor: dangerColor,
+            borderColor: dangerColor,
+            borderWidth: 2,
+            fill: true,
+            pointBackgroundColor: dangerColor,
+            pointRadius: 5,
+            pointHoverRadius: 7
+          });
+        }
+
+        createStackedLineChart('finishedActivitiesChart', terms, termIds, datasets);
+      }
+
+    function createStackedLineChart(chartId, labels, termIds, datasets) {
+      const ctx = document.getElementById(chartId).getContext('2d');
+      
+      if (window.chartInstance) {
+        window.chartInstance.destroy();  // Destroy previous chart instance before creating a new one
+      }
+
+      window.chartInstance = new Chart(ctx, {
+        type: 'line',  // Stacked line chart
+        data: {
+          labels: labels,  // Term names as labels (Prelim, Midterm, Finals)
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              stacked: true,
+              title: {
+                display: true,
+                text: 'Number of Students'
               },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    stacked: true,
-                    title: {
-                      display: true,
-                      text: 'Number of Students'
-                    }
-                  },
-                  x: {
-                    title: {
-                      display: true,
-                      text: 'Terms'
-                    }
-                  }
-                },
-                plugins: {
-                  legend: {
-                    display: true
-                  },
-                  title: {
-                    display: true,
-                    text: 'Students Completed vs Missed per Term'
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: function(tooltipItem) {
-                        return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
-                      }
-                    }
-                  }
-                },
-                onClick: function(evt) {
-                  const points = window.chartInstance.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-    
-                  if (points.length > 0) {
-                    const firstPoint = points[0];
-                    const index = firstPoint.index;
-                    const datasetIndex = firstPoint.datasetIndex;
-    
-                    const termId = termIds[index];  // Use the index to fetch the correct term ID
-                    const activityType = datasetIndex % 2 === 0 ? 'completed' : 'missed';  // Even index means completed, odd means missed
-                    const activityName = datasets[datasetIndex].label.split(' - ')[0];  // Get the activity type name from the dataset label
-    
-                    // Redirect to the activities page for the selected term and activity type
-                    if (termId) {
-                      window.location.href = `/displayActivitiesForTerm/${termId}/${activityType}/${subjectId}/${activityName}/`;
-                    } else {
-                      console.error('Term ID is undefined for index:', index);
-                    }
-                  }
+              ticks: {
+                callback: function(value, index, values) {
+                  // Ensure Y-axis only shows positive values even for negative data
+                  return Math.abs(value);
                 }
               }
-            });
-          }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Terms'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true
+            },
+            title: {
+              display: true,
+              text: 'Students Completed vs Missed per Term'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(tooltipItem) {
+                  // Ensure tooltips show positive values for missed data
+                  return `${tooltipItem.dataset.label}: ${Math.abs(tooltipItem.raw)}`;
+                }
+              }
+            }
+          },
+          onClick: function(evt) {
+            const points = window.chartInstance.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
 
-        })
-        .catch(error => console.error('Error fetching term activities:', error));
+            if (points.length > 0) {
+              const firstPoint = points[0];
+              const index = firstPoint.index;
+              const datasetIndex = firstPoint.datasetIndex;
+
+              const termId = termIds[index];  // Use the index to fetch the correct term ID
+              const activityType = datasetIndex % 2 === 0 ? 'completed' : 'missed';  // Even index means completed, odd means missed
+              const activityName = datasets[datasetIndex].label.split(' - ')[0];  // Get the activity type name from the dataset label
+
+              // Redirect to the activities page for the selected term and activity type
+              if (termId) {
+                window.location.href = `/displayActivitiesForTerm/${termId}/${activityType}/${subjectId}/${activityName}/`;
+              } else {
+                console.error('Term ID is undefined for index:', index);
+              }
+            }
+          }
+        }
+      });
+    }
+
+  })
+  .catch(error => console.error('Error fetching term activities:', error));
+
     });
 
   </script>
@@ -571,73 +616,68 @@
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
 
   <script>
-   // Toggle lesson editing and Add Lesson button visibility
-let lessonEditMode = false;
-let sortable = null;
+    // Remove the function that displays the Add Lesson button
+    let lessonEditMode = false;
+    let sortable = null;
 
-document.getElementById('editButton').addEventListener('click', function () {
-  if (!lessonEditMode) {
-    // Enable lesson editing mode
-    lessonEditMode = true;
-    this.textContent = 'Save'; // Change button text to "Save"
+    document.getElementById('editButton').addEventListener('click', function () {
+      if (!lessonEditMode) {
+        // Enable lesson editing mode
+        lessonEditMode = true;
+        this.textContent = 'Save'; // Change button text to "Save"
 
-    // Show the Add Lesson button
-    document.getElementById('addLessonButton').style.display = 'block';
+        // Initialize SortableJS for the lesson list
+        sortable = new Sortable(document.getElementById('lesson-list'), {
+          animation: 150,
+          onEnd: function (evt) {
+            var order = [];
+            document.querySelectorAll('#lesson-list li').forEach(function (item) {
+              order.push(item.getAttribute('data-id'));
+            });
+          }
+        });
+      } else {
+        // Disable lesson editing mode
+        lessonEditMode = false;
+        this.textContent = 'Edit'; // Change button text back to "Edit"
 
-    // Initialize SortableJS for the lesson list
-    sortable = new Sortable(document.getElementById('lesson-list'), {
-      animation: 150,
-      onEnd: function (evt) {
+        // Disable sorting by destroying the SortableJS instance
+        if (sortable) {
+          sortable.destroy();
+        }
+
+        // Collect the new order and send it to the server via AJAX
         var order = [];
         document.querySelectorAll('#lesson-list li').forEach(function (item) {
-          order.push(item.getAttribute('data-id'));
+          var moduleId = item.getAttribute('data-id');
+          if (moduleId) {  // Ensure only valid module IDs are added
+            order.push(moduleId);
+          }
+        });
+
+        // Send the updated order to the backend
+        fetch("{% url 'update_module_order' %}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ order: order })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // Successfully saved the new order
+          } else {
+            console.error('Error saving order:', data.message);
+          }
+        })
+        .catch(error => {
+          console.error('An error occurred while saving the order:', error);
         });
       }
     });
-  } else {
-    // Disable lesson editing mode
-    lessonEditMode = false;
-    this.textContent = 'Edit'; // Change button text back to "Edit"
-
-    // Hide the Add Lesson button
-    document.getElementById('addLessonButton').style.display = 'none';
-
-    // Disable sorting by destroying the SortableJS instance
-    if (sortable) {
-      sortable.destroy();
-    }
-
-    // Collect the new order and send it to the server via AJAX
-    var order = [];
-    document.querySelectorAll('#lesson-list li').forEach(function (item) {
-      var moduleId = item.getAttribute('data-id');
-      if (moduleId) {  // Ensure only valid module IDs are added
-        order.push(moduleId);
-      }
-    });
-
-    // Send the updated order to the backend
-    fetch("{% url 'update_module_order' %}", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}'
-      },
-      body: JSON.stringify({ order: order })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success') {
-      } else {
-        console.error('Error saving order:', data.message);
-      }
-    })
-    .catch(error => {
-      console.error('An error occurred while saving the order:', error);
-    });
-  }
-});
-</script>
+  </script>
 
   <script>
 function initializeFileValidation() {
@@ -782,6 +822,31 @@ function initializeFileValidation() {
 .card {
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.btn-app {
+  width: 160px;
+  height: 100px;
+  margin: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-app i {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.btn-app span {
+  font-size: 14px;
+  font-weight: bold;
 }
 
 </style>
