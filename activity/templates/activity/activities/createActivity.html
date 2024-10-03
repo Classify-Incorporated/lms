@@ -30,6 +30,8 @@
               <form method="post" class="needs-validation" novalidate>
                 {% csrf_token %}
 
+                <input type="hidden" id="activity_type" name="activity_type" value="">
+
                 <!-- Row with 3 fields: Activity Name, Activity Type, and Term -->
                 <div class="row mb-4">
                   <div class="col-md-4">
@@ -43,7 +45,7 @@
                     </div>
                   </div>
 
-                  <div class="col-md-4">
+                  {% comment %} <div class="col-md-4">
                     <div class="form-group">
                       <label for="activity_type">
                         Activity Type
@@ -56,7 +58,7 @@
                       </select>
                       <div class="invalid-feedback">Please select an activity type.</div>
                     </div>
-                  </div>
+                  </div> {% endcomment %}
 
                   <div class="col-md-4">
                     <div class="form-group">
@@ -187,6 +189,26 @@
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl)
     })
+
+    function selectActivityType(activityTypeName) {
+      var activityTypeField = document.getElementById('activity_type');
+      var selectedActivityTypeDisplay = document.getElementById('selectedActivityType');
+    
+      // Get all the activity types from the dropdown
+      var activityTypeOptions = document.getElementById('activity_type').options;
+    
+      // Loop through options and find the one that matches the name
+      for (var i = 0; i < activityTypeOptions.length; i++) {
+        if (activityTypeOptions[i].text === activityTypeName) {
+          // Set the value of the hidden activity_type field to the matching option's value (ID)
+          activityTypeField.value = activityTypeOptions[i].value;
+          selectedActivityTypeDisplay.textContent = "Selected Activity Type: " + activityTypeName;
+          break;
+        }
+      }
+    
+      console.log('Selected Activity Type ID:', activityTypeField.value); // For debugging
+    }
     
     // Show/hide remedial students field based on checkbox toggle
     document.getElementById('remedial').addEventListener('change', function () {

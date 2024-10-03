@@ -8,7 +8,7 @@ from .views import (
 )
 
 urlpatterns = [
-    path('add_activity/<int:subject_id>/', AddActivityView.as_view(), name='add_activity'),
+    path('subject/<int:subject_id>/add_activity/', AddActivityView.as_view(), name='add_activity'),
     path('quiz_type/<int:activity_id>/', AddQuizTypeView.as_view(), name='add_quiz_type'),
     path('add_question/<int:activity_id>/<int:quiz_type_id>/', AddQuestionView.as_view(), name='add_question'),
     path('delete_temp_question/<int:activity_id>/<int:index>/', DeleteTempQuestionView.as_view(), name='delete_temp_question'),
