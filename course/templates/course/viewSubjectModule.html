@@ -174,7 +174,7 @@
           <div class="container">
             <div class="row justify-content-center">
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app"><i class="fas fa-check-square text-primary"></i> Assignment</a>
+                <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Assignment', {{ subject.id }}, {{ assignment_activity_type_id }})"><i class="fas fa-check-square text-primary"></i> Assignment</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
                 <a href="#" class="btn btn-app"><i class="fas fa-user-check text-success"></i> Attendance</a>
@@ -192,10 +192,19 @@
                 <a href="#" class="btn btn-app"><i class="fab fa-microsoft text-secondary"></i> MS Teams Meeting</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app"><i class="fas fa-question-circle text-danger"></i> Quiz</a>
+                <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Quiz', {{ subject.id }}, {{ quiz_activity_type_id }})"><i class="fas fa-question-circle text-danger"></i> Quiz</a>
+              </div>
+              <div class="col-md-3 mb-3 d-flex justify-content-center">
+                <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Exam', {{ subject.id }}, {{ exam_activity_type_id }})"><i class="fas fa-question-circle text-danger"></i> Exam</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
                 <a href="#" class="btn btn-app"><i class="fas fa-link text-purple"></i> URL</a>
+              </div>
+            </div>
+
+            <div class="row justify-content-center">
+              <div class="col-md-3 mb-3 d-flex justify-content-center">
+                <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Participation', {{ subject.id }}, {{ participation_activity_type_id }})"><i class="fab fa-microsoft text-secondary"></i> Participation</a>
               </div>
             </div>
           </div>
@@ -246,6 +255,18 @@
   <div id="copyActivityModalBackdrop" class="custom-modal-backdrop"></div>
 
   <script>
+
+    function selectActivityTypeAndRedirect(activityTypeName, subjectId, activityTypeId) {
+      if (activityTypeId) {
+          // If activity_type_id is defined, redirect to the proper URL
+          window.location.href = `/subject/${subjectId}/add_activity/?activity_type_id=${activityTypeId}`;
+      } else {
+          console.error('Activity Type ID is undefined');
+          alert('Activity Type is not defined for ' + activityTypeName);
+      }
+  }
+
+
     function openParticipationModal(subjectId) {
       fetch(`/participationScoresView/${subjectId}/`)
         .then((response) => response.text())

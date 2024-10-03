@@ -78,7 +78,6 @@ class AddActivityView(View):
         subject = get_object_or_404(Subject, id=subject_id)
 
         now = timezone.localtime(timezone.now())
-        print(now)
         current_semester = Semester.objects.filter(start_date__lte=now, end_date__gte=now).first()
 
         terms = Term.objects.filter(
@@ -92,13 +91,20 @@ class AddActivityView(View):
         students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
         modules = Module.objects.filter(subject=subject, term__semester=current_semester, start_date__isnull=False, end_date__isnull=False) 
 
+        activity_type_id = request.GET.get('activity_type_id', None)
+        if activity_type_id:
+            activity_type = get_object_or_404(ActivityType, id=activity_type_id)
+        else:
+            activity_type = None
+
         return render(request, 'activity/activities/createActivity.html', {
             'subject': subject,
             'activity_types': ActivityType.objects.all(),
             'terms': terms,
             'students': students,
             'modules': modules,
-            'retake_methods': Activity.RETAKE_METHOD_CHOICES
+            'retake_methods': Activity.RETAKE_METHOD_CHOICES,
+            'selected_activity_type': activity_type
         })
 
     def post(self, request, subject_id):

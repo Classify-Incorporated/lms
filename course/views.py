@@ -27,7 +27,7 @@ from datetime import datetime
 from django.db.models import ProtectedError
 from django.db.models import Avg
 from module.models import StudentProgress
-
+from activity.models import ActivityType
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
 class enrollStudentView(View):
@@ -166,6 +166,17 @@ def dropStudentFromSubject(request, enrollment_id):
 def subjectDetail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     user = request.user
+
+    assignment_activity_type = ActivityType.objects.filter(name="Assignment").first()
+    quiz_activity_type = ActivityType.objects.filter(name="Quiz").first()
+    exam_activity_type = ActivityType.objects.filter(name="Exam").first()
+    participation_activity_type = ActivityType.objects.filter(name="Participation").first()
+
+    # Ensure that IDs are assigned only when activity types are found
+    assignment_activity_type_id = assignment_activity_type.id if assignment_activity_type else None
+    quiz_activity_type_id = quiz_activity_type.id if quiz_activity_type else None
+    exam_activity_type_id = exam_activity_type.id if exam_activity_type else None
+    participation_activity_type_id = participation_activity_type.id if participation_activity_type else None
 
     selected_semester_id = request.GET.get('semester')
     selected_semester = None
@@ -307,6 +318,10 @@ def subjectDetail(request, pk):
         'selected_semester': selected_semester,
         'answered_activity_ids': answered_activity_ids,
         'form': form,
+        'assignment_activity_type_id': assignment_activity_type_id,
+        'quiz_activity_type_id': quiz_activity_type_id, 
+        'exam_activity_type_id': exam_activity_type_id,
+        'participation_activity_type_id': participation_activity_type_id,
     })
 
 @login_required
