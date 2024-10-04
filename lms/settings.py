@@ -185,7 +185,7 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'AUTH_PARAMS': {
             'response_type': 'code',
-            'scope': 'email openid profile User.Read OnlineMeetings.ReadWrite'
+            'scope': 'email openid profile offline_access User.Read OnlineMeetings.ReadWrite Calendars.ReadWrite'
         },
         'TENANT': os.getenv('MICROSOFT_TENANT', ''),
         'REDIRECT_URI': 'http://localhost:8000/accounts/microsoft/login/callback/',
@@ -244,3 +244,4 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='testsmtp@hccci.edu.ph')
+

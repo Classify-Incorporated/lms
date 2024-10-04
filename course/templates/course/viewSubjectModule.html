@@ -180,7 +180,7 @@
                 <a href="#" class="btn btn-app"><i class="fas fa-user-check text-success"></i> Attendance</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app"><i class="fas fa-file-alt text-info"></i> File</a>
+                <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Participation', {{ subject.id }}, {{ participation_activity_type_id }})"><i class="fab fa-microsoft text-secondary"></i> Participation</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
                 <a href="#" class="btn btn-app" onclick="openModuleModal({{ subject.id }}, 'lesson')">
@@ -191,8 +191,8 @@
 
             <div class="row justify-content-center">
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app" onclick="openTeamsMeetingModal({{ subject.id }})">
-                  <i class="fab fa-microsoft text-secondary"></i> MS Teams Meeting
+                <a href="#" class="btn btn-app" data-toggle="modal" data-target="#teamsSignInModal">
+                  <i class="fas fa-user-check text-success"></i> MS Teams Meeting
                 </a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
@@ -205,12 +205,6 @@
                 <a href="#" class="btn btn-app" onclick="openModuleModal({{ subject.id }}, 'url')">
                   <i class="fas fa-link text-purple"></i> URL
                 </a>
-              </div>
-            </div>
-
-            <div class="row justify-content-center">
-              <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Participation', {{ subject.id }}, {{ participation_activity_type_id }})"><i class="fab fa-microsoft text-secondary"></i> Participation</a>
               </div>
             </div>
           </div>
@@ -261,101 +255,38 @@
   <div id="copyActivityModalBackdrop" class="custom-modal-backdrop"></div>
 
 
-  <!-- Bootstrap Modal for Creating Teams Meeting -->
-<div class="modal fade" id="createTeamsMeetingModal" tabindex="-1" role="dialog" aria-labelledby="createTeamsMeetingModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h5 class="modal-title" id="createTeamsMeetingModalLabel">Create Teams Meeting</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-              </button>
-          </div>
-          <div class="modal-body">
-              <form id="teamsMeetingForm" method="POST">
-                  <label for="meetingSubject">Meeting Subject:</label>
-                  <input type="text" id="meetingSubject" name="subject" required class="form-control"><br>
-
-                  <label for="organizerEmail">Organizer Email:</label>
-                  <input type="email" id="organizerEmail" name="organizer_email" required class="form-control"><br> 
-
-                  <label for="startTime">Start Time:</label>
-                  <input type="datetime-local" id="startTime" name="start_time" required class="form-control"><br>
-
-                  <label for="endTime">End Time:</label>
-                  <input type="datetime-local" id="endTime" name="end_time" required class="form-control"><br>
-
-                  <button type="submit" class="btn btn-primary">Create Teams Meeting</button>
-              </form>
-          </div>
+  <!-- Modal for Microsoft Teams Sign-in -->
+  <div class="modal" id="teamsSignInModal" tabindex="-1" role="dialog" aria-labelledby="teamsSignInModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content card-style-modal">
+        <div class="modal-header">
+          <h5 class="modal-title" id="teamsSignInModalLabel">Sign in to Microsoft Teams</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body text-center">
+          <p>To start your Microsoft Teams meeting, sign in using your school account.</p>
+          <a href="https://teams.microsoft.com" target="_blank" class="btn btn-primary">
+            Sign in to Microsoft Teams
+          </a>
+        </div>
       </div>
+    </div>
   </div>
-</div>
-
+  
+  <!-- Button to Trigger the Modal (looks like a card) -->
+  <a href="#" class="btn btn-app" data-toggle="modal" data-target="#teamsSignInModal">
+    <div class="card">
+      <div class="card-body text-center">
+        <i class="fas fa-user-check text-success"></i>
+        <h5 class="card-title">MS Teams Meeting</h5>
+        <p class="card-text">Sign in to start</p>
+      </div>
+    </div>
+  </a>
 
   <script>
-    function getCookie(name) {
-      let cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-          const cookies = document.cookie.split(';');
-          for (let i = 0; i < cookies.length; i++) {
-              const cookie = cookies[i].trim();
-              // Does this cookie string begin with the name we want?
-              if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                  break;
-              }
-          }
-      }
-      return cookieValue;
-  }
-
-  function openTeamsMeetingModal(subjectId) {
-    if (!subjectId) {
-        console.error('Subject ID is not defined');
-        alert('Subject ID is missing');
-        return;
-    }
-    $('#createTeamsMeetingModal').modal('show');
-    document.getElementById("teamsMeetingForm").setAttribute("data-subject-id", subjectId);
-}
-
-  document.getElementById("teamsMeetingForm").addEventListener("submit", function(event) {
-    event.preventDefault();  // Prevent normal form submission
-    const subjectId = this.getAttribute("data-subject-id");  // Fetch the subjectId from the form
-    const subject = document.getElementById("meetingSubject").value;
-    const startTime = document.getElementById("startTime").value;
-    const endTime = document.getElementById("endTime").value;
-    const organizerEmail = document.getElementById("organizerEmail").value;
-
-    // CSRF token (ensure getCookie is available)
-    const csrfToken = getCookie('csrftoken');
-
-    fetch(`/create-teams-meeting/${subjectId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrfToken,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            'subject': subject,
-            'start_time': startTime,
-            'end_time': endTime,
-            'organizer_email': organizerEmail
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.meetingUrl) {
-            alert('Meeting created successfully!');
-            window.location.href = data.meetingUrl;
-        } else {
-            alert('Failed to create meeting: ' + data.error);
-        }
-    })
-    .catch(error => console.error('Error creating Teams meeting:', error));
-  });
-    
 
     function selectActivityTypeAndRedirect(activityTypeName, subjectId, activityTypeId) {
       if (activityTypeId) {
@@ -970,6 +901,8 @@ function initializeFileValidation() {
   font-size: 14px;
   font-weight: bold;
 }
+
+
 
 </style>
 {% endblock %}
