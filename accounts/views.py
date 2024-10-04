@@ -27,7 +27,9 @@ from django.http import JsonResponse
 from django.urls import reverse
 from datetime import timedelta
 from django.db.models.functions import TruncDate
-
+from allauth.socialaccount.models import SocialAccount, SocialToken
+from allauth.socialaccount.providers.oauth2.views import OAuth2CallbackView, OAuth2LoginView
+from .adapter import MicrosoftAuth2Adapter
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -268,6 +270,18 @@ def dashboard(request):
         greeting = "Good Evening"
 
 
+    social_account = request.user.socialaccount_set.filter(provider='microsoft').first()
+    if social_account:
+        social_token = social_account.socialtoken_set.first()
+        if social_token:
+            access_token = social_token.token
+            print("Access Token:", access_token)
+        else:
+            print("No social token available.")
+    else:
+        print(f"Social Account Set: {request.user.socialaccount_set.all()}")
+
+
 
     context = {
         'enrolled_students_count': enrolled_students_count,
@@ -285,6 +299,29 @@ def dashboard(request):
     }
 
     return render(request, 'accounts/dashboard.html', context)
+
+
+def oauth2_login(request):
+    print("Login started")  # Debugging print statement
+    return OAuth2LoginView.adapter_view(MicrosoftAuth2Adapter)(request)
+
+def oauth2_callback(request):
+    print("Callback reached")
+
+    try:
+        account = SocialAccount.objects.get(user=request.user, provider='microsoft')
+        token = SocialToken.objects.filter(account=account).first()
+        if token:
+            print(f"Token exists: {token.token}")
+        else:
+            print("No Microsoft Token found in the callback.")
+    except SocialAccount.DoesNotExist:
+        print(f"SocialAccount does not exist for the user: {request.user.email}")
+    except Exception as e:
+        print(f"Error occurred in oauth2_callback: {e}")
+
+    return OAuth2CallbackView.adapter_view(MicrosoftAuth2Adapter)(request)
+
 
 @login_required
 def studentPerCourse(request):

@@ -4,7 +4,7 @@ from .views import (
     assist, tools, sign_out, createProfile, admin_login_view,
 
     viewProfile, updateProfile, activateProfile, deactivateProfile, student, staff_list, error,
-    fetch_facebook_posts, studentPerCourse
+    fetch_facebook_posts, studentPerCourse, oauth2_login, oauth2_callback
 )
 
 urlpatterns = [
@@ -31,4 +31,7 @@ urlpatterns = [
     path('error/', error, name='error'),
 
     path('fetch_facebook_posts/', fetch_facebook_posts, name='fetch_facebook_posts'),
+
+    path('accounts/microsoft/login/', oauth2_login, name='microsoft_login'),
+    path('accounts/microsoft/login/callback/', oauth2_callback, name='microsoft_callback'),
 ]
