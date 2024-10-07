@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import SubjectEnrollment, Semester, Term, Retake
+from .models import SubjectEnrollment, Semester, Term, Retake, Attendance, AttendanceStatus
 from accounts.models import Profile
 from subject.models import Subject
 from roles.models import Role
@@ -25,13 +25,10 @@ from django.db.models import ProtectedError
 from django.db.models import Avg
 from module.models import StudentProgress
 from activity.models import ActivityType
-from django.views.decorators.csrf import csrf_exempt
-from .msteams_utils import create_teams_meeting
-import json
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse
 from collections import defaultdict
-import requests
-from allauth.socialaccount.models import SocialToken
+from django.utils.dateparse import parse_date
+
 
 # Handle the enrollment of students
 @method_decorator(login_required, name='dispatch')
@@ -1007,6 +1004,118 @@ class CopyActivitiesView(View):
             print(f"Error: {e}")
             messages.error(request, "An error occurred while processing your request. : {e}")
             return redirect('subjectDetail', pk=subject_id)
+
+
+@login_required
+def record_attendance(request, subject_id):
+    current_date = timezone.now().date()
+    current_semester = Semester.objects.filter(
+        start_date__lte=current_date,
+        end_date__gte=current_date,
+        end_semester=False
+    ).first()
+
+    if not current_semester:
+        return redirect('error_page')
+
+    enrollments = SubjectEnrollment.objects.filter(subject_id=subject_id, semester=current_semester)
+    students = [enrollment.student for enrollment in enrollments]
+    attendance_statuses = AttendanceStatus.objects.all()
+    subject = get_object_or_404(Subject, id=subject_id)
+
+    if request.method == 'POST':
+        selected_date = request.POST.get('date')
+
+        if not selected_date:
+            messages.error(request, 'Date is required to record attendance.')
+            return redirect('subjectDetail', pk=subject_id)
+
+        missing_status_students = []
+
+        existing_attendance = Attendance.objects.filter(subject_id=subject_id, date=selected_date)
+        if existing_attendance.exists():
+            messages.error(request, 'Attendance for this date already exists.')
+            return redirect('subjectDetail', pk=subject_id)
+
+        for user_id in request.POST.getlist('students'):
+            try:
+                student = CustomUser.objects.get(id=user_id)
+            except CustomUser.DoesNotExist:
+                continue
+
+            status_value = request.POST.get(f'status_{user_id}')
+            if status_value:
+                try:
+                    status = AttendanceStatus.objects.get(id=status_value)
+                except AttendanceStatus.DoesNotExist:
+                    return redirect('subjectDetail', pk=subject_id)
+
+                attendance, created = Attendance.objects.update_or_create(
+                    student_id=student.id,
+                    subject_id=subject_id,
+                    date=selected_date,
+                    defaults={'status': status}
+                )
+            else:
+                missing_status_students.append(student)
+
+        # If any students are missing status, show an error and prevent submission
+        if missing_status_students:
+            messages.error(request, f'The some students have missing attendance')
+            return redirect('subjectDetail', pk=subject_id)
         
+        messages.success(request, 'Attendance recorded successfully!')
+        return redirect('subjectDetail', pk=subject_id)
+
+    else:
+        form = AttendanceForm(current_semester=current_semester, subject=subject_id)
+
+    context = {
+        'students': students,  
+        'attendance_statuses': attendance_statuses,
+        'subject': subject,
+        'form': form,
+    }
+
+    return render(request, 'course/attendance/teacherAttendance.html', context)
+
+
+@login_required
+def attendanceList(request, subject_id):
+    current_date = timezone.now().date()
+
+    selected_date_str = request.GET.get('date', None)
+    if selected_date_str:
+        # Ensure the date is parsed only if a valid string is passed
+        selected_date = parse_date(selected_date_str)
+        if not selected_date:
+            messages.error(request, 'Invalid date format. Please select a valid date.')
+            selected_date = current_date
+    else:
+        selected_date = current_date
+
+    attendance = Attendance.objects.filter(subject_id=subject_id, date=selected_date).order_by('-date')
+    available_dates = Attendance.objects.filter(subject_id=subject_id).values_list('date', flat=True).distinct()
+
+    return render(request, 'course/attendance/attendanceList.html', {
+        'attendance': attendance,
+        'selected_date': selected_date,
+        'available_dates': available_dates,
+    })
+
+@login_required
+def updateAttendace(request, id):
+    attendance = get_object_or_404(Attendance, id=id)
+    form = updateAttendanceForm(instance=attendance)
+    if request.method == 'POST':
+        form = updateAttendanceForm(request.POST, instance=attendance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Attendance updated successfully!')
+            return redirect('attendanceList', subject_id=attendance.subject.id)
+        else:
+            messages.error(request, 'There was an error updating the attendance. Please try again.')
+            return redirect('attendanceList', subject_id=attendance.subject.id)
+    return render(request, 'course/attendance/updateAttendance.html', { 'form': form, 'attendance': attendance })
 
 

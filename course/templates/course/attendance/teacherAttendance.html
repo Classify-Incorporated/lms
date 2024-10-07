@@ -1,0 +1,42 @@
+<form method="post" action="{% url 'record_attendance' subject.id %}">
+    {% csrf_token %}
+    
+    <!-- Select Date -->
+    <div class="mb-4">
+        <h5>Select Attendance Date</h5>
+        <div class="mb-3">
+            <label for="date" class="form-label">Date</label>
+            {{ form.date }} <!-- Render date input from the form -->
+        </div>
+    </div>
+
+    <!-- Mark Attendance -->
+    <div id="studentList">
+        <h5>Mark Attendance</h5>
+        {% if students %}
+            {% for student in students %}
+            <div class="mb-3">
+                <label>{{ student.first_name }} {{ student.last_name }}</label>
+                <div>
+                    {% for status in attendance_statuses %}
+                        <div class="form-check form-check-inline">
+                            <!-- Use Profile ID to make the name unique for each student -->
+                            <input type="radio" class="form-check-input" name="status_{{ student.id }}" value="{{ status.id }}" required>
+                            <label class="form-check-label">{{ status.status }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <!-- Ensure you're passing the Profile ID here -->
+                <input type="hidden" name="students" value="{{ student.id }}">
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No students are enrolled in this subject.</p>
+        {% endif %}
+    </div>
+
+    <!-- Submit Button -->
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Submit Attendance</button>
+    </div>
+</form>

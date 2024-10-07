@@ -10,6 +10,8 @@ from allauth.socialaccount import app_settings
 from allauth.socialaccount.providers.oauth2.views import OAuth2Adapter, OAuth2CallbackView, OAuth2LoginView
 from .provider import MicrosoftProvider
 from allauth.socialaccount.models import SocialToken, SocialAccount
+import logging
+logger = logging.getLogger(__name__)
 
 class CustomAccountAdapter(DefaultAccountAdapter):
     def save_user(self, request, user, form, commit=True):
@@ -34,13 +36,13 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         print("Entering pre_social_login")
         email = sociallogin.account.extra_data.get('mail', sociallogin.account.extra_data.get('userPrincipalName', ''))
-        print(f"User Email: {email}")
-        print(f"Social Login Data: {sociallogin.account.extra_data}")
+        # print(f"User Email: {email}")
+        # print(f"Social Login Data: {sociallogin.account.extra_data}")
 
         try:
             # Check if the user exists by email
             user = CustomUser.objects.get(email=email)
-            print(f"Found existing user: {user.email}")
+            # print(f"Found existing user: {user.email}")
 
             # Assign the existing user to the sociallogin object
             sociallogin.state['process'] = 'login'
@@ -54,13 +56,13 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                 uid=sociallogin.account.uid, 
                 defaults={'extra_data': sociallogin.account.extra_data}
             )
-            print(f"Linked Social Account: {social_account}")
+            # print(f"Linked Social Account: {social_account}")
             
             login(request, user)
-            print("User logged in with existing account.")
+            # print("User logged in with existing account.")
             raise ImmediateHttpResponse(redirect('dashboard'))
         except CustomUser.DoesNotExist:
-            print("User does not exist.")
+            # print("User does not exist.")
             pass
 
     def save_user(self, request, sociallogin, form=None):
@@ -91,6 +93,7 @@ class MicrosoftAuth2Adapter(OAuth2Adapter):
     def complete_login(self, request, app, token, **kwargs):
         headers = {'Authorization': f'Bearer {token.token}'}
         print(f"Starting complete_login. Token: {token.token}")
+        print(f"Expires at: {token.expires_at}")
 
         try:
             # Fetch the user's profile information
@@ -104,33 +107,41 @@ class MicrosoftAuth2Adapter(OAuth2Adapter):
             social_login = self.get_provider().sociallogin_from_response(request, extra_data)
             account = social_login.account
 
-            if request.user.is_authenticated:
-                print(f"User is authenticated: {request.user}")
-                account.user = request.user
-                account.save()
+            print(f"SocialLogin account created or retrieved: {account}")
 
-            else:
-                print("User is not authenticated.")
-            
+            # Check if token is valid
+            if not token or not token.token:
+                print("No valid token received from Microsoft.")
+                return None
+
+            # Create or update SocialToken
             social_token, created = SocialToken.objects.get_or_create(
                 account=account, 
                 defaults={'token': token.token, 'expires_at': token.expires_at}
             )
-            if not created:
+
+            if created:
+                print(f"New SocialToken created: {social_token.token}, Expires at: {social_token.expires_at}")
+            else:
                 print("Social token already exists, updating it.")
-                # Update the token if it already exists
                 social_token.token = token.token
                 social_token.expires_at = token.expires_at
                 social_token.save()
                 print(f"Updated SocialToken: {social_token.token}, Expires at: {social_token.expires_at}")
+
+            # Log the token to verify it's available at this point
+            if social_token:
+                print(f"Social Token successfully saved: {social_token.token}")
             else:
-                print(f"New SocialToken created: {social_token.token}, Expires at: {social_token.expires_at}")
+                print("Failed to create SocialToken.")
 
             return social_login
+
         except requests.exceptions.HTTPError as http_err:
             print(f"HTTP error occurred during profile request: {http_err}")
         except Exception as err:
             print(f"Error occurred during complete_login: {err}")
+
 
 
 oauth2_login = OAuth2LoginView.adapter_view(MicrosoftAuth2Adapter)

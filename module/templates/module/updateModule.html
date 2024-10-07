@@ -30,17 +30,25 @@
             {{ form.file_name }}
           </div>
 
-          <!-- Custom file input for file -->
-          <div class="form-group">
-            <label for="file_name">File:</label>
-            {{ form.file }}
-          </div>
+          {% if module.file %}
+            <!-- Custom file input for file (shown if a file exists) -->
+            <div class="form-group" id="fileInputDiv">
+              <label for="customFile">File:</label>
+              <div class="custom-file">
+                <input type="file" class="custom-file-input" id="customFile" name="file" />
+                <label class="custom-file-label" for="customFile">{{ module.file.name }}</label>
+                <small class="form-text text-muted">Allowed file types: PDF, JPG, JPEG, PNG, MP4, AVI, MOV, WMV (Max size: 25MB)</small>
+                <div class="invalid-feedback" id="file-error" style="display: none;"></div>
+              </div>
+            </div>
+          {% else %}
+            <!-- URL input (shown if no file exists) -->
+            <div class="form-group" id="urlInputDiv">
+              <label for="url">Url:</label>
+              {{ form.url }}
+            </div>
+          {% endif %}
 
-          <!-- URL input -->
-          <div class="form-group">
-            <label for="url">Url:</label>
-            {{ form.url }}
-          </div>
 
           <!-- Term input -->
           <div class="form-group">

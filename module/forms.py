@@ -14,7 +14,7 @@ class moduleForm(forms.ModelForm):
                 'class': 'custom-file-input',  # Use Bootstrap custom file input class
                 'aria-describedby': 'inputGroupFileAddon',  # Add ARIA attributes for accessibility
             }),
-            'url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
+            'url': forms.URLInput(attrs={'class': 'form-control'}),
             'term': forms.Select(attrs={
                 'class': 'form-control selectpicker',
                 'data-live-search': 'true',
@@ -119,3 +119,4 @@ class CopyLessonForm(forms.Form):
             )
 
         return selected_modules
+    

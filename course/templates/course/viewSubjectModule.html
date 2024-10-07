@@ -95,6 +95,7 @@
                   <a class="btn btn-info mb-2 mx-2" onclick="openCopyActivityModal('{{ subject.id }}')">Copy Activities</a>
                   <button class="btn btn-info mb-2 mx-2" onclick="openCopyLessonModal('{{ subject.id }}')">Copy Lessons</button>
                   <a href="{% url 'subjectStudentList' subject.id %}?semester={{ selected_semester_id }}" class="btn btn-warning mb-2 mx-2">View Students List</a>
+                  <a href="{% url 'attendanceList' subject.id %}" class="btn btn-primary mb-2 mx-2">Attendance List</a>
                 </div>
               </div>
             </div>
@@ -177,11 +178,14 @@
                 <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Assignment', {{ subject.id }}, {{ assignment_activity_type_id }})"><i class="fas fa-check-square text-primary"></i> Assignment</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app"><i class="fas fa-user-check text-success"></i> Attendance</a>
-              </div>
+                <a href="#" class="btn btn-app" onclick="openAttendanceModal('{{ subject.id }}')">
+                  <i class="fas fa-user-check text-success"></i> Attendance
+                </a>
+              </div>              
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Participation', {{ subject.id }}, {{ participation_activity_type_id }})"><i class="fab fa-microsoft text-secondary"></i> Participation</a>
+                <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Participation', {{ subject.id }}, {{ participation_activity_type_id }})"><i class="fas fa-users text-secondary"></i> Participation</a>
               </div>
+             
               <div class="col-md-3 mb-3 d-flex justify-content-center">
                 <a href="#" class="btn btn-app" onclick="openModuleModal({{ subject.id }}, 'lesson')">
                   <i class="fas fa-book text-warning"></i> Lesson
@@ -192,14 +196,14 @@
             <div class="row justify-content-center">
               <div class="col-md-3 mb-3 d-flex justify-content-center">
                 <a href="#" class="btn btn-app" data-toggle="modal" data-target="#teamsSignInModal">
-                  <i class="fas fa-user-check text-success"></i> MS Teams Meeting
+                  <i class="fab fa-microsoft text-primary"></i> MS Teams Meeting
                 </a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
                 <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Quiz', {{ subject.id }}, {{ quiz_activity_type_id }})"><i class="fas fa-question-circle text-danger"></i> Quiz</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Exam', {{ subject.id }}, {{ exam_activity_type_id }})"><i class="fas fa-question-circle text-danger"></i> Exam</a>
+                <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Exam', {{ subject.id }}, {{ exam_activity_type_id }})"><i class="fas fa-file-alt text-secondary"></i> Exam</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
                 <a href="#" class="btn btn-app" onclick="openModuleModal({{ subject.id }}, 'url')">
@@ -254,7 +258,6 @@
   </div>
   <div id="copyActivityModalBackdrop" class="custom-modal-backdrop"></div>
 
-
   <!-- Modal for Microsoft Teams Sign-in -->
   <div class="modal" id="teamsSignInModal" tabindex="-1" role="dialog" aria-labelledby="teamsSignInModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -286,8 +289,18 @@
     </div>
   </a>
 
-  <script>
+  <!-- Attendance Modal -->
+<div id="attendanceModal" class="custom-modal">
+  <div class="custom-modal-header d-flex justify-content-between">
+      <h5 class="text-dark">Record Attendance</h5>
+      <button class="close-btn" id="closeAttendanceModalBtn"></button>
+  </div>
+  <div class="custom-modal-body" id="attendanceModalBody"></div>
+</div>
+<div id="attendanceModalBackdrop" class="custom-modal-backdrop"></div>
 
+
+  <script>
     function selectActivityTypeAndRedirect(activityTypeName, subjectId, activityTypeId) {
       if (activityTypeId) {
           const url = `/subject/${subjectId}/add_activity/?activity_type_id=${activityTypeId}`;
@@ -313,9 +326,11 @@
         if (type === 'lesson') {
           document.getElementById('fileInputDiv').style.display = 'block'; // Show file input
           document.getElementById('urlInputDiv').style.display = 'none';   // Hide URL input
+          document.querySelector('.form-check').style.display = 'none';
         } else if (type === 'url') {
           document.getElementById('fileInputDiv').style.display = 'none';  // Hide file input
           document.getElementById('urlInputDiv').style.display = 'block';  // Show URL input
+          document.querySelector('.form-check').style.display = 'none';
         }
   
         // Initialize or refresh selectpicker after loading the modal content
@@ -370,6 +385,28 @@
       document.getElementById('copyLessonModal').classList.remove('show')
       document.getElementById('copyLessonModalBackdrop').classList.remove('show')
     })
+
+    
+    // Open Attendance Modal
+      function openAttendanceModal(subjectId) {
+        $('#addActivityLessonModal').modal('hide');
+        
+        fetch(`/attendance/record/${subjectId}/`)
+          .then((response) => response.text())
+          .then((html) => {
+            document.getElementById('attendanceModalBody').innerHTML = html
+            document.getElementById('attendanceModal').classList.add('show')
+            document.getElementById('attendanceModalBackdrop').classList.add('show')
+          })
+          .catch((error) => console.error('Error loading attendance modal:', error))
+      }
+
+      // Close Attendance Modal
+      document.getElementById('closeAttendanceModalBtn').addEventListener('click', function () {
+        document.getElementById('attendanceModal').classList.remove('show')
+        document.getElementById('attendanceModalBackdrop').classList.remove('show')
+      })
+
     
     // Function to initialize lesson checkboxes
     function initializeLessonCheckboxes(subjectId) {
@@ -412,10 +449,11 @@
         })
       })
     }
+
   </script>
 
-  <!-- Chart.js Script -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
     const createPieChart = (chartId, labels, data, links, noDataId) => {
       const ctx = document.getElementById(chartId).getContext('2d');
@@ -901,8 +939,6 @@ function initializeFileValidation() {
   font-size: 14px;
   font-weight: bold;
 }
-
-
 
 </style>
 {% endblock %}
