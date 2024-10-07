@@ -2,6 +2,8 @@ from django import forms
 from .models import Semester, Term, Attendance
 from subject.models import Subject
 from accounts.models import CustomUser
+from activity.models import *
+
 class semesterForm(forms.ModelForm):
     school_year = forms.ChoiceField(
         choices=[(r, r) for r in range(1900, 2100)],

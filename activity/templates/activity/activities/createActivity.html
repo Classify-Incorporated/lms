@@ -30,7 +30,7 @@
               <form method="post" class="needs-validation" novalidate>
                 {% csrf_token %}
 
-                <input type="hidden" id="activity_type" name="activity_type" value="">
+                <input type="hidden" name="activity_type_id" value="{{ request.GET.activity_type_id }}">
 
                 <!-- Row with 3 fields: Activity Name, Activity Type, and Term -->
                 <div class="row mb-4">
@@ -45,7 +45,7 @@
                     </div>
                   </div>
 
-                  {% comment %} <div class="col-md-4">
+                  <!-- <div class="col-md-4">
                     <div class="form-group">
                       <label for="activity_type">
                         Activity Type
@@ -58,7 +58,7 @@
                       </select>
                       <div class="invalid-feedback">Please select an activity type.</div>
                     </div>
-                  </div> {% endcomment %}
+                  </div> -->
 
                   <div class="col-md-4">
                     <div class="form-group">
