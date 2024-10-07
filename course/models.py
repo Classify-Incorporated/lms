@@ -2,6 +2,7 @@ from django.db import models
 from accounts.models import CustomUser
 from subject.models import Subject
 from django.utils import timezone
+from django.conf import settings
 
 class SubjectEnrollment(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.PROTECT)
@@ -73,3 +74,32 @@ class StudentParticipationScore(models.Model):
 
     def __str__(self):
         return f"{self.student.get_full_name()} - {self.subject.subject_name} - {self.term.term_name} - {self.score}/{self.max_score}"
+    
+
+class Attendance(models.Model):
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    subject = models.ForeignKey(Subject, on_delete=models.PROTECT)
+    date = models.DateField(null=True, blank=True)
+    status = models.ForeignKey('AttendanceStatus', on_delete=models.PROTECT, null=True, blank=True) 
+    remark = models.TextField(null=True, blank=True)  # Additional remarks for the attendance (optional)
+
+    def __str__(self):
+        return f"{self.student.get_full_name()} - {self.subject.subject_name} ({self.status})"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['student', 'subject', 'date'], name='unique_attendance_per_day')
+        ]
+
+class AttendanceStatus(models.Model):
+    STATUS_CHOICES = [
+        ('Present', 'Present'),
+        ('Late', 'Late'),
+        ('Absent', 'Absent'),
+        ('Excused', 'Excused'),
+    ]
+    
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, null=True, blank=True)
+
+    def __str__(self):
+        return self.status

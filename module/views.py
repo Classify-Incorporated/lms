@@ -48,6 +48,7 @@ def createModule(request, subject_id):
         term_id  = request.POST.get('term')
         file = request.FILES.get('file')
         url = request.POST.get('url')
+        print(f"URL submitted via form: {url}")
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
 
@@ -95,6 +96,8 @@ def createModule(request, subject_id):
         module = form.save(commit=False)
         module.subject = subject
         module.save()
+
+        print(f"URL saved in database: {module.url}")
             
         form.save_m2m()  # Save many-to-many data for selected users
 
@@ -231,10 +234,14 @@ def viewModule(request, pk):
             context['is_video_url'] = True
         else:
             context['is_url'] = True
+
+
         progress.progress = 100
         progress.save()
     else:
         context['is_unknown'] = True
+
+    print(module.url)
 
     return render(request, 'module/viewModule.html', context)
 
@@ -487,3 +494,4 @@ def update_module_order(request):
         except json.JSONDecodeError:
             return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+

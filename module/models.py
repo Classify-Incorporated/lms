@@ -19,7 +19,7 @@ class Module(models.Model):
     file_name = models.CharField(max_length=100)
     file = models.FileField(upload_to=get_upload_file, null=True, blank=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    url = models.URLField(max_length=200, null=True, blank=True)
+    url = models.URLField(max_length=1500, null=True, blank=True)
     term = models.ForeignKey(Term, on_delete=models.SET_NULL, null=True, blank=True) 
     display_lesson_for_selected_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='modules_visible') 
     allow_download = models.BooleanField(default=False)

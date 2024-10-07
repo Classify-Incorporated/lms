@@ -4,7 +4,7 @@ from .views import (
     enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,endSemester,
     previousSemestersView, createTerm,termList,updateTerm,subjectFinishedActivities, selectParticipation,
     enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, CopyActivitiesView, termActivitiesGraph,
-    displayActivitiesForTerm, delete_semester, deleteTerm
+    displayActivitiesForTerm, delete_semester, deleteTerm, record_attendance, attendanceList, updateAttendace
 )
 
 urlpatterns = [
@@ -42,4 +42,8 @@ urlpatterns = [
     path('subject/<int:subject_id>/copy_activities/', CopyActivitiesView.as_view(), name='copy_activities'),
 
     path('termActivitiesGraph/<int:subject_id>/', termActivitiesGraph, name='termActivitiesGraph'),
+
+    path('attendance/record/<int:subject_id>/', record_attendance, name='record_attendance'),
+    path('attendanceList/<int:subject_id>/', attendanceList, name='attendanceList'),
+    path('updateAttendace/<int:id>/', updateAttendace, name='updateAttendace'),
 ]
