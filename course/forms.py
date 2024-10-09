@@ -2,9 +2,14 @@ from django import forms
 from .models import Semester, Term, Attendance
 from subject.models import Subject
 from accounts.models import CustomUser
+import datetime
+
 class semesterForm(forms.ModelForm):
+    current_year = datetime.date.today().year
+    year_range = range(current_year, current_year + 10) 
+
     school_year = forms.ChoiceField(
-        choices=[(r, r) for r in range(1900, 2100)],
+        choices=[(r, r) for r in year_range],
         widget=forms.Select(attrs={'class': 'form-control'}),
         label='School Year'
     )
@@ -28,11 +33,12 @@ class termForm(forms.ModelForm):
                 'data-live-search': 'true',
                 'data-actions-box': 'true',
                 'data-style': 'btn-outline-secondary',
-                'title': 'Select Semester'
+                'title': 'Select Semester',
+                'required': 'true', 
             }),
-            'term_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'term_name': forms.Select(attrs={'class': 'form-control', 'required': 'true', }),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'required': 'true', }),
+            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'required': 'true', }),
         }
 
     def __init__(self, *args, **kwargs):

@@ -4,7 +4,8 @@ from .views import (
     assist, tools, sign_out, createProfile, admin_login_view,
 
     viewProfile, updateProfile, activateProfile, deactivateProfile, student, staff_list, error,
-    fetch_facebook_posts, studentPerCourse, oauth2_login, oauth2_callback
+    fetch_facebook_posts, studentPerCourse, oauth2_login, oauth2_callback, updateStudentProfile,
+    updateRegistrarProfile
 )
 
 urlpatterns = [
@@ -16,6 +17,8 @@ urlpatterns = [
     path('staff_list/', staff_list, name='staff_list'),
     path('viewProfile/<int:pk>/', viewProfile, name='viewProfile'),
     path('updateProfile/<int:pk>/', updateProfile, name='updateProfile'),
+    path('updateStudentProfile/<int:pk>/', updateStudentProfile, name='updateStudentProfile'),
+    path('updateRegistrarProfile/<int:pk>/', updateRegistrarProfile, name='updateRegistrarProfile'),
     path('activateProfile/<int:pk>/', activateProfile, name='activateProfile'),
     path('deactivateProfile/<int:pk>/', deactivateProfile, name='deactivateProfile'),
     path('studentPerCourse/', studentPerCourse, name='studentPerCourse'),

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout as auth_logout, authenticate, login
-from .forms import CustomLoginForm, profileForm
+from .forms import CustomLoginForm, profileForm, StudentUpdateForm, registrarProfileForm
 from .models import Profile
 from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
@@ -30,6 +30,8 @@ from django.db.models.functions import TruncDate
 from allauth.socialaccount.models import SocialAccount, SocialToken
 from allauth.socialaccount.providers.oauth2.views import OAuth2CallbackView, OAuth2LoginView
 from .adapter import MicrosoftAuth2Adapter
+from django.http import HttpResponseForbidden
+from django.contrib import messages
 
 def admin_login_view(request):
     if request.method == 'POST':
@@ -54,7 +56,9 @@ def admin_login_view(request):
 @permission_required('accounts.view_profile', raise_exception=True)
 def student(request):
     profiles = Profile.objects.filter(role__name__iexact='student')
-    return render(request, 'accounts/student.html', {'profiles': profiles})
+    role = request.user.profile.role.name
+    print(role)
+    return render(request, 'accounts/student.html', {'profiles': profiles, 'role': role})
 
 @login_required
 @permission_required('accounts.view_profile', raise_exception=True)
@@ -102,8 +106,42 @@ def updateProfile(request, pk):
             return redirect('student')
     else:
         form = profileForm(instance=profile)
-    return render(request, 'accounts/updateStudentProfile.html', {'form': form,'profile': profile})
+    return render(request, 'accounts/updateProfile.html', {'form': form,'profile': profile})
 
+@login_required  
+def updateStudentProfile(request, pk):
+    profile = get_object_or_404(Profile, user_id=pk)
+    print(profile)
+
+    if profile.user != request.user:
+        return HttpResponseForbidden("You are not allowed to edit this profile.")
+    
+    if request.method == 'POST':
+        form = StudentUpdateForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('viewProfile', pk=profile.user.id ) 
+    else:
+        form = StudentUpdateForm(instance=profile)
+
+    return render(request, 'accounts/updateStudentProfile.html', {'form': form, 'profile': profile})
+
+@login_required
+def updateRegistrarProfile(request, pk):
+    profile = get_object_or_404(Profile, user_id=pk)
+    
+    if request.method == 'POST':
+        form = registrarProfileForm(request.POST, request.FILES, instance=profile)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('viewProfile', pk=profile.user.id)  
+    else:
+        form = registrarProfileForm(instance=profile)
+
+    return render(request, 'accounts/updateRegistrarProfile.html', {'form': form, 'profile': profile})
 
 @login_required
 @permission_required('accounts.delete_profile', raise_exception=True)

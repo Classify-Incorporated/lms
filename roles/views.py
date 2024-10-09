@@ -17,7 +17,7 @@ def roleList(request):
     form = roleForm()
     roles = Role.objects.all()
     permissions = Permission.objects.filter(content_type__app_label__in=[
-        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles',
+        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles', 'attendance',
     ])
 
     structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
@@ -36,7 +36,7 @@ def viewRole(request, role_id):
     role_obj = get_object_or_404(Role, id=role_id)
     
     permissions = Permission.objects.filter(content_type__app_label__in=[
-        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles',
+        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles', 'attendance'
     ])
 
     structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
@@ -84,7 +84,7 @@ def createRole(request):
         form = roleForm()
 
     permissions = Permission.objects.filter(content_type__app_label__in=[
-        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles',
+        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles', 'attendance'
     ])
     structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
     for perm in permissions:
@@ -121,7 +121,7 @@ def updateRole(request, pk):
         form = roleForm(instance=role_obj)
     
     permissions = Permission.objects.filter(content_type__app_label__in=[
-        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles',
+        'accounts', 'subject', 'course', 'activity', 'module', 'message', 'gradebookcomponent', 'studentgrade', 'roles', 'attendance'
     ])
     structured_permissions = defaultdict(lambda: {'add': None, 'view': None, 'change': None, 'delete': None})
     for perm in permissions:

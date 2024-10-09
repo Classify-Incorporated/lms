@@ -48,8 +48,8 @@
                         {% endif %}
                       </p>
                       <div class="progress mt-3">
-                        <div class="progress-bar" role="progressbar" style="width: {{ subject.student_progress }}%;" aria-valuenow="{{ subject.student_progress }}" aria-valuemin="0" aria-valuemax="100">
-                            {{ subject.student_progress }}%
+                        <div class="progress-bar" role="progressbar" style="width: {{ subject.student_progress|floatformat:2 }}%;" aria-valuenow="{{ subject.student_progress }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ subject.student_progress|floatformat:2 }}%
                         </div>
                       </div>                   
                     </div>

@@ -9,6 +9,12 @@
             <h1 class="m-0">Enrolled Students by Subject</h1>
           </div>
           <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item">
+                <a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item active">Enrolled Students by Subject</li>
+            </ol>
           </div>
         </div>
       </div>
@@ -21,8 +27,8 @@
         <form method="post" action="{% url 'enrollStudentView' %}">
           {% csrf_token %}
 
-           <!-- Course Selection Dropdown (to auto-select students) -->
-           <div class="form-group">
+          <!-- Course Selection Dropdown -->
+          <div class="form-group">
             <label for="course_select" class="text-dark">Select Course to Auto-select Students:</label>
             <select id="course_select" class="form-control selectpicker" title="Select Course" data-style="btn-outline-secondary">
               <option value="">Select a course</option>
@@ -32,7 +38,7 @@
             </select>
           </div>
 
-          <!-- Add the Year Level Dropdown -->
+          <!-- Year Level Dropdown -->
           <div class="form-group">
             <label for="year_level_select" class="text-dark">Select Year Level to Auto-select Students:</label>
             <select id="year_level_select" class="form-control selectpicker" title="Select Year Level" data-style="btn-outline-secondary">
@@ -83,40 +89,44 @@
       </div>
     </section>
   </div>
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const studentSelect = document.getElementById('student_profile');
-    const courseSelect = document.getElementById('course_select');
-    const yearLevelSelect = document.getElementById('year_level_select');
 
-    // The grouped student data from Django template
-    const studentsByCourse = {{ students_by_course|safe }};
+  <!-- Pass the students_by_course data as JSON to the script -->
+  {{ students_by_course|json_script:"students_by_course_json" }}
 
-    // When either course or year level is selected, filter the students
-    function filterStudents() {
-      const selectedCourse = courseSelect.value;
-      const selectedYearLevel = yearLevelSelect.value;
-      
-      // Clear current selections
-      $(studentSelect).val([]).selectpicker('refresh');
-      
-      if (studentsByCourse[selectedCourse]) {
-        const filteredStudents = studentsByCourse[selectedCourse].filter(student => {
-          // If no year level is selected, or the student has the selected year level, include them
-          return selectedYearLevel === '' || student.grade_year_level === selectedYearLevel || student.grade_year_level === null;
-        });
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const studentSelect = document.getElementById('student_profile');
+      const courseSelect = document.getElementById('course_select');
+      const yearLevelSelect = document.getElementById('year_level_select');
+
+      // Load the students_by_course data from the template
+      const studentsByCourse = JSON.parse(document.getElementById('students_by_course_json').textContent);
+
+      // When either course or year level is selected, filter the students
+      function filterStudents() {
+        const selectedCourse = courseSelect.value;
+        const selectedYearLevel = yearLevelSelect.value;
         
-        const studentIds = filteredStudents.map(student => student.id);
+        // Clear current selections
+        $(studentSelect).val([]).selectpicker('refresh');
         
-        // Select all filtered students for the selected course and year level
-        $(studentSelect).val(studentIds).selectpicker('refresh');
+        if (studentsByCourse[selectedCourse]) {
+          const filteredStudents = studentsByCourse[selectedCourse].filter(student => {
+            // If no year level is selected, or the student has the selected year level, include them
+            return selectedYearLevel === '' || student.grade_year_level === selectedYearLevel || student.grade_year_level === null;
+          });
+          
+          const studentIds = filteredStudents.map(student => student.id);
+          
+          // Select all filtered students for the selected course and year level
+          $(studentSelect).val(studentIds).selectpicker('refresh');
+        }
       }
-    }
 
-    // Listen for changes on both the course and year level dropdowns
-    courseSelect.addEventListener('change', filterStudents);
-    yearLevelSelect.addEventListener('change', filterStudents);
-  });
-</script>
+      // Listen for changes on both the course and year level dropdowns
+      courseSelect.addEventListener('change', filterStudents);
+      yearLevelSelect.addEventListener('change', filterStudents);
+    });
+  </script>
 
 {% endblock %}
