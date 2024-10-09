@@ -5,11 +5,18 @@ from django.utils import timezone
 from django.conf import settings
 
 class SubjectEnrollment(models.Model):
+    STATUS_CHOICES = [
+        ('enrolled', 'Enrolled'),
+        ('dropped', 'Dropped'),
+        ('completed', 'Completed'),
+    ]
+
     student = models.ForeignKey(CustomUser, on_delete=models.PROTECT)
     subject = models.ForeignKey(Subject, on_delete=models.PROTECT, null=True, blank=True)
     enrollment_date = models.DateField(auto_now_add=True)
     semester = models.ForeignKey('Semester', on_delete=models.PROTECT, null=True, blank=True)
     can_view_grade = models.BooleanField(default=False)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='enrolled')
 
     class Meta:
         constraints = [
@@ -20,7 +27,7 @@ class SubjectEnrollment(models.Model):
         return f"{self.student} enrolled in {self.subject}"
 
 class Retake(models.Model):
-    subject_enrollment = models.ForeignKey(SubjectEnrollment, on_delete=models.PROTECT, related_name='retakes')
+    subject_enrollment = models.ForeignKey(SubjectEnrollment, on_delete=models.CASCADE, related_name='retakes')
     retake_date = models.DateField(auto_now_add=True)
     reason = models.TextField()
 
@@ -53,7 +60,11 @@ class Semester(models.Model):
     
 
 class Term(models.Model):
-    term_name = models.CharField(max_length=50)
+    TERM_CHOICES = [
+        ('Midterm', 'Midterm'),
+        ('Final Term', 'Final Term'),
+    ]
+    term_name = models.CharField(max_length=50, choices=TERM_CHOICES)
     semester = models.ForeignKey(Semester, on_delete=models.PROTECT, null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)

@@ -39,12 +39,9 @@
                   </div>
                 </div>
                 <!-- Move the button to the right using ml-auto -->
-
-                {% if user.is_staff or user.is_superuser %}
                 <div class="ml-auto">
                   <button class="btn btn-secondary" id="editBtn"><i class="fas fa-edit"></i> Edit</button>
                 </div>
-                {% endif %}
               </div>
             </div>
 
@@ -113,11 +110,11 @@
 
   <script>
       document.getElementById('editBtn').addEventListener('click', function () {
-        openEditModal({{ profile.id }});
+        openEditModal({{ profile.user.id }});
       });
   
       function openEditModal(profileId) {
-        fetch(`/updateProfile/${profileId}/`)  // Fetch the update form
+        fetch(`/updateStudentProfile/${profileId}/`)  // Fetch the update form
           .then(response => response.text())
           .then(html => {
             document.getElementById('editProfileForm').innerHTML = html; // Load the form into the modal

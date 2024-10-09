@@ -96,7 +96,7 @@ class SubGradeBookForm(forms.ModelForm):
 class CopyGradeBookForm(forms.Form):
     subject = forms.ModelMultipleChoiceField(
         queryset=Subject.objects.none(),
-        label="Target Subject(s)",
+        label="Copy to",
         widget=forms.SelectMultiple(attrs={'class': 'form-control selectpicker',
                 'data-live-search': 'true',
                 'data-actions-box': 'true',
@@ -105,7 +105,7 @@ class CopyGradeBookForm(forms.Form):
     )
     copy_from_subject = forms.ModelChoiceField(
         queryset=Subject.objects.none(),
-        label="Copy GradeBook from",
+        label="Copy from",
         widget=forms.Select(attrs={'class': 'form-control selectpicker',
                 'data-live-search': 'true',
                 'data-actions-box': 'true',
