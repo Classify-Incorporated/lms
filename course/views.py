@@ -8,7 +8,7 @@ from activity.models import Activity ,StudentQuestion, ActivityQuestion
 from django.views import View
 from accounts.models import CustomUser
 from django.utils import timezone
-from .forms import semesterForm, termForm, ParticipationForm, AttendanceForm, updateAttendanceForm
+from .forms import *
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django import forms

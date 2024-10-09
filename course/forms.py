@@ -2,6 +2,7 @@ from django import forms
 from .models import Semester, Term, Attendance
 from subject.models import Subject
 from accounts.models import CustomUser
+from activity.models import *
 import datetime
 
 class semesterForm(forms.ModelForm):
