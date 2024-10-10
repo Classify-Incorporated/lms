@@ -88,7 +88,8 @@ class AddActivityView(View):
         )
         
 
-        students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
+        students = CustomUser.objects.filter(subjectenrollment__subject=subject, subjectenrollment__semester=current_semester, subjectenrollment__status='enrolled',profile__role__name__iexact='Student').distinct()
+        print('enrolled students', students)
         modules = Module.objects.filter(subject=subject, term__semester=current_semester, start_date__isnull=False, end_date__isnull=False) 
 
         activity_type_id = request.GET.get('activity_type_id', None)
@@ -157,10 +158,14 @@ class AddActivityView(View):
             remedial=remedial
         )
 
+        # print(f"Activity '{activity_name}' created for Subject: {subject.subject_name}, Term: {term.term_name}")
+
         if remedial and remedial_students_ids:
             # Add the remedial students to the activity (as multiple students can be added)
             remedial_students = CustomUser.objects.filter(id__in=remedial_students_ids)
             activity.remedial_students.set(remedial_students)
+            for student in remedial_students:
+                print(f"Remedial activity assigned to: {student.get_full_name()} (Student ID: {student.id}) - Status: Assigned to remedial activity")
 
         # Assign the activity to all students or specific remedial students
         if remedial and remedial_students_ids:
@@ -169,9 +174,12 @@ class AddActivityView(View):
                 StudentActivity.objects.create(student=student, activity=activity, term=term)
             self.send_email_to_students(remedial_students, activity)
         else:
-            students = CustomUser.objects.filter(subjectenrollment__subject=subject, profile__role__name__iexact='Student').distinct()
+            students = CustomUser.objects.filter(subjectenrollment__subject=subject, subjectenrollment__semester=term.semester, subjectenrollment__status = 'enrolled', profile__role__name__iexact='Student').distinct()
+
+            print(f"Students filtered for activity: {students}")
             for student in students:
                 StudentActivity.objects.create(student=student, activity=activity, term=term)
+                print(f"Activity assigned to: {student.get_full_name()} (Student ID: {student.id}) - Status: Assigned to regular activity")
             self.send_email_to_students(students, activity)
 
         return redirect('add_quiz_type', activity_id=activity.id)

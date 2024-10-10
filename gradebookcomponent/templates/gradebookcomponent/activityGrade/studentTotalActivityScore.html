@@ -54,6 +54,9 @@
                     <tr id="term-headers">
                         <th>Subject</th>
                         <th>Student Name</th>
+                        <!-- Add the dynamically generated headers here for each term -->
+                        <!-- Status Column -->
+                        <th>Status</th>
                         <th>Total Term Weighted Score</th>
                         {% if is_teacher %}
                             <th>
@@ -94,7 +97,7 @@
                 scoresTableBody.empty();
     
                 // Clear existing dynamic headers before adding new ones
-                termHeaders.find('th').not(':first, :nth-child(2), :last').remove();
+                termHeaders.find('th').not(':first, :nth-child(2), :nth-child(3),  :last').remove();
                 
                 
                 
@@ -118,6 +121,7 @@
     
                             const subjectId = subjectData[0].subject_id;
                             const studentName = subjectData[0].student_name;
+                            const studentStatus = subjectData[0].enrollment_status;
     
                             const studentRow = $('<tr>');
                             studentRow.append(`<td><a href="/studentTotalScore/${studentId}/${subjectId}/?semester=${semesterId}">${subjectName}</a></td>`);
@@ -132,10 +136,18 @@
                             subjectData.forEach(function(term) {
                                 termScores[term.term_name] = `${parseFloat(term.percentage).toFixed(2)}`;
                             });
+
+                            studentRow.append(`<td>
+                                <span class="badge ${studentStatus === 'dropped' ? 'badge-danger' : 'badge-success'}">
+                                    ${studentStatus.charAt(0).toUpperCase() + studentStatus.slice(1)}  <!-- Capitalizes first letter -->
+                                </span>
+                            </td>`);
     
                             terms.forEach(term => {
                                 studentRow.append(`<td>${termScores[term]}</td>`);
                             });
+
+                           
     
                             // Add the total weighted grade
                             if (data.student_total_weighted_grade && data.student_total_weighted_grade[studentId] && data.student_total_weighted_grade[studentId][subjectName]) {
