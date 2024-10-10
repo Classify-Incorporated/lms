@@ -101,7 +101,7 @@
                       <a href="{% url 'edit_question' activity.id forloop.counter0 %}" class="btn btn-sm btn-warning me-2"><i class="fas fa-edit"></i></a>
                       <form action="{% url 'delete_temp_question' activity.id forloop.counter0 %}" method="post" style="display:inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-danger ms-2" onclick="return confirm('Are you sure you want to delete this question?');"><i class="fas fa-trash"></i></button>
+                        <a href="javascript:void(0);" onclick="confirmDeleteQuestion('{{ activity.id }}', '{{ forloop.counter0 }}');" class="btn btn-sm btn-danger ms-2"><i class="fas fa-trash"></i></a>
                       </form>
                     </td>
                   </tr>
@@ -122,9 +122,9 @@
 
         <!-- Save All Questions Form -->
         <div class="d-flex justify-content-end mt-4">
-          <form method="post" action="{% url 'save_all_questions' activity.id %}">
+          <form id="saveAllQuestionsForm" method="post" action="{% url 'save_all_questions' activity.id %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-success me-2" onclick="return confirm('Are you sure you want to save all questions?')">Save All Questions</button>
+            <button type="submit" class="btn btn-success me-2" id="saveAllQuestionsBtn">Save All Questions</button>
             <a href="{% url 'SubjectList' %}" class="btn btn-secondary">Back</a>
           </form>
         </div>
@@ -155,30 +155,30 @@
     
         if (quizTypeName !== 'Participation') {
           quizTypeFields.append(`
-                                                                                                                                                                                                                                <div class="form-group">
-                                                                                                                                                                                                                                  <label for="question_text">Question:</label>
-                                                                                                                                                                                                                                  <textarea id="question_text" name="question_text" class="form-control" required></textarea>
-                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                <div class="form-group">
-                                                                                                                                                                                                                                  <label for="score">Equivalent Points:</label>
-                                                                                                                                                                                                                                  <input type="number" id="score" name="score" class="form-control" required>
-                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                              `)
+                                                                                                                                                                                                                                                                                            <div class="form-group">
+                                                                                                                                                                                                                                                                                              <label for="question_text">Question:</label>
+                                                                                                                                                                                                                                                                                              <textarea id="question_text" name="question_text" class="form-control" required></textarea>
+                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                            <div class="form-group">
+                                                                                                                                                                                                                                                                                              <label for="score">Equivalent Points:</label>
+                                                                                                                                                                                                                                                                                              <input type="number" id="score" name="score" class="form-control" required>
+                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                          `)
         }
     
         if (quizTypeName === 'Multiple Choice') {
           quizTypeFields.append(`
-                                                                                                                                                                                                                                <div id="choices">
-                                                                                                                                                                                                                                  <div class="form-group">
-                                                                                                                                                                                                                                    <label>Choices:</label>
-                                                                                                                                                                                                                                    <div class="input-group mb-3">
-                                                                                                                                                                                                                                      <input type="radio" name="correct_answer" value="0" required>
-                                                                                                                                                                                                                                      <input type="text" name="choices" class="form-control ml-2" placeholder="Choice 1" required>
-                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                  </div>
-                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                <button type="button" class="btn btn-secondary mb-2" onclick="addChoice()">Add Choice</button>
-                                                                                                                                                                                                                              `)
+                                                                                                                                                                                                                                                                                            <div id="choices">
+                                                                                                                                                                                                                                                                                              <div class="form-group">
+                                                                                                                                                                                                                                                                                                <label>Choices:</label>
+                                                                                                                                                                                                                                                                                                <div class="input-group mb-3">
+                                                                                                                                                                                                                                                                                                  <input type="radio" name="correct_answer" value="0" required>
+                                                                                                                                                                                                                                                                                                  <input type="text" name="choices" class="form-control ml-2" placeholder="Choice 1" required>
+                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                              </div>
+                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                            <button type="button" class="btn btn-secondary mb-2" onclick="addChoice()">Add Choice</button>
+                                                                                                                                                                                                                                                                                          `)
           document.getElementById('csv-file-upload').style.display = 'block'
         } else {
           document.getElementById('csv-file-upload').style.display = 'none'
@@ -186,29 +186,29 @@
     
         if (quizTypeName === 'True/False') {
           quizTypeFields.append(`
-                                                                                                                                                                                                                                <div class="form-group">
-                                                                                                                                                                                                                                  <label for="correct_answer">Correct Answer:</label>
-                                                                                                                                                                                                                                  <select id="correct_answer" name="correct_answer" class="form-control" required>
-                                                                                                                                                                                                                                    <option value="True">True</option>
-                                                                                                                                                                                                                                    <option value="False">False</option>
-                                                                                                                                                                                                                                  </select>
-                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                              `)
+                                                                                                                                                                                                                                                                                            <div class="form-group">
+                                                                                                                                                                                                                                                                                              <label for="correct_answer">Correct Answer:</label>
+                                                                                                                                                                                                                                                                                              <select id="correct_answer" name="correct_answer" class="form-control" required>
+                                                                                                                                                                                                                                                                                                <option value="True">True</option>
+                                                                                                                                                                                                                                                                                                <option value="False">False</option>
+                                                                                                                                                                                                                                                                                              </select>
+                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                          `)
         }
     
         if (quizTypeName === 'Matching') {
           quizTypeFields.append(`
-                                                                                                                                                                                                                                <div id="matching_pairs">
-                                                                                                                                                                                                                                  <div class="form-group">
-                                                                                                                                                                                                                                    <label for="matching_pair">Matching Pairs:</label>
-                                                                                                                                                                                                                                    <div class="input-group mb-3">
-                                                                                                                                                                                                                                      <input type="text" name="matching_left" class="form-control" placeholder="Left side" required>
-                                                                                                                                                                                                                                      <input type="text" name="matching_right" class="form-control" placeholder="Right side" required>
-                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                  </div>
-                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                <button type="button" class="btn btn-secondary mb-2" onclick="addMatchingPair()">Add Pair</button>
-                                                                                                                                                                                                                              `)
+                                                                                                                                                                                                                                                                                            <div id="matching_pairs">
+                                                                                                                                                                                                                                                                                              <div class="form-group">
+                                                                                                                                                                                                                                                                                                <label for="matching_pair">Matching Pairs:</label>
+                                                                                                                                                                                                                                                                                                <div class="input-group mb-3">
+                                                                                                                                                                                                                                                                                                  <input type="text" name="matching_left" class="form-control" placeholder="Left side" required>
+                                                                                                                                                                                                                                                                                                  <input type="text" name="matching_right" class="form-control" placeholder="Right side" required>
+                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                              </div>
+                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                            <button type="button" class="btn btn-secondary mb-2" onclick="addMatchingPair()">Add Pair</button>
+                                                                                                                                                                                                                                                                                          `)
         }
       })
     
@@ -259,6 +259,78 @@
     
         document.getElementById('matching_pairs').appendChild(pairContainer)
       }
+    })
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    function confirmDeleteQuestion(activityId, questionIndex) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Submit the form to delete the question
+          fetch(`{% url 'delete_temp_question' 0 0 %}`.replace('0', activityId).replace('0', questionIndex), {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}'
+            }
+          }).then((response) => {
+            if (response.ok) {
+              Swal.fire({
+                title: 'Deleted!',
+                text: 'Your question has been deleted.',
+                icon: 'success'
+              }).then(() => {
+                // Optionally reload the page or remove the deleted row
+                window.location.reload() // You can also remove the deleted question row dynamically instead of reloading
+              })
+            } else {
+              Swal.fire({
+                title: 'Error',
+                text: 'There was a problem deleting the question.',
+                icon: 'error'
+              })
+            }
+          })
+        }
+      })
+    }
+  </script>
+  <script>
+    document.getElementById('saveAllQuestionsForm').addEventListener('submit', function (event) {
+      event.preventDefault() // Prevent the form from submitting immediately
+    
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to save all the questions?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, save them!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Show a success message
+          Swal.fire({
+            title: 'Saved!',
+            text: 'All questions have been saved.',
+            icon: 'success',
+            timer: 2000, // Delay of 2 seconds before form submission
+            timerProgressBar: true,
+            didClose: () => {
+              // Manually submit the form after SweetAlert2 is closed
+              document.getElementById('saveAllQuestionsForm').submit()
+            }
+          })
+        }
+      })
     })
   </script>
 {% endblock %}
