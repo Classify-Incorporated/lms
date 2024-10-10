@@ -6,7 +6,7 @@ from activity.models import *
 
 class semesterForm(forms.ModelForm):
     school_year = forms.ChoiceField(
-        choices=[(r, r) for r in range(1900, 2100)],
+        choices=[(r, r) for r in range(2000, 2100)],
         widget=forms.Select(attrs={'class': 'form-control'}),
         label='School Year'
     )
