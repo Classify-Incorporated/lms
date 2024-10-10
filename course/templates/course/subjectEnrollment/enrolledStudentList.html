@@ -75,6 +75,7 @@
                           <th scope="col">Student Name</th>
                           <th scope="col">Semester</th>
                           <th scope="col">Enrollment Date</th>
+                          <th scope="col">Enrollment Status</th>
                           {% if user.profile.role.name.lower != 'student' %}
                             <th scope="col">Actions</th>
                           {% endif %}
@@ -87,12 +88,17 @@
                             <td>{{ enrollment.student.get_full_name }}</td>
                             <td>{{ enrollment.semester.semester_name }} - {{ enrollment.semester.school_year }}</td>
                             <td>{{ enrollment.enrollment_date }}</td>
+                            <td>{{ enrollment.status }}</td>
                             {% if user.profile.role.name.lower != 'student' %}
                               <td>
                                 <a href="{% url 'dropStudentFromSubject' enrollment.id %}" class="btn btn-primary btn-sm"
                                   onclick="return confirm('Are you sure you want to drop {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">
                                   Drop
                                 </a>
+                                <a href="{% url 'deleteStudentFromSubject' enrollment.id %}" class="btn btn-primary btn-sm"
+                                onclick="return confirm('Are you sure you want to remove {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">
+                                Remove
+                              </a>
                               </td>
                             {% endif %}
                           </tr>

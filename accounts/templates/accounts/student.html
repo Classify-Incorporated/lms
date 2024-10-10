@@ -64,6 +64,8 @@
           </div>
         </div>
 
+        
+
         <!-- Add User Modal (included from an external template) -->
         {% include 'accounts/createStudentProfile.html' %}
 
@@ -100,16 +102,26 @@
     
     // Function to open the edit modal and load the content dynamically
     function openEditModal(profileId) {
-      fetch(`/updateProfile/${profileId}/`)
+      const userRole = "{{ role|lower }}";
+
+      let fetchUrl;
+
+      if (userRole === 'admin') {
+        fetchUrl = `/updateProfile/${profileId}/`;
+      } else if (userRole === 'registrar') {
+        fetchUrl = `/updateRegistrarProfile/${profileId}/`;
+      }
+
+      fetch(fetchUrl)
         .then((response) => response.text())
         .then((html) => {
-          document.getElementById('editModalBody').innerHTML = html
-          document.getElementById('editModal').classList.add('show')
-          document.getElementById('editModalBackdrop').classList.add('show')
-    
+          document.getElementById('editModalBody').innerHTML = html;
+          document.getElementById('editModal').classList.add('show');
+          document.getElementById('editModalBackdrop').classList.add('show');
+
           // Initialize or refresh selectpicker after loading the modal content
-          $('.selectpicker').selectpicker('refresh')
-        })
+          $('.selectpicker').selectpicker('refresh');
+        });
     }
     
     // Script to close the edit modal

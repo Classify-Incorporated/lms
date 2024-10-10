@@ -40,6 +40,7 @@ class enrollStudentView(View):
 
         semester = get_object_or_404(Semester, id=semester_id)
         duplicate_enrollments = []
+        retakes = []
 
         # Loop through selected students and enroll them in the subjects
         for student_profile_id in student_profile_ids:
@@ -48,6 +49,7 @@ class enrollStudentView(View):
             subjects = Subject.objects.filter(id__in=subject_ids)
 
             for subject in subjects:
+                # Check if the student is already enrolled in the same subject for the same semester
                 subject_enrollment, created = SubjectEnrollment.objects.get_or_create(
                     student=student,
                     subject=subject,
@@ -55,20 +57,38 @@ class enrollStudentView(View):
                 )
 
                 if not created:
-                    # If the enrollment already exists, add a validation message
-                    duplicate_enrollments.append(f"{student.get_full_name()} is already enrolled in {subject.subject_name} for {semester.semester_name}.")
-                else:
-                    # If it's a retake, create a retake record
-                    Retake.objects.create(subject_enrollment=subject_enrollment, reason="Retake due to failure or other reason")
+                    # If the enrollment already exists in the same semester, add a duplicate message
+                    duplicate_message = f"{student.get_full_name()} is already enrolled in {subject.subject_name} for {semester.semester_name}."
+                    duplicate_enrollments.append(duplicate_message)
 
-        # Add success message
+                    # Print the duplicate message in the console
+                    print(duplicate_message)
+                else:
+                    # Check if the student has been enrolled in the same subject in a previous semester (for a retake)
+                    previous_enrollment = SubjectEnrollment.objects.filter(
+                        student=student,
+                        subject=subject
+                    ).exclude(semester=semester).exists()
+
+                    if previous_enrollment:
+                        # If it's a retake (enrolled in the same subject in a different semester)
+                        retake_message = f"{student.get_full_name()} is retaking {subject.subject_name} for {semester.semester_name}."
+                        Retake.objects.create(subject_enrollment=subject_enrollment, reason="Retake due to failure or other reason")
+                        retakes.append(retake_message)
+
+                        # Print the retake message in the console
+                        print(retake_message)
+
+        # Add success message if no duplicates
         if not duplicate_enrollments:
             messages.success(request, 'Students enrolled successfully!')
         else:
             # If there were duplicate enrollments, show an appropriate message
-            messages.warning(request, 'Some students were already enrolled in the selected subjects.')
+            duplicate_students = ', '.join([message.split()[0] for message in duplicate_enrollments])
+            messages.warning(request, f'The following students',{duplicate_students},' were already enrolled in the subjects: ')
 
         return redirect('subjectEnrollmentList')
+
 
 # Enrollled Student
 @login_required
@@ -92,7 +112,9 @@ def enrollStudent(request):
             'grade_year_level': profile.grade_year_level
         })
 
+    # Get distinct year levels
     year_levels = profiles.values_list('grade_year_level', flat=True).distinct().exclude(grade_year_level__isnull=True)
+    
     return render(request, 'course/subjectEnrollment/enrollStudent.html', {
         'profiles': profiles,
         'subjects': subjects,
@@ -158,8 +180,17 @@ def subjectEnrollmentList(request):
 @permission_required('course.delete_subjectenrollment', raise_exception=True)
 def dropStudentFromSubject(request, enrollment_id):
     enrollment = get_object_or_404(SubjectEnrollment, id=enrollment_id)
-    enrollment.delete()
+    enrollment.status = 'dropped'
+    enrollment.save()
     messages.success(request, f"{enrollment.student.get_full_name()} has been dropped from {enrollment.subject.subject_name}.")
+    return redirect('subjectEnrollmentList')
+
+@login_required
+@permission_required('course.delete_subjectenrollment', raise_exception=True)
+def deleteStudentFromSubject(request, enrollment_id):
+    enrollment = get_object_or_404(SubjectEnrollment, id=enrollment_id)
+    enrollment.delete()
+    messages.success(request, f"{enrollment.student.get_full_name()} has been delete from {enrollment.subject.subject_name}.")
     return redirect('subjectEnrollmentList')
 
 
@@ -588,28 +619,25 @@ def semesterList(request):
 @login_required
 @permission_required('course.add_semester', raise_exception=True)
 def createSemester(request):
-    # Fetch all unavailable date ranges (start and end dates) for frontend validation
     unavailable_dates = Semester.objects.values_list('start_date', 'end_date')
     unavailable_dates_formatted = [
         (DateFormat(start).format('Y-m-d'), DateFormat(end).format('Y-m-d')) 
         for start, end in unavailable_dates
     ]
 
-    errors = []  # Initialize an empty list to store error messages
+    errors = [] 
 
     if request.method == 'POST':
         form = semesterForm(request.POST)
 
-        # Extract start_date and end_date directly from POST data
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         school_year = request.POST.get('school_year')
+        semester_name = request.POST.get('semester_name')
 
-        # Check if start_date or end_date is missing
         if not start_date or not end_date:
             errors.append("Both start and end dates are required.")
         else:
-            # Convert the date strings to proper date objects for comparison
             try:
                 start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
                 end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
@@ -617,7 +645,6 @@ def createSemester(request):
                 errors.append("Invalid date format. Please enter dates in 'YYYY-MM-DD' format.")
 
             if start_date and end_date:
-                # Check if the start date is after or equal to the end date
                 if start_date >= end_date:
                     errors.append("End date must be after the start date.")
 
@@ -627,19 +654,25 @@ def createSemester(request):
                 if int(school_year) != start_year or int(school_year) != end_year:
                     errors.append(f"The selected year {school_year} must match the start and end dates year.")
 
-                # Check for overlapping semesters within the same school year
                 overlapping_semesters = Semester.objects.filter(
                     school_year=school_year
                 ).filter(
-                    # Check if the new semester's start date falls within an existing semester
-                    start_date__lte=end_date,  # The existing semester starts before or on the new semester's end date
-                    end_date__gte=start_date   # The existing semester ends after or on the new semester's start date
+                    start_date__lte=end_date,  
+                    end_date__gte=start_date   
                 )
 
                 if overlapping_semesters.exists():
                     errors.append("The selected dates overlap with an existing semester.")
 
-        # If no custom validation errors, proceed with form validation
+        if not errors:
+            existing_semester = Semester.objects.filter(
+                school_year=school_year,
+                semester_name=semester_name 
+            ).exists()
+
+            if existing_semester:
+                errors.append(f"A semester with the name '{semester_name}' already exists for the year {school_year}.")
+
         if not errors and form.is_valid():
             form.save()
             messages.success(request, 'Semester created successfully!')
@@ -651,8 +684,7 @@ def createSemester(request):
             else:
                 messages.error(request, 'There was an error creating the semester. Please try again.')
 
-            return redirect('semesterList')  # Single redirect after all error handling
-
+            return redirect('semesterList')  
     else:
         form = semesterForm()
 
@@ -684,6 +716,7 @@ def updateSemester(request, pk):
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         school_year = request.POST.get('school_year')
+        semester_name = request.POST.get('semester_name')
 
         # Check if start_date or end_date is missing
         if not start_date or not end_date:
@@ -717,6 +750,17 @@ def updateSemester(request, pk):
 
                 if overlapping_semesters.exists():
                     errors.append("The selected dates overlap with an existing semester.")
+
+        # Check if semester_name already exists in the same school_year
+        if not errors:
+            existing_semester = Semester.objects.filter(
+                school_year=school_year,
+                semester_name=semester_name 
+            ).exists()
+
+            if existing_semester:
+                errors.append(f"A semester with the name '{semester_name}' already exists for the year {school_year}.")
+
 
         # If no custom validation errors, proceed with form validation
         if not errors and form.is_valid():
@@ -768,38 +812,37 @@ def previousSemestersView(request):
     user = request.user
     profile = get_object_or_404(Profile, user=user)
 
-    # Get only finished semesters
+    # Get only finished semesters, ordered by most recent end_date
     current_date = timezone.localtime(timezone.now()).date()
     finished_semesters = Semester.objects.filter(end_date__lt=current_date).order_by('-end_date')
 
     selected_semester_id = request.GET.get('semester', None)
 
+    # Only fetch subjects if a semester has been selected
     if selected_semester_id:
         selected_semester = get_object_or_404(Semester, id=selected_semester_id)
+        
+        if profile.role.name.lower() == 'student':
+            subjects = Subject.objects.filter(
+                subjectenrollment__student=user,
+                subjectenrollment__semester=selected_semester
+            ).distinct()
+        elif profile.role.name.lower() == 'teacher':
+            subjects = Subject.objects.filter(
+                assign_teacher=user,
+                subjectenrollment__semester=selected_semester
+            ).distinct()
+        else:
+            subjects = Subject.objects.filter(
+                subjectenrollment__semester=selected_semester
+            ).distinct()
     else:
-        selected_semester = finished_semesters.first() 
-
-    if profile.role.name.lower() == 'student':
-        subjects = Subject.objects.filter(
-            subjectenrollment__student=user,
-            subjectenrollment__semester=selected_semester
-        ).distinct()
-    elif profile.role.name.lower() == 'teacher':
-        subjects = Subject.objects.filter(
-            assign_teacher=user,
-            subjectenrollment__semester=selected_semester
-        ).distinct()
-    else:
-        subjects = Subject.objects.filter(
-            subjectenrollment__semester=selected_semester
-        ).distinct()
-
-    if not selected_semester:
-        subjects = Subject.objects.none()
+        selected_semester = None
+        subjects = Subject.objects.none()  # No subjects if no semester is selected
 
     return render(request, 'course/archivedSemester.html', {
         'subjects': subjects,
-        'semesters': finished_semesters,  # Only show finished semesters
+        'semesters': finished_semesters,  # Only show finished semesters in the dropdown
         'selected_semester_id': selected_semester_id,
         'selected_semester': selected_semester,
     })
@@ -1007,6 +1050,7 @@ class CopyActivitiesView(View):
 
 
 @login_required
+@permission_required('course.add_attendance', raise_exception=True)
 def record_attendance(request, subject_id):
     current_date = timezone.now().date()
     current_semester = Semester.objects.filter(
@@ -1081,6 +1125,7 @@ def record_attendance(request, subject_id):
 
 
 @login_required
+@permission_required('course.view_attendance', raise_exception=True)
 def attendanceList(request, subject_id):
     current_date = timezone.now().date()
 
@@ -1104,6 +1149,7 @@ def attendanceList(request, subject_id):
     })
 
 @login_required
+@permission_required('course.change_attendance', raise_exception=True)
 def updateAttendace(request, id):
     attendance = get_object_or_404(Attendance, id=id)
     form = updateAttendanceForm(instance=attendance)

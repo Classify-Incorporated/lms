@@ -3,7 +3,7 @@ from .views import (
 
     enrollStudent, subjectDetail, subjectStudentList, subjectList,createSemester,updateSemester,semesterList,endSemester,
     previousSemestersView, createTerm,termList,updateTerm,subjectFinishedActivities, selectParticipation,
-    enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, CopyActivitiesView, termActivitiesGraph,
+    enrollStudentView, subjectEnrollmentList, dropStudentFromSubject, deleteStudentFromSubject, CopyActivitiesView, termActivitiesGraph,
     displayActivitiesForTerm, delete_semester, deleteTerm, record_attendance, attendanceList, updateAttendace
 )
 
@@ -12,6 +12,7 @@ urlpatterns = [
     path('enrollStudent/', enrollStudent, name='enrollStudent'),
     path('enrollStudentView/', enrollStudentView.as_view(), name='enrollStudentView'),
     path('dropStudentFromSubject/<int:enrollment_id>/', dropStudentFromSubject, name='dropStudentFromSubject'),
+    path('deleteStudentFromSubject/<int:enrollment_id>/', deleteStudentFromSubject, name='deleteStudentFromSubject'),
     path('subjectEnrollmentList/', subjectEnrollmentList, name='subjectEnrollmentList'),
 
     path('SubjectList/', subjectList, name='SubjectList'),
