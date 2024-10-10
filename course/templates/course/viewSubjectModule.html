@@ -132,7 +132,7 @@
                           <a href="{% url 'viewModule' module.id %}" class="btn btn-primary btn-sm">View</a>
                           {% if is_teacher %}
                             <a href="{% url 'updateModule' module.id %}" class="btn btn-secondary btn-sm ml-2">Update</a>
-                            <a href="javascript:void(0);" onclick="if(confirm('Are you sure?')) window.location.href='{% url 'deleteModule' module.id %}';" class="btn btn-danger btn-sm ml-2">Delete</a>
+                            <a href="javascript:void(0);" onclick="confirmDeleteLesson('{{ module.id }}');" class="btn btn-danger btn-sm ml-2">Delete</a>
                           {% endif %}
                           {% if module.allow_download %}
                             <a href="{% url 'download' module.id %}" class="btn btn-info btn-sm ml-2">Download</a>
@@ -178,26 +178,20 @@
                 <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Assignment', {{ subject.id }}, {{ assignment_activity_type_id }})"><i class="fas fa-check-square text-primary"></i> Assignment</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app" onclick="openAttendanceModal('{{ subject.id }}')">
-                  <i class="fas fa-user-check text-success"></i> Attendance
-                </a>
-              </div>              
+                <a href="#" class="btn btn-app" onclick="openAttendanceModal('{{ subject.id }}')"><i class="fas fa-user-check text-success"></i> Attendance</a>
+              </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
                 <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Participation', {{ subject.id }}, {{ participation_activity_type_id }})"><i class="fas fa-users text-secondary"></i> Participation</a>
               </div>
-             
+
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app" onclick="openModuleModal({{ subject.id }}, 'lesson')">
-                  <i class="fas fa-book text-warning"></i> Lesson
-                </a>
+                <a href="#" class="btn btn-app" onclick="openModuleModal({{ subject.id }}, 'lesson')"><i class="fas fa-book text-warning"></i> Lesson</a>
               </div>
             </div>
 
             <div class="row justify-content-center">
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app" data-toggle="modal" data-target="#teamsSignInModal">
-                  <i class="fab fa-microsoft text-primary"></i> MS Teams Meeting
-                </a>
+                <a href="#" class="btn btn-app" data-toggle="modal" data-target="#teamsSignInModal"><i class="fab fa-microsoft text-primary"></i> MS Teams Meeting</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
                 <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Quiz', {{ subject.id }}, {{ quiz_activity_type_id }})"><i class="fas fa-question-circle text-danger"></i> Quiz</a>
@@ -206,9 +200,7 @@
                 <a href="#" class="btn btn-app" onclick="selectActivityTypeAndRedirect('Exam', {{ subject.id }}, {{ exam_activity_type_id }})"><i class="fas fa-file-alt text-secondary"></i> Exam</a>
               </div>
               <div class="col-md-3 mb-3 d-flex justify-content-center">
-                <a href="#" class="btn btn-app" onclick="openModuleModal({{ subject.id }}, 'url')">
-                  <i class="fas fa-link text-purple"></i> URL
-                </a>
+                <a href="#" class="btn btn-app" onclick="openModuleModal({{ subject.id }}, 'url')"><i class="fas fa-link text-purple"></i> URL</a>
               </div>
             </div>
           </div>
@@ -264,20 +256,16 @@
       <div class="modal-content card-style-modal">
         <div class="modal-header">
           <h5 class="modal-title" id="teamsSignInModalLabel">Sign in to Microsoft Teams</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         </div>
         <div class="modal-body text-center">
           <p>To start your Microsoft Teams meeting, sign in using your school account.</p>
-          <a href="https://teams.microsoft.com" target="_blank" class="btn btn-primary">
-            Sign in to Microsoft Teams
-          </a>
+          <a href="https://teams.microsoft.com" target="_blank" class="btn btn-primary">Sign in to Microsoft Teams</a>
         </div>
       </div>
     </div>
   </div>
-  
+
   <!-- Button to Trigger the Modal (looks like a card) -->
   <a href="#" class="btn btn-app" data-toggle="modal" data-target="#teamsSignInModal">
     <div class="card">
@@ -290,57 +278,55 @@
   </a>
 
   <!-- Attendance Modal -->
-<div id="attendanceModal" class="custom-modal">
-  <div class="custom-modal-header d-flex justify-content-between">
+  <div id="attendanceModal" class="custom-modal">
+    <div class="custom-modal-header d-flex justify-content-between">
       <h5 class="text-dark">Record Attendance</h5>
       <button class="close-btn" id="closeAttendanceModalBtn"></button>
+    </div>
+    <div class="custom-modal-body" id="attendanceModalBody"></div>
   </div>
-  <div class="custom-modal-body" id="attendanceModalBody"></div>
-</div>
-<div id="attendanceModalBackdrop" class="custom-modal-backdrop"></div>
-
+  <div id="attendanceModalBackdrop" class="custom-modal-backdrop"></div>
 
   <script>
     function selectActivityTypeAndRedirect(activityTypeName, subjectId, activityTypeId) {
       if (activityTypeId) {
-          const url = `/subject/${subjectId}/add_activity/?activity_type_id=${activityTypeId}`;
-          window.location.href = url;
+        const url = `/subject/${subjectId}/add_activity/?activity_type_id=${activityTypeId}`
+        window.location.href = url
       } else {
-          console.error('Activity Type ID is undefined');
-          alert('Activity Type is not defined for ' + activityTypeName);
+        console.error('Activity Type ID is undefined')
+        alert('Activity Type is not defined for ' + activityTypeName)
       }
-  }
-
-
-  function openModuleModal(subjectId, type) {
-    $('#addActivityLessonModal').modal('hide');
-  
-    fetch(`/createModule/${subjectId}/`)
-      .then((response) => response.text())
-      .then((html) => {
-        document.getElementById('moduleModalBody').innerHTML = html
-        document.getElementById('moduleModal').classList.add('show')
-        document.getElementById('moduleModalBackdrop').classList.add('show')
-  
-        // Conditionally display either the file input or the URL input
-        if (type === 'lesson') {
-          document.getElementById('fileInputDiv').style.display = 'block'; // Show file input
-          document.getElementById('urlInputDiv').style.display = 'none';   // Hide URL input
-          document.querySelector('.form-check').style.display = 'none';
-        } else if (type === 'url') {
-          document.getElementById('fileInputDiv').style.display = 'none';  // Hide file input
-          document.getElementById('urlInputDiv').style.display = 'block';  // Show URL input
-          document.querySelector('.form-check').style.display = 'none';
-        }
-  
-        // Initialize or refresh selectpicker after loading the modal content
-        $('.selectpicker').selectpicker('refresh');
-  
-        // Add file validation if necessary
-        initializeFileValidation();
-      })
-      .catch((error) => console.error('Error fetching module content:', error));
-  }
+    }
+    
+    function openModuleModal(subjectId, type) {
+      $('#addActivityLessonModal').modal('hide')
+    
+      fetch(`/createModule/${subjectId}/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('moduleModalBody').innerHTML = html
+          document.getElementById('moduleModal').classList.add('show')
+          document.getElementById('moduleModalBackdrop').classList.add('show')
+    
+          // Conditionally display either the file input or the URL input
+          if (type === 'lesson') {
+            document.getElementById('fileInputDiv').style.display = 'block' // Show file input
+            document.getElementById('urlInputDiv').style.display = 'none' // Hide URL input
+            document.querySelector('.form-check').style.display = 'none'
+          } else if (type === 'url') {
+            document.getElementById('fileInputDiv').style.display = 'none' // Hide file input
+            document.getElementById('urlInputDiv').style.display = 'block' // Show URL input
+            document.querySelector('.form-check').style.display = 'none'
+          }
+    
+          // Initialize or refresh selectpicker after loading the modal content
+          $('.selectpicker').selectpicker('refresh')
+    
+          // Add file validation if necessary
+          initializeFileValidation()
+        })
+        .catch((error) => console.error('Error fetching module content:', error))
+    }
     
     document.getElementById('closeParticipationModalBtn').addEventListener('click', function () {
       document.getElementById('participationModal').classList.remove('show')
@@ -385,28 +371,26 @@
       document.getElementById('copyLessonModal').classList.remove('show')
       document.getElementById('copyLessonModalBackdrop').classList.remove('show')
     })
-
     
     // Open Attendance Modal
-      function openAttendanceModal(subjectId) {
-        $('#addActivityLessonModal').modal('hide');
-        
-        fetch(`/attendance/record/${subjectId}/`)
-          .then((response) => response.text())
-          .then((html) => {
-            document.getElementById('attendanceModalBody').innerHTML = html
-            document.getElementById('attendanceModal').classList.add('show')
-            document.getElementById('attendanceModalBackdrop').classList.add('show')
-          })
-          .catch((error) => console.error('Error loading attendance modal:', error))
-      }
-
-      // Close Attendance Modal
-      document.getElementById('closeAttendanceModalBtn').addEventListener('click', function () {
-        document.getElementById('attendanceModal').classList.remove('show')
-        document.getElementById('attendanceModalBackdrop').classList.remove('show')
-      })
-
+    function openAttendanceModal(subjectId) {
+      $('#addActivityLessonModal').modal('hide')
+    
+      fetch(`/attendance/record/${subjectId}/`)
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById('attendanceModalBody').innerHTML = html
+          document.getElementById('attendanceModal').classList.add('show')
+          document.getElementById('attendanceModalBackdrop').classList.add('show')
+        })
+        .catch((error) => console.error('Error loading attendance modal:', error))
+    }
+    
+    // Close Attendance Modal
+    document.getElementById('closeAttendanceModalBtn').addEventListener('click', function () {
+      document.getElementById('attendanceModal').classList.remove('show')
+      document.getElementById('attendanceModalBackdrop').classList.remove('show')
+    })
     
     // Function to initialize lesson checkboxes
     function initializeLessonCheckboxes(subjectId) {
@@ -449,10 +433,29 @@
         })
       })
     }
-
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    function confirmDeleteLesson(moduleId) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'This lesson will be deleted and cannot be recovered!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Redirect to the delete URL
+          window.location.href = `/deleteModule/${moduleId}/`
+        }
+      })
+    }
+  </script>
 
   <script>
     const createPieChart = (chartId, labels, data, links, noDataId) => {
@@ -832,7 +835,6 @@ function initializeFileValidation() {
       
 }
   </script>
-
 
   <!-- Custom styles for lesson items -->
   <style>

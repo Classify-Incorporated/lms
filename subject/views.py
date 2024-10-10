@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import permission_required
 from datetime import date
 from course.models import Semester, SubjectEnrollment
 from datetime import datetime
+from django.db.models.deletion import ProtectedError
 # Create your views here.
 
 #Subject List
@@ -188,14 +189,24 @@ def updateSubject(request, pk):
     return render(request, 'subject/updateSubject.html', {'form': form, 'subject': subject})
 
 
-#Delete Subject
+# Delete Subject
 @login_required
 @permission_required('subject.delete_subject', raise_exception=True)
 def deleteSubject(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
-    subject.delete()
-    messages.success(request, 'Subject deleted successfully!')
-    return redirect('subject')
+    
+    try:
+        subject.delete()
+        messages.success(request, 'Subject deleted successfully!')
+        return JsonResponse({'status': 'success'})
+        
+    except ProtectedError as e:
+        # Handle the protected error when foreign key constraints prevent deletion
+        return JsonResponse({
+            'status': 'error',
+            'error_type': 'ProtectedError',
+            'message': 'This subject cannot be deleted because it is referenced by other records (e.g., SubjectEnrollments).'
+        })
 
 @csrf_exempt
 def check_duplicate_subject(request):

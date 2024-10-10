@@ -12,8 +12,7 @@
           <div class="col-sm-6">
             <h1 class="m-0">Inbox</h1>
           </div>
-          <div class="col-sm-6">
-          </div>
+          <div class="col-sm-6"></div>
         </div>
       </div>
     </div>
@@ -53,7 +52,7 @@
                       <div class="d-flex align-items-center">
                         <input type="checkbox" id="selectAll" class="ml-3 mb-3 mt-3" />
                         <div class="toolbar" id="toolbar" style="display: none;">
-                          <button class="btn btn-sm btn-trash ml-1" data-toggle="tooltip" title="Trash"><i class="fas fa-trash"></i></button>
+                          <button class="btn btn-sm btn-trash ml-1" data-toggle="tooltip" title="Trash" onclick="confirmTrashMessages()"><i class="fas fa-trash"></i></button>
                         </div>
                       </div>
                     </tr>
@@ -85,73 +84,9 @@
                           </td>
                           <td>
                             <span class="badge {% if item.read %}
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
                                 badge-success
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                               {% else %}
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
                                 badge-warning
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                               {% endif %}">
                               {% if item.read %}
                                 Read
@@ -214,38 +149,54 @@
   </div>
   <div id="sendMessageModalBackdrop" class="custom-modal-backdrop"></div>
 
-  <!-- Custom Modal Script -->
+  <!-- Custom Modal Script and SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    document.querySelector('.toolbar .btn-trash').addEventListener('click', function () {
+    // Function to trigger SweetAlert2 for trashing messages
+    function confirmTrashMessages() {
       const selectedMessages = document.querySelectorAll('.selectItem:checked')
       const messageIds = Array.from(selectedMessages).map((item) => item.closest('tr').dataset.id)
     
       if (messageIds.length > 0) {
-        const formData = new FormData()
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
-        messageIds.forEach((id) => formData.append('message_ids[]', id))
+        Swal.fire({
+          title: 'Are you sure?',
+          text: "You won't be able to revert this!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const formData = new FormData()
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}')
+            messageIds.forEach((id) => formData.append('message_ids[]', id))
     
-        fetch("{% url 'trash_messages' %}", {
-          method: 'POST',
-          body: formData
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === 'success') {
-              messageIds.forEach((id) => {
-                document.querySelector(`tr[data-id="${id}"]`).remove()
+            fetch("{% url 'trash_messages' %}", {
+              method: 'POST',
+              body: formData
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.status === 'success') {
+                  messageIds.forEach((id) => {
+                    document.querySelector(`tr[data-id="${id}"]`).remove()
+                  })
+                  toggleToolbar()
+                  Swal.fire('Deleted!', 'Your messages have been deleted.', 'success')
+                } else {
+                  Swal.fire('Error!', 'An error occurred while trying to trash messages.', 'error')
+                }
               })
-              toggleToolbar()
-            } else {
-              alert('An error occurred while trying to trash messages.')
-            }
-          })
-          .catch((error) => {
-            console.error('Error:', error)
-            alert('An error occurred while trying to trash messages.')
-          })
+              .catch((error) => {
+                Swal.fire('Error!', 'An error occurred while trying to trash messages.', 'error')
+              })
+          }
+        })
+      } else {
+        Swal.fire('No Messages Selected', 'Please select at least one message to delete.', 'info')
       }
-    })
+    }
     
     document.getElementById('openSendMessageModalBtn').addEventListener('click', function () {
       document.getElementById('sendMessageModal').classList.add('show')
@@ -353,36 +304,6 @@
     }
     
     document.getElementById('searchMail').addEventListener('input', filterMessages)
-  </script>
-
-  <script>
-    function truncateText(text, wordCount) {
-      let words = text.split(' ')
-      if (words.length > wordCount) {
-        return words.slice(0, wordCount).join(' ') + '...'
-      }
-      return text
-    }
-    
-    function applyResponsiveTruncate() {
-      const isMobile = window.innerWidth <= 768 // Adjust screen width for mobile breakpoint
-      const messageElements = document.querySelectorAll('.message-body')
-    
-      messageElements.forEach(function (element) {
-        const fullMessage = element.closest('a').getAttribute('data-body')
-        if (isMobile) {
-          element.textContent = truncateText(fullMessage, 0) // No truncation on mobile
-        } else {
-          element.textContent = truncateText(fullMessage, 5) // Truncate to 5 words on desktop
-        }
-      })
-    }
-    
-    // Apply truncation on page load
-    document.addEventListener('DOMContentLoaded', applyResponsiveTruncate)
-    
-    // Reapply truncation on window resize
-    window.addEventListener('resize', applyResponsiveTruncate)
   </script>
 
   <style>
