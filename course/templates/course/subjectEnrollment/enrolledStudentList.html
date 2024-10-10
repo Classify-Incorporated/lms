@@ -88,18 +88,35 @@
                             <td>{{ enrollment.student.get_full_name }}</td>
                             <td>{{ enrollment.semester.semester_name }} - {{ enrollment.semester.school_year }}</td>
                             <td>{{ enrollment.enrollment_date }}</td>
-                            <td>{{ enrollment.status }}</td>
+                            <td>
+                              {% if enrollment.status == 'dropped' %}
+                                <span class="badge bg-warning">
+                                  <i class="fas fa-times-circle"></i> Dropped
+                                </span>
+                              {% elif enrollment.status == 'enrolled' %}
+                                <span class="badge bg-success">
+                                  <i class="fas fa-check-circle"></i> Enrolled
+                                </span>
+                              {% elif enrollment.status == 'completed' %}
+                                <span class="badge bg-warning text-primary">
+                                  <i class="fas fa-graduation-cap"></i> Completed
+                                </span>
+                              {% endif %}
+                            </td>
                             {% if user.profile.role.name.lower != 'student' %}
-                              <td>
+                            <td>
+                              {% if enrollment.status != 'dropped' %}
                                 <a href="{% url 'dropStudentFromSubject' enrollment.id %}" class="btn btn-primary btn-sm"
-                                  onclick="return confirm('Are you sure you want to drop {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">
-                                  Drop
+                                onclick="return confirm('Are you sure you want to drop {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">
+                                Drop
                                 </a>
-                                <a href="{% url 'deleteStudentFromSubject' enrollment.id %}" class="btn btn-primary btn-sm"
-                                onclick="return confirm('Are you sure you want to remove {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">
-                                Remove
-                              </a>
-                              </td>
+                              {% endif %}
+                      
+                              <a href="{% url 'deleteStudentFromSubject' enrollment.id %}" class="btn btn-danger btn-sm"
+                              onclick="return confirm('Are you sure you want to remove {{ enrollment.student.get_full_name }} from {{ enrollment.subject.subject_name }}?');">
+                              Remove
+                            </a>
+                            </td>
                             {% endif %}
                           </tr>
                         {% endfor %}
@@ -114,6 +131,7 @@
     </section>
   </div>
 
+ 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       // DataTables options

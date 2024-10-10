@@ -9,14 +9,14 @@
       <div class="container-fluid">
         <div class="row mb-2 align-items-center">
           <div class="col-sm-6">
-            <h1 class="display-5 mb-">Add Quiz Type</h1>
+            <h1 class="display-5 mb-">Add</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item">
                 <a href="#">Home</a>
               </li>
-              <li class="breadcrumb-item active">Add Quiz Type</li>
+              <li class="breadcrumb-item active">Add</li>
             </ol>
           </div>
         </div>
@@ -34,7 +34,7 @@
 
         <!-- Add Question Dropdown -->
         <div class="dropdown">
-          <button class="btn btn-primary dropdown-toggle shadow-sm mb-3" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">Add Quiz Type</button>
+          <button class="btn btn-primary dropdown-toggle shadow-sm mb-3" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">Add</button>
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             {% for quiz_type in quiz_types %}
               {% if not is_participation or quiz_type.name == 'Participation' %}

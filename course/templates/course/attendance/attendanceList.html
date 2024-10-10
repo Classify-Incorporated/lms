@@ -55,7 +55,25 @@
                     {% for record in attendance %}
                     <tr>
                         <td>{{ record.student.get_full_name }}</td>
-                        <td>{{ record.status }}</td>
+                        <td>
+                          {% if record.status.status == 'Present' %}
+                            <span class="badge bg-success">
+                              <i class="fas fa-check-circle"></i> Present
+                            </span>
+                          {% elif record.status.status == 'Late' %}
+                            <span class="badge bg-warning">
+                              <i class="fas fa-clock"></i> Late
+                            </span>
+                          {% elif record.status.status == 'Absent' %}
+                            <span class="badge bg-red text-white">
+                              <i class="fas fa-times-circle"></i> Absent
+                            </span>
+                          {% elif record.status.status == 'Excused' %}
+                            <span class="badge bg-primary text-white">
+                              <i class="fas fa-calendar-check"></i> Excused
+                            </span>
+                          {% endif %}
+                        </td>
                         <td>{{ record.date }}</td>
                         <td>
                             <div class="dropdown">

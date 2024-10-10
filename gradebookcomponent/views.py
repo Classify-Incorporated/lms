@@ -341,7 +341,6 @@ def createSubGradeBook(request):
     return render(request, 'gradebookcomponent/subgradebook/createSubGradeBook.html', {'sub_gradebook': sub_gradebook})
 
 
-
 @login_required
 def updateSubGradebook(request, id):
     sub_gradebook = get_object_or_404(SubGradeBook, id=id)
@@ -978,6 +977,11 @@ def studentTotalScoreApi(request):
 
             # Calculate total weighted score (including regular, participation, and remedial bonus points)
             for student, scores in student_scores.items():
+
+                # Fetch the student's enrollment status
+                subject_enrollment = SubjectEnrollment.objects.filter(student=student, subject=subject, semester=current_semester).first()
+                enrollment_status = subject_enrollment.status if subject_enrollment else "N/A"
+
                 weighted_term_score = scores['total_weighted_score'] * (term_percentage / Decimal(100))
                 student_total_weighted_grade[student.id][subject.subject_name] += weighted_term_score
 
@@ -990,7 +994,8 @@ def studentTotalScoreApi(request):
                     'total_weighted_score': f"{weighted_term_score:.6f}",
                     'percentage': f"{weighted_term_percentage:.1f}%",
                     'missed': any(score.get('missed', False) for score in scores['term_scores']),
-                    'student_name': student.get_full_name()
+                    'student_name': student.get_full_name(),
+                    'enrollment_status': enrollment_status
                 })
 
     return JsonResponse({
