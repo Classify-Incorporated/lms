@@ -11,6 +11,7 @@ class semesterForm(forms.ModelForm):
 
     school_year = forms.ChoiceField(
         choices=[(r, r) for r in year_range],
+
         widget=forms.Select(attrs={'class': 'form-control'}),
         label='School Year'
     )

@@ -19,6 +19,9 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from accounts.adapter import oauth2_login, oauth2_callback
+from django.conf.urls import handler500
+from django.conf.urls import handler403
+from lms import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -42,3 +45,7 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    
+# Add the handler for the 500 error
+handler500 = 'lms.views.custom_500_view'
+handler403 = 'lms.views.custom_403_view'
